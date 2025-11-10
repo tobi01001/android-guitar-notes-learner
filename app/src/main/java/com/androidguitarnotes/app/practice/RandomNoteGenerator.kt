@@ -27,25 +27,10 @@ class RandomNoteGenerator(private val config: PracticeConfig) {
         )
 
     /**
-     * Generates a random note based on the configuration.
+     * Cached list of valid (string, fret) positions based on the configuration.
+     * Computed once at initialization for better performance.
      */
-    fun generateNote(): PracticeNote {
-        // Get valid positions based on note mode
-        val validPositions = getValidPositions()
-        
-        // Select a random valid position
-        val (stringNumber, fret) = validPositions.random()
-        
-        // Calculate note name
-        val noteName = calculateNoteName(stringNumber, fret)
-
-        return PracticeNote(stringNumber, fret, noteName)
-    }
-
-    /**
-     * Gets all valid (string, fret) positions based on the configuration.
-     */
-    private fun getValidPositions(): List<Pair<Int, Int>> {
+    private val validPositions: List<Pair<Int, Int>> by lazy {
         val positions = mutableListOf<Pair<Int, Int>>()
         
         for (stringNumber in config.selectedStrings) {
@@ -60,7 +45,20 @@ class RandomNoteGenerator(private val config: PracticeConfig) {
         if (positions.isEmpty()) {
             throw IllegalStateException("No valid note positions found for the selected configuration. Please check your scale, mode, and fret range.")
         }
-        return positions
+        positions
+    }
+
+    /**
+     * Generates a random note based on the configuration.
+     */
+    fun generateNote(): PracticeNote {
+        // Select a random valid position from cached list
+        val (stringNumber, fret) = validPositions.random()
+        
+        // Calculate note name
+        val noteName = calculateNoteName(stringNumber, fret)
+
+        return PracticeNote(stringNumber, fret, noteName)
     }
 
     /**
