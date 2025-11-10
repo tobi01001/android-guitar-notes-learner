@@ -1,6 +1,5 @@
 package com.androidguitarnotes.app.practice
 
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -28,7 +27,7 @@ class PracticeSessionViewModel(
 
     private val _audioPermissionRequired = MutableStateFlow(false)
     val audioPermissionRequired: StateFlow<Boolean> = _audioPermissionRequired.asStateFlow()
-private val _showPermissionRationale = MutableStateFlow(false)
+    private val _showPermissionRationale = MutableStateFlow(false)
     val showPermissionRationale: StateFlow<Boolean> = _showPermissionRationale.asStateFlow()
 
     private val _autoIntervalCountdown = MutableStateFlow<Float?>(null)
@@ -183,10 +182,10 @@ private val _showPermissionRationale = MutableStateFlow(false)
                         }
                     }
                 } catch (e: SecurityException) {
-                // Permission was revoked during recording
-                Log.e("PracticeSessionViewModel", "Permission revoked during recording", e)
-                stopAudioListening()
-            } catch (e:Exception) {
+                    // Permission was revoked during recording
+                    Log.e("PracticeSessionViewModel", "Permission revoked during recording", e)
+                    stopAudioListening()
+                } catch (e: Exception) {
                     // Log audio errors for debugging
                     Log.e("PracticeSessionViewModel", "Audio listening error", e)
                     // Continue without audio feedback

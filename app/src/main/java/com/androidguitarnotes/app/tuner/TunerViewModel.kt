@@ -15,57 +15,61 @@ import kotlin.math.log2
  * ViewModel for the guitar tuner screen.
  */
 class TunerViewModel(
-    private val audioManager: AudioManager
+    private val audioManager: AudioManager,
 ) : ViewModel() {
-    
     private val _state = MutableStateFlow(TunerState())
     val state: StateFlow<TunerState> = _state.asStateFlow()
-    
+
     private var listeningJob: Job? = null
-    
+
     /**
      * Selects a guitar string to tune.
      */
     fun selectString(guitarString: GuitarString) {
         _state.value = _state.value.copy(selectedString = guitarString)
     }
-    
+
     /**
      * Starts listening for audio input.
      */
     fun startListening() {
         if (_state.value.isListening) return
-        
+
         _state.value = _state.value.copy(isListening = true)
-        
+
         listeningJob?.cancel()
-        listeningJob = viewModelScope.launch {
-            audioManager.startListening().collect { result ->
-                when (result) {
-                    is AudioManager.AudioAnalysisResult.NoteDetected -> {
-                        val selectedString = _state.value.selectedString
-                        val cents = calculateCentsDeviation(
-                            result.frequency,
-                            selectedString.frequency
-                        )
-                        
-                        _state.value = _state.value.copy(
-                            tuningStatus = TuningStatus.Detecting(
-                                detectedFrequency = result.frequency,
-                                cents = cents
-                            )
-                        )
-                    }
-                    is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
-                        _state.value = _state.value.copy(
-                            tuningStatus = TuningStatus.NotDetected
-                        )
+        listeningJob =
+            viewModelScope.launch {
+                audioManager.startListening().collect { result ->
+                    when (result) {
+                        is AudioManager.AudioAnalysisResult.NoteDetected -> {
+                            val selectedString = _state.value.selectedString
+                            val cents =
+                                calculateCentsDeviation(
+                                    result.frequency,
+                                    selectedString.frequency,
+                                )
+
+                            _state.value =
+                                _state.value.copy(
+                                    tuningStatus =
+                                        TuningStatus.Detecting(
+                                            detectedFrequency = result.frequency,
+                                            cents = cents,
+                                        ),
+                                )
+                        }
+                        is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
+                            _state.value =
+                                _state.value.copy(
+                                    tuningStatus = TuningStatus.NotDetected,
+                                )
+                        }
                     }
                 }
             }
-        }
     }
-    
+
     /**
      * Stops listening for audio input.
      */
@@ -73,19 +77,21 @@ class TunerViewModel(
         listeningJob?.cancel()
         listeningJob = null
         audioManager.stopListening()
-        _state.value = _state.value.copy(
-            isListening = false,
-            tuningStatus = TuningStatus.NotDetected
-        )
+        _state.value =
+            _state.value.copy(
+                isListening = false,
+                tuningStatus = TuningStatus.NotDetected,
+            )
     }
-    
+
     /**
      * Calculates the cents deviation between detected and target frequency.
      */
-    private fun calculateCentsDeviation(detectedFreq: Double, targetFreq: Double): Double {
-        return 1200.0 * log2(detectedFreq / targetFreq)
-    }
-    
+    private fun calculateCentsDeviation(
+        detectedFreq: Double,
+        targetFreq: Double,
+    ): Double = 1200.0 * log2(detectedFreq / targetFreq)
+
     /**
      * Checks if the current tuning status is in tune.
      */
@@ -93,7 +99,7 @@ class TunerViewModel(
         val status = _state.value.tuningStatus
         return status is TuningStatus.Detecting && abs(status.cents) <= TunerConstants.IN_TUNE_THRESHOLD_CENTS
     }
-    
+
     override fun onCleared() {
         super.onCleared()
         stopListening()

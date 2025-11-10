@@ -8,9 +8,8 @@ import com.androidguitarnotes.app.audio.AudioManager
  * Factory for creating TunerViewModel instances.
  */
 class TunerViewModelFactory(
-    private val audioManager: AudioManager
+    private val audioManager: AudioManager,
 ) : ViewModelProvider.Factory {
-    
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(TunerViewModel::class.java)) {
