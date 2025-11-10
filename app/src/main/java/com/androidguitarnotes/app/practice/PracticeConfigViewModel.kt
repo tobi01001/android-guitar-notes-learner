@@ -44,6 +44,10 @@ class PracticeConfigViewModel : ViewModel() {
         _config.update { it.copy(noteMode = mode) }
     }
 
+    fun setSelectedScale(scale: Scale) {
+        _config.update { it.copy(selectedScale = scale) }
+    }
+
     fun setDurationType(type: DurationType) {
         _config.update { it.copy(durationType = type) }
     }

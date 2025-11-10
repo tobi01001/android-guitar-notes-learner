@@ -12,6 +12,9 @@ class RandomNoteGenerator(private val config: PracticeConfig) {
             "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
         )
 
+    // Natural notes (whole notes without sharps/flats)
+    private val naturalNotes = setOf("C", "D", "E", "F", "G", "A", "B")
+
     // Starting position of each open string in chromatic scale
     private val openStringPositions =
         mapOf(
@@ -27,16 +30,51 @@ class RandomNoteGenerator(private val config: PracticeConfig) {
      * Generates a random note based on the configuration.
      */
     fun generateNote(): PracticeNote {
-        // Select random string from configured strings
-        val stringNumber = config.selectedStrings.random()
-
-        // Select random fret from configured range
-        val fret = Random.nextInt(config.fretFrom, config.fretTo + 1)
-
-        // Calculate note name based on string, fret, and note mode
+        // Get valid positions based on note mode
+        val validPositions = getValidPositions()
+        
+        // Select a random valid position
+        val (stringNumber, fret) = validPositions.random()
+        
+        // Calculate note name
         val noteName = calculateNoteName(stringNumber, fret)
 
         return PracticeNote(stringNumber, fret, noteName)
+    }
+
+    /**
+     * Gets all valid (string, fret) positions based on the configuration.
+     */
+    private fun getValidPositions(): List<Pair<Int, Int>> {
+        val positions = mutableListOf<Pair<Int, Int>>()
+        
+        for (stringNumber in config.selectedStrings) {
+            for (fret in config.fretFrom..config.fretTo) {
+                val noteName = calculateNoteName(stringNumber, fret)
+                if (isNoteAllowed(noteName)) {
+                    positions.add(stringNumber to fret)
+                }
+            }
+        }
+        
+        return positions.ifEmpty {
+            // Fallback: if no valid positions, return all positions
+            // This shouldn't happen with proper configuration
+            config.selectedStrings.flatMap { string ->
+                (config.fretFrom..config.fretTo).map { fret -> string to fret }
+            }
+        }
+    }
+
+    /**
+     * Checks if a note is allowed based on the current note mode.
+     */
+    private fun isNoteAllowed(noteName: String): Boolean {
+        return when (config.noteMode) {
+            NoteMode.SEMITONES -> true // All notes allowed
+            NoteMode.WHOLE_NOTES -> noteName in naturalNotes
+            NoteMode.SCALE -> noteName in config.selectedScale.notes
+        }
     }
 
     /**
@@ -48,22 +86,6 @@ class RandomNoteGenerator(private val config: PracticeConfig) {
     ): String {
         val openPosition = openStringPositions[stringNumber] ?: 0
         val chromaticPosition = (openPosition + fret) % 12
-        val chromaticNote = chromaticScale[chromaticPosition]
-
-        return when (config.noteMode) {
-            NoteMode.SEMITONES -> chromaticNote
-            NoteMode.WHOLE_NOTES -> {
-                // Map sharps to their enharmonic flat equivalents for whole notes mode
-                // In practice, for simplicity, we just return the chromatic note
-                // A proper implementation would map: C#->Db, D#->Eb, F#->Gb, G#->Ab, A#->Bb
-                // For now, return the chromatic note and let the UI handle display
-                chromaticNote
-            }
-            NoteMode.SCALE -> {
-                // For now, treat scale mode same as chromatic
-                // TODO: Implement actual scale selection based on key and scale type
-                chromaticNote
-            }
-        }
+        return chromaticScale[chromaticPosition]
     }
 }
