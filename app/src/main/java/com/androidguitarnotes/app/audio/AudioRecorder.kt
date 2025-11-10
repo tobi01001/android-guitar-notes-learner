@@ -34,6 +34,8 @@ class AudioRecorder {
      * Starts recording and returns a flow of audio data chunks.
      * 
      * @return Flow of ShortArray containing audio samples
+     * @throws SecurityException if RECORD_AUDIO permission is not granted
+     * @throws IllegalStateException if AudioRecord initialization fails
      */
     fun startRecording(): Flow<ShortArray> = flow {
         try {
@@ -46,7 +48,7 @@ class AudioRecorder {
             )
             
             if (audioRecord?.state != AudioRecord.STATE_INITIALIZED) {
-                throw IllegalStateException("AudioRecord initialization failed")
+                throw IllegalStateException("AudioRecord initialization failed - check permissions")
             }
             
             audioRecord?.startRecording()
@@ -60,8 +62,18 @@ class AudioRecorder {
                     // Create a copy to avoid reusing the same buffer
                     val audioData = buffer.copyOf(readResult)
                     emit(audioData)
+                } else if (readResult < 0) {
+                    // Error reading audio data
+                    android.util.Log.e("AudioRecorder", "Error reading audio: $readResult")
+                    break
                 }
             }
+        } catch (e: SecurityException) {
+            android.util.Log.e("AudioRecorder", "SecurityException - missing RECORD_AUDIO permission", e)
+            throw e
+        } catch (e: Exception) {
+            android.util.Log.e("AudioRecorder", "Error in audio recording", e)
+            throw e
         } finally {
             stopRecording()
         }
