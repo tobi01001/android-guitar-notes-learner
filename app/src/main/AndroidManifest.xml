@@ -5,9 +5,7 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
-        android:label="Android Guitar Notes Learner"
-        android:icon="@mipmap/ic_launcher"
-        android:roundIcon="@mipmap/ic_launcher_round">
+        android:label="Android Guitar Notes Learner">
         <activity
             android:name=".MainActivity"
             android:exported="true">
