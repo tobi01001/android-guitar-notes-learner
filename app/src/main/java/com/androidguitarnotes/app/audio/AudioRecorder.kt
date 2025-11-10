@@ -3,6 +3,7 @@ package com.androidguitarnotes.app.audio
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -64,15 +65,15 @@ class AudioRecorder {
                     emit(audioData)
                 } else if (readResult < 0) {
                     // Error reading audio data
-                    android.util.Log.e("AudioRecorder", "Error reading audio: $readResult")
+                    Log.e("AudioRecorder", "Error reading audio: $readResult")
                     break
                 }
             }
         } catch (e: SecurityException) {
-            android.util.Log.e("AudioRecorder", "SecurityException - missing RECORD_AUDIO permission", e)
+            Log.e("AudioRecorder", "SecurityException - missing RECORD_AUDIO permission", e)
             throw e
         } catch (e: Exception) {
-            android.util.Log.e("AudioRecorder", "Error in audio recording", e)
+            Log.e("AudioRecorder", "Error in audio recording", e)
             throw e
         } finally {
             stopRecording()

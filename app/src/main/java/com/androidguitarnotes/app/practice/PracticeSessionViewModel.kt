@@ -1,6 +1,7 @@
 package com.androidguitarnotes.app.practice
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.androidguitarnotes.app.audio.AudioManager
@@ -129,7 +130,7 @@ class PracticeSessionViewModel(
     private fun startAudioListening() {
         // Double-check permission before starting
         if (!permissionManager.isRecordAudioPermissionGranted()) {
-            android.util.Log.w("PracticeSessionViewModel", "Cannot start audio - permission not granted")
+            Log.w("PracticeSessionViewModel", "Cannot start audio - permission not granted")
             return
         }
         
@@ -165,11 +166,11 @@ class PracticeSessionViewModel(
                 }
             } catch (e: SecurityException) {
                 // Permission was revoked during recording
-                android.util.Log.e("PracticeSessionViewModel", "Permission revoked during recording", e)
+                Log.e("PracticeSessionViewModel", "Permission revoked during recording", e)
                 stopAudioListening()
             } catch (e: Exception) {
                 // Log audio errors for debugging
-                android.util.Log.e("PracticeSessionViewModel", "Audio listening error", e)
+                Log.e("PracticeSessionViewModel", "Audio listening error", e)
                 // Continue without audio feedback
             }
         }
