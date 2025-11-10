@@ -21,4 +21,24 @@
     <string name="at_least_one_string">Select at least one string</string>
     <string name="invalid_fret_range">Invalid fret range</string>
     <string name="invalid_duration">Invalid duration</string>
+    
+    <!-- Practice Session -->
+    <string name="practice_session_title">Practice Session</string>
+    <string name="ready_to_practice">Ready to Practice!</string>
+    <string name="practice_instructions">Play each note as it appears. Take your time and focus on accuracy.</string>
+    <string name="play_this_note">Play this note:</string>
+    <string name="string_and_fret">String %1$d, Fret %2$d</string>
+    <string name="next_note">Next Note</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="end_session">End Session</string>
+    <string name="session_paused">Session Paused</string>
+    <string name="session_complete">Session Complete!</string>
+    <string name="notes_played">Notes Played</string>
+    <string name="total_time">Total Time</string>
+    <string name="finish">Finish</string>
+    <string name="notes_progress">%1$d / %2$d notes</string>
+    <string name="notes_completed_count">%1$d notes completed</string>
+    <string name="time_progress">%1$s / %2$s</string>
+    <string name="elapsed_time">Time: %1$s</string>
 </resources>

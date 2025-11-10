@@ -11,7 +11,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.*
+import com.androidguitarnotes.app.practice.PracticeConfig
 import com.androidguitarnotes.app.practice.PracticeConfigScreen
+import com.androidguitarnotes.app.practice.PracticeSessionScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,17 +28,27 @@ class MainActivity : ComponentActivity() {
 fun GuitarNotesApp() {
     MaterialTheme {
         val navController = rememberNavController()
+        var practiceConfig by remember { mutableStateOf<PracticeConfig?>(null) }
+        
         NavHost(navController, startDestination = "home") {
             composable("home") { HomeScreen(onStartPractice = { navController.navigate("practice") }) }
             composable("practice") { 
                 PracticeConfigScreen(
                     onBack = { navController.popBackStack() },
                     onStartPractice = { config ->
-                        // TODO: Navigate to actual practice session with config
-                        // For now, just go back
-                        navController.popBackStack()
+                        practiceConfig = config
+                        navController.navigate("practiceSession")
                     }
                 )
+            }
+            composable("practiceSession") {
+                val config = practiceConfig
+                if (config != null) {
+                    PracticeSessionScreen(
+                        config = config,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
             }
             composable("settings") { SettingsScreen() }
         }

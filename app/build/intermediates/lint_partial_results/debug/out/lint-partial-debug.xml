@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<incidents format="6" by="lint 8.0.2" type="partial_results">
+    <map id="UnusedResources">
+        <entry
+            name="model"
+            string="string[duration_mode_time(U),note_mode_semitones(U),practice_config_title(U),practice_duration(U),minutes(U),at_least_one_string(U),invalid_duration(D),back(U),string_number(U),fret_range(U),select_strings(U),fret_from(U),note_mode(U),note_mode_whole(U),duration_mode_count(U),start_practice(U),fret_to(U),note_mode_scale(U),invalid_fret_range(U),note_count(U)];;;;"/>
+        <location id="R.string.invalid_duration"
+            file="${:app*debug*sourceProvider*0*resDir*0}/values/strings.xml"
+            line="23"
+            column="13"
+            startOffset="1150"
+            endLine="23"
+            endColumn="36"
+            endOffset="1173"/>
+    </map>
+
+</incidents>
