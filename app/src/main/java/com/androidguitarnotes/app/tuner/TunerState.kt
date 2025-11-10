@@ -15,9 +15,10 @@ object TunerConstants {
  */
 sealed class TuningStatus {
     data object NotDetected : TuningStatus()
+
     data class Detecting(
         val detectedFrequency: Double,
-        val cents: Double
+        val cents: Double,
     ) : TuningStatus()
 }
 
@@ -27,5 +28,5 @@ sealed class TuningStatus {
 data class TunerState(
     val selectedString: GuitarString = GuitarString.STANDARD_TUNING[0],
     val tuningStatus: TuningStatus = TuningStatus.NotDetected,
-    val isListening: Boolean = false
+    val isListening: Boolean = false,
 )

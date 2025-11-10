@@ -60,6 +60,14 @@ class PracticeConfigViewModel : ViewModel() {
         _config.update { it.copy(noteCount = count) }
     }
 
+    fun setProgressionMode(mode: ProgressionMode) {
+        _config.update { it.copy(progressionMode = mode) }
+    }
+
+    fun setAutoIntervalSeconds(seconds: Float) {
+        _config.update { it.copy(autoIntervalSeconds = seconds) }
+    }
+
     fun isConfigValid(): Boolean {
         val config = _config.value
         return config.selectedStrings.isNotEmpty() &&
@@ -69,6 +77,10 @@ class PracticeConfigViewModel : ViewModel() {
             (
                 (config.durationType == DurationType.TIME && config.durationMinutes > 0) ||
                     (config.durationType == DurationType.COUNT && config.noteCount > 0)
+            ) &&
+            (
+                config.progressionMode != ProgressionMode.AUTO_INTERVAL ||
+                    (config.autoIntervalSeconds >= 0.5f && config.autoIntervalSeconds <= 10.0f)
             )
     }
 }

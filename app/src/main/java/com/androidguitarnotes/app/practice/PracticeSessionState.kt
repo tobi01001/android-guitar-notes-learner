@@ -15,7 +15,10 @@ sealed class PracticeSessionState {
     sealed class NoteFeedback {
         data object None : NoteFeedback()
 
-        data class Detected(val noteName: String, val cents: Double) : NoteFeedback()
+        data class Detected(
+            val noteName: String,
+            val cents: Double,
+        ) : NoteFeedback()
 
         data object Correct : NoteFeedback()
     }

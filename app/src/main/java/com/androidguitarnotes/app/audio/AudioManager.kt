@@ -29,8 +29,9 @@ class AudioManager {
      *
      * @return Flow of AudioAnalysisResult
      */
-    fun startListening(): Flow<AudioAnalysisResult> {
-        return audioRecorder.startRecording()
+    fun startListening(): Flow<AudioAnalysisResult> =
+        audioRecorder
+            .startRecording()
             .map { audioData ->
                 val frequency = pitchDetector.detectPitch(audioData)
 
@@ -45,7 +46,6 @@ class AudioManager {
                     AudioAnalysisResult.NoNoteDetected
                 }
             }
-    }
 
     /**
      * Stops listening for audio.
@@ -57,7 +57,5 @@ class AudioManager {
     /**
      * Checks if currently listening.
      */
-    fun isListening(): Boolean {
-        return audioRecorder.isRecording()
-    }
+    fun isListening(): Boolean = audioRecorder.isRecording()
 }

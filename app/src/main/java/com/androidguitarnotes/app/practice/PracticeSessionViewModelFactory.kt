@@ -11,7 +11,7 @@ import com.androidguitarnotes.app.permissions.PermissionManager
  */
 class PracticeSessionViewModelFactory(
     private val config: PracticeConfig,
-    private val context: Context
+    private val context: Context,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

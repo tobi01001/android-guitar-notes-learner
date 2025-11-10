@@ -70,22 +70,23 @@ class AudioRecorder {
                         // Create a copy to avoid reusing the same buffer
                         val audioData = buffer.copyOf(readResult)
                         emit(audioData)
-                    }else if (readResult < 0) {
-                    // Error reading audio data
-                    Log.e("AudioRecorder", "Error reading audio: $readResult")
-                    break
+                    } else if (readResult < 0) {
+                        // Error reading audio data
+                        Log.e("AudioRecorder", "Error reading audio: $readResult")
+                        break
+                    }
                 }
-            }
-        } catch (e: SecurityException) {
+            } catch (e: SecurityException) {
                 Log.e("AudioRecorder", "SecurityException - missing RECORD_AUDIO permission", e)
-            throw e
-        } catch (e: Exception) {
-            Log.e("AudioRecorder", "Error in audio recording", e)
-            throw e
+                throw e
+            } catch (e: Exception) {
+                Log.e("AudioRecorder", "Error in audio recording", e)
+                throw e
             } finally {
                 stopRecording()
             }
         }.flowOn(Dispatchers.IO)
+
     /**
      * Stops recording and releases resources.
      */
@@ -103,7 +104,5 @@ class AudioRecorder {
     /**
      * Checks if recording is currently active.
      */
-    fun isRecording(): Boolean {
-        return audioRecord?.recordingState == AudioRecord.RECORDSTATE_RECORDING
-    }
+    fun isRecording(): Boolean = audioRecord?.recordingState == AudioRecord.RECORDSTATE_RECORDING
 }

@@ -12,6 +12,8 @@ data class PracticeConfig(
     val durationType: DurationType = DurationType.TIME,
     val durationMinutes: Int = 5,
     val noteCount: Int = 20,
+    val progressionMode: ProgressionMode = ProgressionMode.MANUAL,
+    val autoIntervalSeconds: Float = 3.0f, // Used when progressionMode is AUTO_INTERVAL
 )
 
 /**
@@ -39,4 +41,21 @@ enum class Scale(val notes: List<String>) {
     G_MAJOR(listOf("G", "A", "B", "C", "D", "E", "F#")),
     A_MINOR(listOf("A", "B", "C", "D", "E", "F", "G")),
     E_MINOR(listOf("E", "F#", "G", "A", "B", "C", "D")),
+ * Defines how progression through notes occurs during practice.
+ */
+enum class ProgressionMode {
+    /**
+     * User manually clicks "Next Note" button to advance.
+     */
+    MANUAL,
+    
+    /**
+     * Automatically advances to next note when correct note is detected via audio.
+     */
+    AUDIO_VERIFICATION,
+    
+    /**
+     * Automatically advances to next note after a configured time interval.
+     */
+    AUTO_INTERVAL,
 }

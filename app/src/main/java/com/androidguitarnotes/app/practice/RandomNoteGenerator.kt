@@ -5,11 +5,24 @@ import kotlin.random.Random
 /**
  * Generates random notes based on practice configuration.
  */
-class RandomNoteGenerator(private val config: PracticeConfig) {
+class RandomNoteGenerator(
+    private val config: PracticeConfig,
+) {
     // Chromatic scale (all semitones)
     private val chromaticScale =
         listOf(
-            "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
+            "C",
+            "C#",
+            "D",
+            "D#",
+            "E",
+            "F",
+            "F#",
+            "G",
+            "G#",
+            "A",
+            "A#",
+            "B",
         )
 
     // Natural notes (whole notes without sharps/flats)

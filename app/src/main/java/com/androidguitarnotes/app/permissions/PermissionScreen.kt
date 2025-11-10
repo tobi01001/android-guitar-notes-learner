@@ -3,7 +3,6 @@ package com.androidguitarnotes.app.permissions
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -15,7 +14,7 @@ import com.androidguitarnotes.app.R
 @Composable
 fun PermissionRationaleScreen(
     onRequestPermission: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -23,20 +22,20 @@ fun PermissionRationaleScreen(
             Text(
                 text = stringResource(R.string.microphone_permission_title),
                 style = MaterialTheme.typography.headlineSmall,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
         },
         text = {
             Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Text(
                     text = stringResource(R.string.microphone_permission_rationale),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
                 )
                 Text(
                     text = stringResource(R.string.microphone_permission_features),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
                 )
             }
         },
@@ -49,6 +48,6 @@ fun PermissionRationaleScreen(
             TextButton(onClick = onDismiss) {
                 Text(stringResource(R.string.not_now))
             }
-        }
+        },
     )
 }
