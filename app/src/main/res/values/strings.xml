@@ -51,6 +51,20 @@
     <string name="audio_permission_required">Microphone permission is required for pitch detection</string>
     <string name="audio_permission_denied">Microphone access denied. You can still practice manually.</string>
     
+    <!-- Tuner -->
+    <string name="tuner_title">Guitar Tuner</string>
+    <string name="tuner">Tuner</string>
+    <string name="select_string_to_tune">Select a string to tune</string>
+    <string name="string_name_octave">%1$s%2$d</string>
+    <string name="target_frequency">Target: %1$.2f Hz</string>
+    <string name="detected_frequency">Detected: %1$.2f Hz</string>
+    <string name="cents_deviation">%1$+.0f cents</string>
+    <string name="in_tune">In Tune!</string>
+    <string name="tune_up">Tune Up ↑</string>
+    <string name="tune_down">Tune Down ↓</string>
+    <string name="start_tuning">Start Tuning</string>
+    <string name="stop_tuning">Stop Tuning</string>
+    <string name="no_sound_detected">No sound detected</string>
     <!-- Permissions -->
     <string name="microphone_permission_title">Microphone Permission</string>
     <string name="microphone_permission_rationale">This app needs microphone access to listen to the notes you play and provide real-time feedback on your guitar playing.</string>
