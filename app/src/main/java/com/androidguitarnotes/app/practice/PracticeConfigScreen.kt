@@ -69,7 +69,7 @@ fun PracticeConfigScreen(
                     onClick = onBack,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Back")
+                    Text(stringResource(R.string.back))
                 }
                 
                 Button(
@@ -144,7 +144,7 @@ private fun FretRangeSection(
                 onValueChange = { 
                     fromText = it
                     it.toIntOrNull()?.let { from ->
-                        if (from >= 0) {
+                        if (from >= 0 && from <= 24) {
                             onFretRangeChange(from, fretTo)
                         }
                     }
@@ -162,7 +162,7 @@ private fun FretRangeSection(
                 onValueChange = { 
                     toText = it
                     it.toIntOrNull()?.let { to ->
-                        if (to >= 0) {
+                        if (to >= 0 && to <= 24) {
                             onFretRangeChange(fretFrom, to)
                         }
                     }
@@ -262,7 +262,8 @@ private fun DurationSection(
                     onValueChange = { 
                         minutesText = it
                         it.toIntOrNull()?.let { minutes ->
-                            if (minutes > 0) {
+                            val MAX_MINUTES = 480
+                            if (minutes > 0 && minutes <= MAX_MINUTES) {
                                 onDurationMinutesChange(minutes)
                             }
                         }
@@ -295,7 +296,7 @@ private fun DurationSection(
                     onValueChange = { 
                         countText = it
                         it.toIntOrNull()?.let { count ->
-                            if (count > 0) {
+                            if (count > 0 && count <= 1000) {
                                 onNoteCountChange(count)
                             }
                         }
