@@ -1,5 +1,8 @@
 package com.androidguitarnotes.app.practice
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,6 +28,25 @@ fun PracticeSessionScreen(
     )
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val audioPermissionRequired by viewModel.audioPermissionRequired.collectAsStateWithLifecycle()
+    
+    // Audio permission launcher
+    val audioPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            viewModel.onAudioPermissionGranted()
+        } else {
+            viewModel.onAudioPermissionDenied()
+        }
+    }
+    
+    // Request permission when needed
+    LaunchedEffect(audioPermissionRequired) {
+        if (audioPermissionRequired) {
+            audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
     
     Scaffold(
         topBar = {
@@ -41,7 +63,10 @@ fun PracticeSessionScreen(
             when (val currentState = state) {
                 is PracticeSessionState.Ready -> {
                     ReadyScreen(
-                        onStart = { viewModel.startSession() },
+                        onStart = { 
+                            viewModel.startSession()
+                            viewModel.requestAudioPermission()
+                        },
                         onBack = onBack
                     )
                 }
@@ -190,6 +215,11 @@ private fun ActiveSessionScreen(
                     )
                 }
             }
+            
+            // Note feedback display
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            NoteFeedbackDisplay(feedback = state.noteFeedback)
         }
         
         // Controls section
@@ -400,6 +430,57 @@ private fun ProgressIndicator(
                 text = stringResource(R.string.elapsed_time, formatTime(elapsedTimeSeconds)),
                 style = MaterialTheme.typography.titleMedium
             )
+        }
+    }
+}
+
+@Composable
+private fun NoteFeedbackDisplay(feedback: PracticeSessionState.NoteFeedback) {
+    when (feedback) {
+        is PracticeSessionState.NoteFeedback.None -> {
+            // Show listening indicator
+            Text(
+                text = stringResource(R.string.listening),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        is PracticeSessionState.NoteFeedback.Correct -> {
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            ) {
+                Text(
+                    text = stringResource(R.string.correct_note),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        }
+        is PracticeSessionState.NoteFeedback.Detected -> {
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = stringResource(R.string.detected_note, feedback.noteName),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                    Text(
+                        text = stringResource(R.string.try_again),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                }
+            }
         }
     }
 }

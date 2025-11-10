@@ -2,6 +2,7 @@ package com.androidguitarnotes.app.practice
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.androidguitarnotes.app.audio.AudioManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,17 +13,50 @@ import kotlinx.coroutines.launch
 /**
  * ViewModel for managing practice session state and logic.
  */
-class PracticeSessionViewModel(private val config: PracticeConfig) : ViewModel() {
+class PracticeSessionViewModel(
+    private val config: PracticeConfig,
+    private val audioManager: AudioManager = AudioManager()
+) : ViewModel() {
     
     private val noteGenerator = RandomNoteGenerator(config)
     
     private val _state = MutableStateFlow<PracticeSessionState>(PracticeSessionState.Ready)
     val state: StateFlow<PracticeSessionState> = _state.asStateFlow()
     
+    private val _audioPermissionRequired = MutableStateFlow(false)
+    val audioPermissionRequired: StateFlow<Boolean> = _audioPermissionRequired.asStateFlow()
+    
     private var timerJob: Job? = null
+    private var audioListeningJob: Job? = null
     private var startTimeMillis: Long = 0
     private var pausedTimeMillis: Long = 0
     private var totalPausedDuration: Long = 0
+    
+    /**
+     * Requests audio permission.
+     */
+    fun requestAudioPermission() {
+        _audioPermissionRequired.value = true
+    }
+    
+    /**
+     * Called when audio permission is granted.
+     */
+    fun onAudioPermissionGranted() {
+        _audioPermissionRequired.value = false
+        // Start audio listening if session is active
+        if (_state.value is PracticeSessionState.Active) {
+            startAudioListening()
+        }
+    }
+    
+    /**
+     * Called when audio permission is denied.
+     */
+    fun onAudioPermissionDenied() {
+        _audioPermissionRequired.value = false
+        // Continue session without audio feedback
+    }
     
     /**
      * Starts a new practice session.
@@ -50,10 +84,62 @@ class PracticeSessionViewModel(private val config: PracticeConfig) : ViewModel()
             notesCompleted = 0,
             totalNotes = totalNotes,
             elapsedTimeSeconds = 0,
-            totalTimeSeconds = totalTimeSeconds
+            totalTimeSeconds = totalTimeSeconds,
+            noteFeedback = PracticeSessionState.NoteFeedback.None
         )
         
         startTimer()
+        // Audio listening will be started after permission is granted
+    }
+    
+    /**
+     * Starts listening for audio input and analyzing notes.
+     */
+    private fun startAudioListening() {
+        audioListeningJob?.cancel()
+        audioListeningJob = viewModelScope.launch {
+            try {
+                audioManager.startListening().collect { result ->
+                    val currentState = _state.value
+                    if (currentState is PracticeSessionState.Active) {
+                        when (result) {
+                            is AudioManager.AudioAnalysisResult.NoteDetected -> {
+                                val expectedNote = currentState.currentNote.noteName
+                                val isCorrect = result.noteName == expectedNote
+                                
+                                val feedback = if (isCorrect) {
+                                    PracticeSessionState.NoteFeedback.Correct
+                                } else {
+                                    PracticeSessionState.NoteFeedback.Detected(
+                                        result.noteName,
+                                        result.cents
+                                    )
+                                }
+                                
+                                _state.value = currentState.copy(noteFeedback = feedback)
+                            }
+                            is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
+                                _state.value = currentState.copy(
+                                    noteFeedback = PracticeSessionState.NoteFeedback.None
+                                )
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                // Log audio errors for debugging
+                android.util.Log.e("PracticeSessionViewModel", "Audio listening error", e)
+                // Continue without audio feedback
+            }
+        }
+    }
+    
+    /**
+     * Stops listening for audio input.
+     */
+    private fun stopAudioListening() {
+        audioListeningJob?.cancel()
+        audioManager.stopListening()
     }
     
     /**
@@ -87,6 +173,7 @@ class PracticeSessionViewModel(private val config: PracticeConfig) : ViewModel()
         if (currentState is PracticeSessionState.Active) {
             pausedTimeMillis = System.currentTimeMillis()
             timerJob?.cancel()
+            stopAudioListening()
             
             _state.value = PracticeSessionState.Paused(
                 currentNote = currentState.currentNote,
@@ -113,10 +200,12 @@ class PracticeSessionViewModel(private val config: PracticeConfig) : ViewModel()
                 notesCompleted = currentState.notesCompleted,
                 totalNotes = currentState.totalNotes,
                 elapsedTimeSeconds = currentState.elapsedTimeSeconds,
-                totalTimeSeconds = currentState.totalTimeSeconds
+                totalTimeSeconds = currentState.totalTimeSeconds,
+                noteFeedback = PracticeSessionState.NoteFeedback.None
             )
             
             startTimer()
+            startAudioListening()
         }
     }
     
@@ -170,6 +259,7 @@ class PracticeSessionViewModel(private val config: PracticeConfig) : ViewModel()
      */
     private fun completeSession(notesCompleted: Int) {
         timerJob?.cancel()
+        stopAudioListening()
         val totalTime = (System.currentTimeMillis() - startTimeMillis - totalPausedDuration) / 1000
         _state.value = PracticeSessionState.Completed(
             notesCompleted = notesCompleted,
@@ -180,5 +270,6 @@ class PracticeSessionViewModel(private val config: PracticeConfig) : ViewModel()
     override fun onCleared() {
         super.onCleared()
         timerJob?.cancel()
+        stopAudioListening()
     }
 }
