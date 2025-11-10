@@ -174,7 +174,7 @@ fun `isConfigValid returns true for valid config`()
 
 ## Build Requirements
 
-- **Gradle**: 8.2
+- **Gradle**: 8.0+ (wrapper configured for 8.2)
 - **Android Gradle Plugin**: 8.0.2
 - **Kotlin**: 1.8.20
 - **Compile SDK**: 34

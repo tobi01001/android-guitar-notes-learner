@@ -95,7 +95,7 @@ To build and test this implementation:
 4. Build and run on an emulator or device (API 34+)
 
 The build requires:
-- Gradle 8.2
+- Gradle 8.0+ (wrapper configured for 8.2)
 - Android Gradle Plugin 8.0.2
 - Kotlin 1.8.20
 - Target SDK 34, Min SDK 34
