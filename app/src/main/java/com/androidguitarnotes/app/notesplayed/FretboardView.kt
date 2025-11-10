@@ -15,9 +15,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+private const val GUITAR_STRINGS = 6
+
 /**
  * Fretboard visualization composable.
  * Displays a guitar fretboard and highlights positions for the detected note.
+ *
+ * @param detectedNote The note name to highlight on the fretboard (e.g., 'A', 'C#', 'F').
+ *                     If null, no positions will be highlighted.
+ * @param maxFret The maximum fret number to display (default is 12).
+ * @param modifier Modifier to be applied to the fretboard container.
  */
 @Composable
 fun FretboardView(
@@ -49,7 +56,7 @@ fun FretboardView(
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            for (stringNumber in 1..6) {
+            for (stringNumber in 1..GUITAR_STRINGS) {
                 StringRow(
                     stringNumber = stringNumber,
                     maxFret = maxFret,

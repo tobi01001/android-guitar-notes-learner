@@ -27,31 +27,34 @@ class NotesPlayedViewModel(
     fun startListening() {
         if (_state.value.isListening) return
 
-        _state.value = _state.value.copy(isListening = true)
-
         listeningJob?.cancel()
         listeningJob =
             viewModelScope.launch {
-                audioManager.startListening().collect { result ->
-                    when (result) {
-                        is AudioManager.AudioAnalysisResult.NoteDetected -> {
-                            _state.value =
-                                _state.value.copy(
-                                    detectedNote =
-                                        DetectedNoteInfo(
-                                            noteName = result.noteName,
-                                            frequency = result.frequency,
-                                            cents = result.cents,
-                                        ),
-                                )
-                        }
-                        is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
-                            _state.value =
-                                _state.value.copy(
-                                    detectedNote = null,
-                                )
+                try {
+                    _state.value = _state.value.copy(isListening = true)
+                    audioManager.startListening().collect { result ->
+                        when (result) {
+                            is AudioManager.AudioAnalysisResult.NoteDetected -> {
+                                _state.value =
+                                    _state.value.copy(
+                                        detectedNote =
+                                            DetectedNoteInfo(
+                                                noteName = result.noteName,
+                                                frequency = result.frequency,
+                                                cents = result.cents,
+                                            ),
+                                    )
+                            }
+                            is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
+                                _state.value =
+                                    _state.value.copy(
+                                        detectedNote = null,
+                                    )
+                            }
                         }
                     }
+                } catch (e: Exception) {
+                    _state.value = _state.value.copy(isListening = false, detectedNote = null)
                 }
             }
     }

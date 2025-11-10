@@ -6,14 +6,13 @@ import com.androidguitarnotes.app.audio.AudioManager
 
 /**
  * Factory for creating NotesPlayedViewModel instances.
+ * Creates and manages the AudioManager dependency internally.
  */
-class NotesPlayedViewModelFactory(
-    private val audioManager: AudioManager,
-) : ViewModelProvider.Factory {
+class NotesPlayedViewModelFactory : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(NotesPlayedViewModel::class.java)) {
-            return NotesPlayedViewModel(audioManager) as T
+            return NotesPlayedViewModel(AudioManager()) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -30,15 +30,9 @@ fun NotesPlayedScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val audioManager = remember { AudioManager() }
-    DisposableEffect(audioManager) {
-        onDispose {
-            audioManager.stopListening()
-        }
-    }
     val viewModel: NotesPlayedViewModel =
         viewModel(
-            factory = NotesPlayedViewModelFactory(audioManager),
+            factory = NotesPlayedViewModelFactory(),
         )
     val state by viewModel.state.collectAsStateWithLifecycle()
 
