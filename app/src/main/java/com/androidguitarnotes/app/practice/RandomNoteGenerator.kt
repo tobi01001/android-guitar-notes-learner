@@ -57,13 +57,10 @@ class RandomNoteGenerator(private val config: PracticeConfig) {
             }
         }
         
-        return positions.ifEmpty {
-            // Fallback: if no valid positions, return all positions
-            // This shouldn't happen with proper configuration
-            config.selectedStrings.flatMap { string ->
-                (config.fretFrom..config.fretTo).map { fret -> string to fret }
-            }
+        if (positions.isEmpty()) {
+            throw IllegalStateException("No valid note positions found for the selected configuration. Please check your scale, mode, and fret range.")
         }
+        return positions
     }
 
     /**
