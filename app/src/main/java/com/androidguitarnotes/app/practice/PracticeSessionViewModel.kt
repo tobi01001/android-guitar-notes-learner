@@ -44,6 +44,10 @@ class PracticeSessionViewModel(
      */
     fun onAudioPermissionGranted() {
         _audioPermissionRequired.value = false
+        // Start audio listening if session is active
+        if (_state.value is PracticeSessionState.Active) {
+            startAudioListening()
+        }
     }
     
     /**
@@ -85,7 +89,7 @@ class PracticeSessionViewModel(
         )
         
         startTimer()
-        startAudioListening()
+        // Audio listening will be started after permission is granted
     }
     
     /**
@@ -123,7 +127,9 @@ class PracticeSessionViewModel(
                     }
                 }
             } catch (e: Exception) {
-                // Handle audio errors silently - continue without audio feedback
+                // Log audio errors for debugging
+                android.util.Log.e("PracticeSessionViewModel", "Audio listening error", e)
+                // Continue without audio feedback
             }
         }
     }

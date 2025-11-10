@@ -63,21 +63,4 @@ class PitchDetector(
             null
         }
     }
-    
-    /**
-     * Applies a simple high-pass filter to remove DC offset and low-frequency noise.
-     */
-    private fun applyHighPassFilter(data: FloatArray): FloatArray {
-        if (data.size < 2) return data
-        
-        val filtered = FloatArray(data.size)
-        val alpha = 0.95f
-        
-        filtered[0] = data[0]
-        for (i in 1 until data.size) {
-            filtered[i] = alpha * (filtered[i - 1] + data[i] - data[i - 1])
-        }
-        
-        return filtered
-    }
 }

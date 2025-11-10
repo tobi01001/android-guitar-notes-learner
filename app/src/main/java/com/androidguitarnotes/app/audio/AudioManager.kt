@@ -56,13 +56,6 @@ class AudioManager {
     }
     
     /**
-     * Checks if a detected frequency matches the expected note.
-     */
-    fun matchesExpectedNote(detectedFrequency: Double, expectedNoteName: String): Boolean {
-        return noteRecognizer.matchesNote(detectedFrequency, expectedNoteName)
-    }
-    
-    /**
      * Checks if currently listening.
      */
     fun isListening(): Boolean {

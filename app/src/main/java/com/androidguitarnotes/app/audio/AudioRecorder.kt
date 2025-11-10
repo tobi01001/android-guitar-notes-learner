@@ -22,6 +22,7 @@ class AudioRecorder {
         private const val BUFFER_SIZE_MULTIPLIER = 2
     }
     
+    @Volatile
     private var audioRecord: AudioRecord? = null
     private val bufferSize = AudioRecord.getMinBufferSize(
         SAMPLE_RATE,
@@ -69,6 +70,7 @@ class AudioRecorder {
     /**
      * Stops recording and releases resources.
      */
+    @Synchronized
     fun stopRecording() {
         audioRecord?.apply {
             if (state == AudioRecord.STATE_INITIALIZED) {

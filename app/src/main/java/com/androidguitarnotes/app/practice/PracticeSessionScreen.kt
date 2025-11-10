@@ -64,8 +64,8 @@ fun PracticeSessionScreen(
                 is PracticeSessionState.Ready -> {
                     ReadyScreen(
                         onStart = { 
+                            viewModel.startSession()
                             viewModel.requestAudioPermission()
-                            viewModel.startSession() 
                         },
                         onBack = onBack
                     )
@@ -480,20 +480,6 @@ private fun NoteFeedbackDisplay(feedback: PracticeSessionState.NoteFeedback) {
                         color = MaterialTheme.colorScheme.onErrorContainer
                     )
                 }
-            }
-        }
-        is PracticeSessionState.NoteFeedback.Incorrect -> {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer
-                )
-            ) {
-                Text(
-                    text = stringResource(R.string.incorrect_note),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier.padding(16.dp)
-                )
             }
         }
     }
