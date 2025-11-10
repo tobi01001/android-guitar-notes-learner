@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.*
+import com.androidguitarnotes.app.practice.PracticeConfigScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,7 +28,16 @@ fun GuitarNotesApp() {
         val navController = rememberNavController()
         NavHost(navController, startDestination = "home") {
             composable("home") { HomeScreen(onStartPractice = { navController.navigate("practice") }) }
-            composable("practice") { PracticeScreen(onBack = { navController.popBackStack() }) }
+            composable("practice") { 
+                PracticeConfigScreen(
+                    onBack = { navController.popBackStack() },
+                    onStartPractice = { config ->
+                        // TODO: Navigate to actual practice session with config
+                        // For now, just go back
+                        navController.popBackStack()
+                    }
+                )
+            }
             composable("settings") { SettingsScreen() }
         }
     }
@@ -40,22 +50,6 @@ fun HomeScreen(onStartPractice: () -> Unit) {
             Text("Welcome — select Practice to start a session")
             Button(onClick = onStartPractice) { Text("Practice") }
             Button(onClick = { /* navigate to settings */ }) { Text("Settings") }
-        }
-    }
-}
-
-@Composable
-fun PracticeScreen(onBack: () -> Unit) {
-    val recordPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> }
-    LaunchedEffect(Unit) {
-        recordPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-    }
-
-    Scaffold(topBar = { TopAppBar(title = { Text("Practice") }) }) { padding ->
-        Column(modifier = Modifier.padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Practice configuration (UI controls to select strings, fret range, mode, duration)")
-            Button(onClick = { /* start practice */ }) { Text("Start Session (not implemented)") }
-            OutlinedButton(onClick = onBack) { Text("Back") }
         }
     }
 }
