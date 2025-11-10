@@ -62,6 +62,13 @@ fun PracticeConfigScreen(
                 onNoteCountChange = { viewModel.setNoteCount(it) },
             )
 
+            ProgressionModeSection(
+                progressionMode = config.progressionMode,
+                autoIntervalSeconds = config.autoIntervalSeconds,
+                onProgressionModeChange = { viewModel.setProgressionMode(it) },
+                onAutoIntervalChange = { viewModel.setAutoIntervalSeconds(it) },
+            )
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -308,6 +315,83 @@ private fun DurationSection(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProgressionModeSection(
+    progressionMode: ProgressionMode,
+    autoIntervalSeconds: Float,
+    onProgressionModeChange: (ProgressionMode) -> Unit,
+    onAutoIntervalChange: (Float) -> Unit,
+) {
+    var intervalText by remember(autoIntervalSeconds) { 
+        mutableStateOf(String.format("%.1f", autoIntervalSeconds)) 
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = stringResource(R.string.progression_mode),
+            style = MaterialTheme.typography.titleMedium,
+        )
+
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            ProgressionMode.entries.forEach { mode ->
+                Row(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    RadioButton(
+                        selected = progressionMode == mode,
+                        onClick = { onProgressionModeChange(mode) },
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text =
+                                when (mode) {
+                                    ProgressionMode.MANUAL -> stringResource(R.string.progression_mode_manual)
+                                    ProgressionMode.AUDIO_VERIFICATION -> stringResource(R.string.progression_mode_audio)
+                                    ProgressionMode.AUTO_INTERVAL -> stringResource(R.string.progression_mode_interval)
+                                },
+                        )
+                        Text(
+                            text =
+                                when (mode) {
+                                    ProgressionMode.MANUAL -> stringResource(R.string.progression_manual_desc)
+                                    ProgressionMode.AUDIO_VERIFICATION -> stringResource(R.string.progression_audio_desc)
+                                    ProgressionMode.AUTO_INTERVAL -> stringResource(R.string.progression_interval_desc)
+                                },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+
+            if (progressionMode == ProgressionMode.AUTO_INTERVAL) {
+                Slider(
+                    value = autoIntervalSeconds,
+                    onValueChange = { newValue ->
+                        onAutoIntervalChange(newValue)
+                        intervalText = String.format("%.1f", newValue)
+                    },
+                    valueRange = 0.5f..10.0f,
+                    steps = 18, // 0.5 step increments
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                )
+                Text(
+                    text = stringResource(R.string.auto_interval_label) + ": " + intervalText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = 8.dp),
                 )
             }
         }
