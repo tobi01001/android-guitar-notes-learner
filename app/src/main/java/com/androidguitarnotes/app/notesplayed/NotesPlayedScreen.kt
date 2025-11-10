@@ -110,15 +110,20 @@ private fun NoteDisplayArea(
     isListening: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    Box(
+    Column(
         modifier =
             modifier
                 .fillMaxWidth(),
-        contentAlignment = Alignment.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         if (isListening) {
             if (detectedNote != null) {
                 NoteCard(detectedNote = detectedNote)
+                FretboardView(
+                    detectedNote = detectedNote.noteName,
+                    maxFret = 12,
+                )
             } else {
                 EmptyStateMessage(
                     message = stringResource(R.string.play_a_note),
@@ -149,60 +154,62 @@ private fun NoteCard(
             modifier =
                 modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(horizontal = 16.dp),
             colors =
                 CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                 ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         ) {
-            Column(
+            Row(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                        .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
-                Text(
-                    text = stringResource(R.string.current_note),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-
                 // Large note name display
                 Box(
                     modifier =
                         Modifier
-                            .size(200.dp)
-                            .clip(RoundedCornerShape(16.dp))
+                            .size(120.dp)
+                            .clip(RoundedCornerShape(12.dp))
                             .background(MaterialTheme.colorScheme.primary),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = detectedNote.noteName,
                         style = MaterialTheme.typography.displayLarge,
-                        fontSize = 96.sp,
+                        fontSize = 72.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimary,
                     )
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                // Note details
+                Column(
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.current_note),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
 
-                // Frequency information
-                Text(
-                    text = stringResource(R.string.note_frequency, detectedNote.frequency),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
+                    Text(
+                        text = stringResource(R.string.note_frequency, detectedNote.frequency),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
 
-                // Cents deviation
-                Text(
-                    text = stringResource(R.string.note_cents, detectedNote.cents),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
+                    Text(
+                        text = stringResource(R.string.note_cents, detectedNote.cents),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                }
             }
         }
     }
