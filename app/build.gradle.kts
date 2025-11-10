@@ -55,7 +55,7 @@ dependencies {
 
 // ktlint configuration
 ktlint {
-    version.set("1.0.1")
+    version.set("1.5.0")
     android.set(true)
     // Set to true to allow build to continue with formatting issues
     // Run `./gradlew ktlintFormat` to auto-fix formatting
