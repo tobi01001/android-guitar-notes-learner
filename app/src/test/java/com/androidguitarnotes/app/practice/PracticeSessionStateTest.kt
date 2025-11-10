@@ -29,8 +29,8 @@ class PracticeSessionStateTest {
         assertEquals("Should have correct note", note, state.currentNote)
         assertEquals("Should have correct completed count", 5, state.notesCompleted)
         assertEquals("Should have correct total notes", 20, state.totalNotes)
-        assertEquals("Should have correct elapsed time", 60, state.elapsedTimeSeconds)
-        assertEquals("Should have correct total time", 300, state.totalTimeSeconds)
+        assertEquals("Should have correct elapsed time", 60L, state.elapsedTimeSeconds)
+        assertEquals("Should have correct total time", 300L, state.totalTimeSeconds)
     }
     
     @Test
@@ -86,7 +86,7 @@ class PracticeSessionStateTest {
         )
         
         assertEquals("Should have final note count", 25, state.notesCompleted)
-        assertEquals("Should have total time", 420, state.totalTimeSeconds)
+        assertEquals("Should have total time", 420L, state.totalTimeSeconds)
     }
     
     @Test

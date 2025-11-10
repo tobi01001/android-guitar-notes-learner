@@ -1,5 +1,6 @@
 package com.androidguitarnotes.app.audio
 
+import android.annotation.SuppressLint
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
@@ -33,8 +34,12 @@ class AudioRecorder {
     /**
      * Starts recording and returns a flow of audio data chunks.
      * 
+     * Note: RECORD_AUDIO permission must be granted before calling this method.
+     * Permission handling is managed by the calling ViewModel/UI layer.
+     * 
      * @return Flow of ShortArray containing audio samples
      */
+    @SuppressLint("MissingPermission")
     fun startRecording(): Flow<ShortArray> = flow {
         try {
             audioRecord = AudioRecord(
