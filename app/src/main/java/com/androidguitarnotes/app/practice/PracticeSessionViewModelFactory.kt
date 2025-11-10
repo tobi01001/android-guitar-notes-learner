@@ -3,6 +3,8 @@ package com.androidguitarnotes.app.practice
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.androidguitarnotes.app.audio.AudioManager
+import com.androidguitarnotes.app.permissions.PermissionManager
 
 /**
  * Factory for creating PracticeSessionViewModel with config and context parameters.
@@ -14,7 +16,11 @@ class PracticeSessionViewModelFactory(
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(PracticeSessionViewModel::class.java)) {
-            return PracticeSessionViewModel(config, context) as T
+            return PracticeSessionViewModel(
+                config = config,
+                audioManager = AudioManager(),
+                permissionManager = PermissionManager(context)
+            ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

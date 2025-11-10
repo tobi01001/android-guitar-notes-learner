@@ -18,7 +18,8 @@ import kotlinx.coroutines.launch
  */
 class PracticeSessionViewModel(
     private val config: PracticeConfig,
-    private val audioManager: AudioManager = AudioManager()
+    private val audioManager: AudioManager,
+    private val permissionManager: PermissionManager
 ) : ViewModel() {
     private val noteGenerator = RandomNoteGenerator(config)
 
