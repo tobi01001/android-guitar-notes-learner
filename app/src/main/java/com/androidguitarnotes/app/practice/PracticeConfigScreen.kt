@@ -53,6 +53,13 @@ fun PracticeConfigScreen(
                 onModeSelected = { viewModel.setNoteMode(it) },
             )
 
+            if (config.noteMode == NoteMode.SCALE) {
+                ScaleSelectionSection(
+                    selectedScale = config.selectedScale,
+                    onScaleSelected = { viewModel.setSelectedScale(it) },
+                )
+            }
+
             DurationSection(
                 durationType = config.durationType,
                 durationMinutes = config.durationMinutes,
@@ -322,6 +329,59 @@ private fun DurationSection(
 }
 
 @Composable
+private fun ScaleSelectionSection(
+    selectedScale: Scale,
+    onScaleSelected: (Scale) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = stringResource(R.string.select_scale),
+            style = MaterialTheme.typography.titleMedium,
+        )
+
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it },
+        ) {
+            OutlinedTextField(
+                value = getScaleName(selectedScale),
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(),
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+            ) {
+                Scale.entries.forEach { scale ->
+                    DropdownMenuItem(
+                        text = { Text(getScaleName(scale)) },
+                        onClick = {
+                            onScaleSelected(scale)
+                            expanded = false
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun getScaleName(scale: Scale): String {
+    return when (scale) {
+        Scale.C_MAJOR -> stringResource(R.string.scale_c_major)
+        Scale.G_MAJOR -> stringResource(R.string.scale_g_major)
+        Scale.A_MINOR -> stringResource(R.string.scale_a_minor)
+        Scale.E_MINOR -> stringResource(R.string.scale_e_minor)
 private fun ProgressionModeSection(
     progressionMode: ProgressionMode,
     autoIntervalSeconds: Float,

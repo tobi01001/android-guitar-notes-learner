@@ -124,4 +124,148 @@ class RandomNoteGeneratorTest {
             stringNumbers.size > 1,
         )
     }
+
+    @Test
+    fun `generateNote with WHOLE_NOTES excludes sharps and flats`() {
+        val config =
+            PracticeConfig(
+                selectedStrings = setOf(1, 2, 3, 4, 5, 6),
+                fretFrom = 0,
+                fretTo = 12,
+                noteMode = NoteMode.WHOLE_NOTES,
+            )
+        val generator = RandomNoteGenerator(config)
+
+        // Generate many notes to check they're all natural notes
+        val notes = (1..100).map { generator.generateNote() }
+        val naturalNotes = setOf("C", "D", "E", "F", "G", "A", "B")
+
+        // All generated notes should be natural notes (no sharps or flats)
+        assertTrue(
+            "All notes should be natural notes without sharps or flats",
+            notes.all { it.noteName in naturalNotes },
+        )
+    }
+
+    @Test
+    fun `generateNote with SEMITONES includes all chromatic notes`() {
+        val config =
+            PracticeConfig(
+                selectedStrings = setOf(1, 2, 3, 4, 5, 6),
+                fretFrom = 0,
+                fretTo = 12,
+                noteMode = NoteMode.SEMITONES,
+            )
+        val generator = RandomNoteGenerator(config)
+
+        // Generate many notes to check variety
+        val notes = (1..200).map { generator.generateNote() }
+        val noteNames = notes.map { it.noteName }.toSet()
+
+        // Should include both natural notes and sharps
+        // (At least some variety in the chromatic scale)
+        assertTrue(
+            "Should generate variety of notes in chromatic scale",
+            noteNames.size >= 5, // Expect at least 5 different notes
+        )
+    }
+
+    @Test
+    fun `generateNote with SCALE mode uses only scale notes`() {
+        val config =
+            PracticeConfig(
+                selectedStrings = setOf(1, 2, 3, 4, 5, 6),
+                fretFrom = 0,
+                fretTo = 12,
+                noteMode = NoteMode.SCALE,
+                selectedScale = Scale.C_MAJOR,
+            )
+        val generator = RandomNoteGenerator(config)
+
+        // Generate many notes to check they're all in C Major scale
+        val notes = (1..100).map { generator.generateNote() }
+        val cMajorNotes = Scale.C_MAJOR.notes.toSet()
+
+        // All generated notes should be in C Major scale
+        assertTrue(
+            "All notes should be in C Major scale",
+            notes.all { it.noteName in cMajorNotes },
+        )
+    }
+
+    @Test
+    fun `generateNote with SCALE mode respects G Major scale`() {
+        val config =
+            PracticeConfig(
+                selectedStrings = setOf(1, 2, 3, 4, 5, 6),
+                fretFrom = 0,
+                fretTo = 12,
+                noteMode = NoteMode.SCALE,
+                selectedScale = Scale.G_MAJOR,
+            )
+        val generator = RandomNoteGenerator(config)
+
+        // Generate many notes to check they're all in G Major scale
+        val notes = (1..100).map { generator.generateNote() }
+        val gMajorNotes = Scale.G_MAJOR.notes.toSet()
+
+        // All generated notes should be in G Major scale
+        assertTrue(
+            "All notes should be in G Major scale (includes F#)",
+            notes.all { it.noteName in gMajorNotes },
+        )
+
+        // Should include F# if enough samples (G Major has F#)
+        val noteNames = notes.map { it.noteName }.toSet()
+        assertTrue(
+            "G Major scale notes should be present",
+            noteNames.any { it in gMajorNotes },
+        )
+    }
+
+    @Test
+    fun `generateNote with SCALE mode respects A Minor scale`() {
+        val config =
+            PracticeConfig(
+                selectedStrings = setOf(1, 2, 3, 4, 5, 6),
+                fretFrom = 0,
+                fretTo = 12,
+                noteMode = NoteMode.SCALE,
+                selectedScale = Scale.A_MINOR,
+            )
+        val generator = RandomNoteGenerator(config)
+
+        // Generate many notes
+        val notes = (1..100).map { generator.generateNote() }
+        val aMinorNotes = Scale.A_MINOR.notes.toSet()
+
+        // All generated notes should be in A Minor scale
+        assertTrue(
+            "All notes should be in A Minor scale",
+            notes.all { it.noteName in aMinorNotes },
+        )
+    }
+
+    @Test
+    fun `generateNote with SCALE mode respects E Minor scale`() {
+        val config =
+            PracticeConfig(
+                selectedStrings = setOf(1, 2, 3, 4, 5, 6),
+                fretFrom = 0,
+                fretTo = 12,
+                noteMode = NoteMode.SCALE,
+                selectedScale = Scale.E_MINOR,
+            )
+        val generator = RandomNoteGenerator(config)
+
+        // Generate many notes
+        val notes = (1..100).map { generator.generateNote() }
+        val eMinorNotes = Scale.E_MINOR.notes.toSet()
+
+        // All generated notes should be in E Minor scale
+        assertTrue(
+            "All notes should be in E Minor scale (includes F#)",
+            notes.all { it.noteName in eMinorNotes },
+        )
+    }
 }

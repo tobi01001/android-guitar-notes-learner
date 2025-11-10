@@ -18,8 +18,8 @@ class PracticeSessionViewModelFactory(
         if (modelClass.isAssignableFrom(PracticeSessionViewModel::class.java)) {
             return PracticeSessionViewModel(
                 config = config,
-                audioManager = com.androidguitarnotes.app.audio.AudioManager(),
-                permissionManager = com.androidguitarnotes.app.permissions.PermissionManager(context)
+                audioManager = AudioManager(),
+                permissionManager = PermissionManager(context)
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

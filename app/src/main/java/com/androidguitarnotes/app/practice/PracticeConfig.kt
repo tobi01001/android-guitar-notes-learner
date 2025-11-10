@@ -8,6 +8,7 @@ data class PracticeConfig(
     val fretFrom: Int = 0,
     val fretTo: Int = 12,
     val noteMode: NoteMode = NoteMode.WHOLE_NOTES,
+    val selectedScale: Scale = Scale.C_MAJOR,
     val durationType: DurationType = DurationType.TIME,
     val durationMinutes: Int = 5,
     val noteCount: Int = 20,
@@ -33,6 +34,13 @@ enum class DurationType {
 }
 
 /**
+ * Represents a musical scale with its notes.
+ */
+enum class Scale(val notes: List<String>) {
+    C_MAJOR(listOf("C", "D", "E", "F", "G", "A", "B")),
+    G_MAJOR(listOf("G", "A", "B", "C", "D", "E", "F#")),
+    A_MINOR(listOf("A", "B", "C", "D", "E", "F", "G")),
+    E_MINOR(listOf("E", "F#", "G", "A", "B", "C", "D")),
  * Defines how progression through notes occurs during practice.
  */
 enum class ProgressionMode {

@@ -11,6 +11,11 @@
     <string name="note_mode_scale">Scale</string>
     <string name="note_mode_whole">Whole Notes</string>
     <string name="note_mode_semitones">Semitones</string>
+    <string name="select_scale">Select Scale</string>
+    <string name="scale_c_major">C Major</string>
+    <string name="scale_g_major">G Major</string>
+    <string name="scale_a_minor">A Minor</string>
+    <string name="scale_e_minor">E Minor</string>
     <string name="practice_duration">Practice Duration</string>
     <string name="duration_mode_time">Time-based</string>
     <string name="duration_mode_count">Note Count</string>
