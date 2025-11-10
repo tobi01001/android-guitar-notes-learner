@@ -10,6 +10,16 @@ sealed class PracticeSessionState {
     data object Ready : PracticeSessionState()
     
     /**
+     * Feedback for detected note during practice.
+     */
+    sealed class NoteFeedback {
+        data object None : NoteFeedback()
+        data class Detected(val noteName: String, val cents: Double) : NoteFeedback()
+        data object Correct : NoteFeedback()
+        data object Incorrect : NoteFeedback()
+    }
+    
+    /**
      * Session is actively running.
      */
     data class Active(
@@ -17,7 +27,8 @@ sealed class PracticeSessionState {
         val notesCompleted: Int,
         val totalNotes: Int?,  // null for time-based sessions
         val elapsedTimeSeconds: Long,
-        val totalTimeSeconds: Long?  // null for count-based sessions
+        val totalTimeSeconds: Long?,  // null for count-based sessions
+        val noteFeedback: NoteFeedback = NoteFeedback.None
     ) : PracticeSessionState()
     
     /**

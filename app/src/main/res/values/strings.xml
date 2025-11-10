@@ -41,4 +41,13 @@
     <string name="notes_completed_count">%1$d notes completed</string>
     <string name="time_progress">%1$s / %2$s</string>
     <string name="elapsed_time">Time: %1$s</string>
+    
+    <!-- Audio Feedback -->
+    <string name="listening">Listening…</string>
+    <string name="correct_note">✓ Correct!</string>
+    <string name="detected_note">Detected: %1$s</string>
+    <string name="incorrect_note">✗ Incorrect note</string>
+    <string name="try_again">Try again</string>
+    <string name="audio_permission_required">Microphone permission is required for pitch detection</string>
+    <string name="audio_permission_denied">Microphone access denied. You can still practice manually.</string>
 </resources>
