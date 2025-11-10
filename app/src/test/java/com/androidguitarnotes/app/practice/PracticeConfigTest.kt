@@ -78,4 +78,51 @@ class PracticeConfigTest {
         assertEquals("Should update fretFrom", 3, modified.fretFrom)
         assertEquals("Should update fretTo", 8, modified.fretTo)
     }
+
+    @Test
+    fun `default config has MANUAL progression mode`() {
+        val config = PracticeConfig()
+
+        assertEquals(
+            "Default progression mode should be MANUAL",
+            ProgressionMode.MANUAL,
+            config.progressionMode,
+        )
+    }
+
+    @Test
+    fun `default config has 3 second auto interval`() {
+        val config = PracticeConfig()
+
+        assertEquals(
+            "Default auto interval should be 3.0 seconds",
+            3.0f,
+            config.autoIntervalSeconds,
+            0.001f,
+        )
+    }
+
+    @Test
+    fun `config can be customized with progression mode`() {
+        val config =
+            PracticeConfig(
+                progressionMode = ProgressionMode.AUDIO_VERIFICATION,
+                autoIntervalSeconds = 5.0f,
+            )
+
+        assertEquals(ProgressionMode.AUDIO_VERIFICATION, config.progressionMode)
+        assertEquals(5.0f, config.autoIntervalSeconds, 0.001f)
+    }
+
+    @Test
+    fun `config supports AUTO_INTERVAL progression mode`() {
+        val config =
+            PracticeConfig(
+                progressionMode = ProgressionMode.AUTO_INTERVAL,
+                autoIntervalSeconds = 2.5f,
+            )
+
+        assertEquals(ProgressionMode.AUTO_INTERVAL, config.progressionMode)
+        assertEquals(2.5f, config.autoIntervalSeconds, 0.001f)
+    }
 }

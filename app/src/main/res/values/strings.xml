@@ -16,11 +16,20 @@
     <string name="duration_mode_count">Note Count</string>
     <string name="minutes">Minutes</string>
     <string name="note_count">Note Count</string>
+    <string name="progression_mode">Progression Mode</string>
+    <string name="progression_mode_manual">Manual</string>
+    <string name="progression_mode_audio">Audio Verification</string>
+    <string name="progression_mode_interval">Auto Interval</string>
+    <string name="auto_interval_label">Auto Interval (seconds)</string>
+    <string name="progression_manual_desc">Click Next Note to advance</string>
+    <string name="progression_audio_desc">Auto-advance on correct note</string>
+    <string name="progression_interval_desc">Auto-advance after time interval</string>
     <string name="start_practice">Start Practice</string>
     <string name="back">Back</string>
     <string name="at_least_one_string">Select at least one string</string>
     <string name="invalid_fret_range">Invalid fret range</string>
     <string name="invalid_duration">Invalid duration</string>
+    <string name="invalid_interval">Invalid interval (must be between 0.5 and 10 seconds)</string>
     
     <!-- Practice Session -->
     <string name="practice_session_title">Practice Session</string>
@@ -41,6 +50,7 @@
     <string name="notes_completed_count">%1$d notes completed</string>
     <string name="time_progress">%1$s / %2$s</string>
     <string name="elapsed_time">Time: %1$s</string>
+    <string name="auto_advancing_in">Auto-advancing in %1$.1fs…</string>
     
     <!-- Audio Feedback -->
     <string name="listening">Listening…</string>

@@ -78,14 +78,20 @@ val showPermissionRationale by viewModel.showPermissionRationale.collectAsStateW
                     ReadyScreen(
                         onStart = {
                             viewModel.startSession()
-                            viewModel.checkAndRequestAudioPermission()
+                            // Only request audio permission for AUDIO_VERIFICATION mode
+                            if (config.progressionMode == ProgressionMode.AUDIO_VERIFICATION) {
+                                viewModel.checkAndRequestAudioPermission()
+                            }
                         },
                         onBack = onBack,
                     )
                 }
                 is PracticeSessionState.Active -> {
+                    val autoIntervalCountdown by viewModel.autoIntervalCountdown.collectAsStateWithLifecycle()
                     ActiveSessionScreen(
                         state = currentState,
+                        config = config,
+                        autoIntervalCountdown = autoIntervalCountdown,
                         onNext = { viewModel.nextNote() },
                         onPause = { viewModel.pauseSession() },
                         onEnd = { viewModel.endSession() },
@@ -160,6 +166,8 @@ private fun ReadyScreen(
 @Composable
 private fun ActiveSessionScreen(
     state: PracticeSessionState.Active,
+    config: PracticeConfig,
+    autoIntervalCountdown: Float?,
     onNext: () -> Unit,
     onPause: () -> Unit,
     onEnd: () -> Unit,
@@ -238,6 +246,16 @@ private fun ActiveSessionScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             NoteFeedbackDisplay(feedback = state.noteFeedback)
+
+            // Auto-interval countdown display
+            if (config.progressionMode == ProgressionMode.AUTO_INTERVAL && autoIntervalCountdown != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(R.string.auto_advancing_in, autoIntervalCountdown),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
 
         // Controls section
@@ -245,11 +263,14 @@ private fun ActiveSessionScreen(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Button(
-                onClick = onNext,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.next_note))
+            // Show "Next Note" button only in MANUAL mode
+            if (config.progressionMode == ProgressionMode.MANUAL) {
+                Button(
+                    onClick = onNext,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.next_note))
+                }
             }
 
             Row(
