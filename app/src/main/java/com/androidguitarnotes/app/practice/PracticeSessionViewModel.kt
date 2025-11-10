@@ -1,8 +1,11 @@
 package com.androidguitarnotes.app.practice
 
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.androidguitarnotes.app.audio.AudioManager
+import com.androidguitarnotes.app.permissions.PermissionManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +18,7 @@ import kotlinx.coroutines.launch
  */
 class PracticeSessionViewModel(
     private val config: PracticeConfig,
-    private val audioManager: AudioManager = AudioManager(),
+    private val audioManager: AudioManager = AudioManager()
 ) : ViewModel() {
     private val noteGenerator = RandomNoteGenerator(config)
 
@@ -24,6 +27,8 @@ class PracticeSessionViewModel(
 
     private val _audioPermissionRequired = MutableStateFlow(false)
     val audioPermissionRequired: StateFlow<Boolean> = _audioPermissionRequired.asStateFlow()
+private val _showPermissionRationale = MutableStateFlow(false)
+    val showPermissionRationale: StateFlow<Boolean> = _showPermissionRationale.asStateFlow()
 
     private var timerJob: Job? = null
     private var audioListeningJob: Job? = null
@@ -32,9 +37,32 @@ class PracticeSessionViewModel(
     private var totalPausedDuration: Long = 0
 
     /**
-     * Requests audio permission.
+     * Checks and requests audio permission if needed.
+     */
+    fun checkAndRequestAudioPermission() {
+        if (permissionManager.isRecordAudioPermissionGranted()) {
+            // Permission already granted, start audio listening
+            if (_state.value is PracticeSessionState.Active) {
+                startAudioListening()
+            }
+        } else {
+            // Show rationale first
+            _showPermissionRationale.value = true
+        }
+    }
+
+    /**
+     * Called when user agrees to grant permission from rationale screen.
+     */
+    fun onPermissionRationaleDismissed() {
+        _showPermissionRationale.value = false
+    }
+
+    /**
+     * Requests audio permission after showing rationale.
      */
     fun requestAudioPermission() {
+        _showPermissionRationale.value = false
         _audioPermissionRequired.value = true
     }
 
@@ -96,8 +124,15 @@ class PracticeSessionViewModel(
 
     /**
      * Starts listening for audio input and analyzing notes.
+     * Only starts if permission is granted.
      */
     private fun startAudioListening() {
+        // Double-check permission before starting
+        if (!permissionManager.isRecordAudioPermissionGranted()) {
+            Log.w("PracticeSessionViewModel", "Cannot start audio - permission not granted")
+            return
+        }
+
         audioListeningJob?.cancel()
         audioListeningJob =
             viewModelScope.launch {
@@ -131,9 +166,13 @@ class PracticeSessionViewModel(
                             }
                         }
                     }
-                } catch (e: Exception) {
+                } catch (e: SecurityException) {
+                // Permission was revoked during recording
+                Log.e("PracticeSessionViewModel", "Permission revoked during recording", e)
+                stopAudioListening()
+            } catch (e:Exception) {
                     // Log audio errors for debugging
-                    android.util.Log.e("PracticeSessionViewModel", "Audio listening error", e)
+                    Log.e("PracticeSessionViewModel", "Audio listening error", e)
                     // Continue without audio feedback
                 }
             }
@@ -214,7 +253,10 @@ class PracticeSessionViewModel(
                 )
 
             startTimer()
-            startAudioListening()
+            // Only start audio if permission is granted
+            if (permissionManager.isRecordAudioPermissionGranted()) {
+                startAudioListening()
+            }
         }
     }
 
