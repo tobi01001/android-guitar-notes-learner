@@ -22,15 +22,16 @@ class PracticeSessionStateTest {
             currentNote = note,
             notesCompleted = 5,
             totalNotes = 20,
-            elapsedTimeSeconds = 60,
-            totalTimeSeconds = 300
+            elapsedTimeSeconds = 60L,
+            totalTimeSeconds = 300L,
+            noteFeedback = PracticeSessionState.NoteFeedback.None
         )
         
         assertEquals("Should have correct note", note, state.currentNote)
         assertEquals("Should have correct completed count", 5, state.notesCompleted)
         assertEquals("Should have correct total notes", 20, state.totalNotes)
-        assertEquals("Should have correct elapsed time", 60, state.elapsedTimeSeconds)
-        assertEquals("Should have correct total time", 300, state.totalTimeSeconds)
+        assertEquals("Should have correct elapsed time", 60L, state.elapsedTimeSeconds)
+        assertEquals("Should have correct total time", 300L, state.totalTimeSeconds)
     }
     
     @Test
@@ -40,8 +41,9 @@ class PracticeSessionStateTest {
             currentNote = note,
             notesCompleted = 10,
             totalNotes = null,  // No total for time-based
-            elapsedTimeSeconds = 120,
-            totalTimeSeconds = 300
+            elapsedTimeSeconds = 120L,
+            totalTimeSeconds = 300L,
+            noteFeedback = PracticeSessionState.NoteFeedback.None
         )
         
         assertNull("Total notes should be null for time-based", state.totalNotes)
@@ -55,8 +57,9 @@ class PracticeSessionStateTest {
             currentNote = note,
             notesCompleted = 8,
             totalNotes = 30,
-            elapsedTimeSeconds = 90,
-            totalTimeSeconds = null  // No time limit for count-based
+            elapsedTimeSeconds = 90L,
+            totalTimeSeconds = null,  // No time limit for count-based
+            noteFeedback = PracticeSessionState.NoteFeedback.None
         )
         
         assertNotNull("Total notes should be set", state.totalNotes)
@@ -70,8 +73,8 @@ class PracticeSessionStateTest {
             currentNote = note,
             notesCompleted = 7,
             totalNotes = 15,
-            elapsedTimeSeconds = 150,
-            totalTimeSeconds = 600
+            elapsedTimeSeconds = 150L,
+            totalTimeSeconds = 600L
         )
         
         assertEquals("Should retain current note", note, state.currentNote)
@@ -82,11 +85,11 @@ class PracticeSessionStateTest {
     fun `Completed state contains final statistics`() {
         val state = PracticeSessionState.Completed(
             notesCompleted = 25,
-            totalTimeSeconds = 420
+            totalTimeSeconds = 420L
         )
         
         assertEquals("Should have final note count", 25, state.notesCompleted)
-        assertEquals("Should have total time", 420, state.totalTimeSeconds)
+        assertEquals("Should have total time", 420L, state.totalTimeSeconds)
     }
     
     @Test
@@ -98,8 +101,9 @@ class PracticeSessionStateTest {
             currentNote = note1,
             notesCompleted = 5,
             totalNotes = 20,
-            elapsedTimeSeconds = 60,
-            totalTimeSeconds = 300
+            elapsedTimeSeconds = 60L,
+            totalTimeSeconds = 300L,
+            noteFeedback = PracticeSessionState.NoteFeedback.None
         )
         
         val state2 = state1.copy(
