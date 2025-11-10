@@ -1,0 +1,118 @@
+Practice Configuration Screen - UI Layout
+===========================================
+
+┌─────────────────────────────────────────┐
+│ ☰ Practice Configuration               │  ← TopAppBar
+├─────────────────────────────────────────┤
+│                                         │
+│  Select Strings                         │  ← Section Title
+│  ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐  │
+│  │ 1 │ │ 2 │ │ 3 │ │ 4 │ │ 5 │ │ 6 │  │  ← FilterChips
+│  └───┘ └───┘ └───┘ └───┘ └───┘ └───┘  │     (selected shown filled)
+│                                         │
+│                                         │
+│  Fret Range                             │  ← Section Title
+│  ┌─────────────┐   —   ┌─────────────┐ │
+│  │ From Fret   │       │ To Fret     │ │  ← Text Input Fields
+│  │     0       │       │    12       │ │
+│  └─────────────┘       └─────────────┘ │
+│                                         │
+│                                         │
+│  Note Mode                              │  ← Section Title
+│  ◉ Scale                                │  ← Radio Buttons
+│  ○ Whole Notes                          │
+│  ○ Semitones                            │
+│                                         │
+│                                         │
+│  Practice Duration                      │  ← Section Title
+│  ◉ Time-based                           │  ← Radio Buttons
+│     ┌─────────────────────────────────┐│
+│     │ Minutes                         ││  ← Text Input Field
+│     │ 5                               ││     (shown when Time selected)
+│     └─────────────────────────────────┘│
+│                                         │
+│  ○ Note Count                           │  ← Radio Button
+│                                         │     (input field hidden)
+│                                         │
+│                                         │
+│  ┌──────────────┐  ┌──────────────────┐│
+│  │   Back       │  │ Start Practice   ││  ← Action Buttons
+│  └──────────────┘  └──────────────────┘│
+│                                         │
+└─────────────────────────────────────────┘
+
+
+Example: Note Count Mode Selected
+===========================================
+
+┌─────────────────────────────────────────┐
+│ ☰ Practice Configuration               │
+├─────────────────────────────────────────┤
+│                                         │
+│  Practice Duration                      │
+│  ○ Time-based                           │
+│                                         │
+│  ◉ Note Count                           │
+│     ┌─────────────────────────────────┐│
+│     │ Note Count                      ││  ← Text Input Field
+│     │ 20                              ││     (shown when Count selected)
+│     └─────────────────────────────────┘│
+│                                         │
+└─────────────────────────────────────────┘
+
+
+Validation States
+===========================================
+
+Error Example (No strings selected):
+  Select Strings
+  ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐
+  │   │ │   │ │   │ │   │ │   │ │   │  (all unselected)
+  └───┘ └───┘ └───┘ └───┘ └───┘ └───┘
+  ⚠ Select at least one string            ← Error message
+
+
+Error Example (Invalid fret range):
+  Fret Range
+  ┌─────────────┐   —   ┌─────────────┐
+  │ From Fret   │       │ To Fret     │
+  │    15       │       │     5       │  (From > To)
+  └─────────────┘       └─────────────┘
+  ⚠ Invalid fret range                   ← Error message
+
+
+Button States
+===========================================
+
+Enabled:
+  ┌──────────────────┐
+  │ Start Practice   │  (Bright, clickable)
+  └──────────────────┘
+
+Disabled:
+  ┌──────────────────┐
+  │ Start Practice   │  (Grayed out, not clickable)
+  └──────────────────┘
+
+
+Material Design 3 Features
+===========================================
+
+- FilterChips: Toggleable chips with selected/unselected states
+- OutlinedTextField: Text input with floating labels
+- RadioButton: Single selection from multiple options
+- Button: Primary action (Start Practice)
+- OutlinedButton: Secondary action (Back)
+- Scaffold: Top app bar + content layout
+- Column with spacedBy: Consistent spacing
+- Scrollable: Works on all screen sizes
+
+
+Color Scheme (Material 3)
+===========================================
+
+- Primary: Action buttons, selected chips
+- OnPrimary: Text on primary color
+- Error: Error messages
+- Surface: Background
+- OnSurface: Text on surface
