@@ -1,0 +1,348 @@
+package com.androidguitarnotes.app.tuner
+
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.androidguitarnotes.app.R
+import com.androidguitarnotes.app.audio.AudioManager
+import kotlin.math.abs
+
+/**
+ * Tuner screen composable.
+ */
+@Composable
+fun TunerScreen(
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val audioManager = remember { AudioManager() }
+    val viewModel: TunerViewModel = viewModel(
+        factory = TunerViewModelFactory(audioManager)
+    )
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.tuner_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Text("←", fontSize = 24.sp)
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            // String selector
+            StringSelector(
+                strings = GuitarString.STANDARD_TUNING,
+                selectedString = state.selectedString,
+                onStringSelected = viewModel::selectString
+            )
+            
+            // Tuning indicator
+            TuningIndicator(
+                state = state,
+                modifier = Modifier.weight(1f)
+            )
+            
+            // Control button
+            Button(
+                onClick = {
+                    if (state.isListening) {
+                        viewModel.stopListening()
+                    } else {
+                        viewModel.startListening()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    if (state.isListening) {
+                        stringResource(R.string.stop_tuning)
+                    } else {
+                        stringResource(R.string.start_tuning)
+                    }
+                )
+            }
+        }
+    }
+}
+
+/**
+ * String selector component.
+ */
+@Composable
+private fun StringSelector(
+    strings: List<GuitarString>,
+    selectedString: GuitarString,
+    onStringSelected: (GuitarString) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        Text(
+            stringResource(R.string.select_string_to_tune),
+            style = MaterialTheme.typography.titleMedium
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            strings.forEach { guitarString ->
+                StringButton(
+                    guitarString = guitarString,
+                    isSelected = guitarString == selectedString,
+                    onClick = { onStringSelected(guitarString) }
+                )
+            }
+        }
+    }
+}
+
+/**
+ * String button component.
+ */
+@Composable
+private fun StringButton(
+    guitarString: GuitarString,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor = if (isSelected) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+    
+    Button(
+        onClick = onClick,
+        modifier = modifier
+            .size(56.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = backgroundColor,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ),
+        shape = CircleShape,
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                guitarString.noteName,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                guitarString.number.toString(),
+                fontSize = 10.sp
+            )
+        }
+    }
+}
+
+/**
+ * Tuning indicator component.
+ */
+@Composable
+private fun TuningIndicator(
+    state: TunerState,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // Target frequency display
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    stringResource(
+                        R.string.string_name_octave,
+                        state.selectedString.noteName,
+                        state.selectedString.octave
+                    ),
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    stringResource(R.string.target_frequency).format(state.selectedString.frequency),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        // Visual tuning indicator
+        when (val status = state.tuningStatus) {
+            is TuningStatus.NotDetected -> {
+                Text(
+                    if (state.isListening) {
+                        stringResource(R.string.no_sound_detected)
+                    } else {
+                        stringResource(R.string.select_string_to_tune)
+                    },
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            is TuningStatus.Detecting -> {
+                TuningGauge(
+                    cents = status.cents,
+                    detectedFrequency = status.detectedFrequency
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Tuning gauge component showing cents deviation.
+ */
+@Composable
+private fun TuningGauge(
+    cents: Double,
+    detectedFrequency: Double,
+    modifier: Modifier = Modifier
+) {
+    val isInTune = abs(cents) <= 10.0
+    val isTooFlat = cents < -10.0
+    val isTooSharp = cents > 10.0
+    
+    // Animate the indicator color
+    val indicatorColor by animateColorAsState(
+        targetValue = when {
+            isInTune -> Color(0xFF4CAF50)  // Green
+            else -> Color(0xFFFF9800)  // Orange
+        },
+        label = "indicatorColor"
+    )
+    
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = modifier
+    ) {
+        // Status text
+        if (isInTune) {
+            Text(
+                stringResource(R.string.in_tune),
+                style = MaterialTheme.typography.headlineMedium,
+                color = indicatorColor,
+                fontWeight = FontWeight.Bold
+            )
+        } else if (isTooFlat) {
+            Text(
+                stringResource(R.string.tune_up),
+                style = MaterialTheme.typography.headlineMedium,
+                color = indicatorColor,
+                fontWeight = FontWeight.Bold
+            )
+        } else if (isTooSharp) {
+            Text(
+                stringResource(R.string.tune_down),
+                style = MaterialTheme.typography.headlineMedium,
+                color = indicatorColor,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        
+        // Cents deviation bar
+        CentsDeviationBar(
+            cents = cents,
+            color = indicatorColor
+        )
+        
+        // Numeric display
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                stringResource(R.string.detected_frequency).format(detectedFrequency),
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Text(
+                stringResource(R.string.cents_deviation).format(cents),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = indicatorColor
+            )
+        }
+    }
+}
+
+/**
+ * Cents deviation bar showing visual position.
+ */
+@Composable
+private fun CentsDeviationBar(
+    cents: Double,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    val maxCents = 50.0  // Show ±50 cents
+    val normalizedPosition = (cents / maxCents).coerceIn(-1.0, 1.0).toFloat()
+    
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        // Center line
+        Box(
+            modifier = Modifier
+                .width(2.dp)
+                .fillMaxHeight()
+                .align(Alignment.Center)
+                .background(MaterialTheme.colorScheme.outline)
+        )
+        
+        // Indicator
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .align(Alignment.CenterStart)
+                .offset(x = ((normalizedPosition + 1f) / 2f * (1f - 40.dp.value / 400.dp.value) * 100).dp)
+                .clip(CircleShape)
+                .background(color)
+                .border(3.dp, MaterialTheme.colorScheme.surface, CircleShape)
+        )
+    }
+}

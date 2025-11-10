@@ -14,6 +14,7 @@ import androidx.navigation.compose.*
 import com.androidguitarnotes.app.practice.PracticeConfig
 import com.androidguitarnotes.app.practice.PracticeConfigScreen
 import com.androidguitarnotes.app.practice.PracticeSessionScreen
+import com.androidguitarnotes.app.tuner.TunerScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,7 +32,12 @@ fun GuitarNotesApp() {
         var practiceConfig by remember { mutableStateOf<PracticeConfig?>(null) }
         
         NavHost(navController, startDestination = "home") {
-            composable("home") { HomeScreen(onStartPractice = { navController.navigate("practice") }) }
+            composable("home") { 
+                HomeScreen(
+                    onStartPractice = { navController.navigate("practice") },
+                    onOpenTuner = { navController.navigate("tuner") }
+                )
+            }
             composable("practice") { 
                 PracticeConfigScreen(
                     onBack = { navController.popBackStack() },
@@ -50,17 +56,26 @@ fun GuitarNotesApp() {
                     )
                 }
             }
+            composable("tuner") {
+                TunerScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
             composable("settings") { SettingsScreen() }
         }
     }
 }
 
 @Composable
-fun HomeScreen(onStartPractice: () -> Unit) {
+fun HomeScreen(
+    onStartPractice: () -> Unit,
+    onOpenTuner: () -> Unit
+) {
     Scaffold(topBar = { TopAppBar(title = { Text("Guitar Notes Learner") }) }) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("Welcome — select Practice to start a session")
             Button(onClick = onStartPractice) { Text("Practice") }
+            Button(onClick = onOpenTuner) { Text("Tuner") }
             Button(onClick = { /* navigate to settings */ }) { Text("Settings") }
         }
     }
