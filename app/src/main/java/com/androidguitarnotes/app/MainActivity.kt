@@ -12,6 +12,7 @@ import androidx.navigation.compose.*
 import com.androidguitarnotes.app.practice.PracticeConfig
 import com.androidguitarnotes.app.practice.PracticeConfigScreen
 import com.androidguitarnotes.app.practice.PracticeSessionScreen
+import com.androidguitarnotes.app.settings.SettingsScreen
 import com.androidguitarnotes.app.tuner.TunerScreen
 
 class MainActivity : ComponentActivity() {
@@ -33,7 +34,8 @@ fun GuitarNotesApp() {
             composable("home") {
                 HomeScreen(
                     onStartPractice = { navController.navigate("practice") },
-                    onOpenTuner = { navController.navigate("tuner") }
+                    onOpenTuner = { navController.navigate("tuner") },
+                    onOpenSettings = { navController.navigate("settings") },
                 )
             }
             composable("practice") {
@@ -56,10 +58,14 @@ fun GuitarNotesApp() {
             }
             composable("tuner") {
                 TunerScreen(
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
                 )
             }
-            composable("settings") { SettingsScreen() }
+            composable("settings") {
+                SettingsScreen(
+                    onBack = { navController.popBackStack() },
+                )
+            }
         }
     }
 }
@@ -67,23 +73,15 @@ fun GuitarNotesApp() {
 @Composable
 fun HomeScreen(
     onStartPractice: () -> Unit,
-    onOpenTuner: () -> Unit
+    onOpenTuner: () -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     Scaffold(topBar = { TopAppBar(title = { Text("Guitar Notes Learner") }) }) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("Welcome — select Practice to start a session")
             Button(onClick = onStartPractice) { Text("Practice") }
             Button(onClick = onOpenTuner) { Text("Tuner") }
-            Button(onClick = { /* navigate to settings */ }) { Text("Settings") }
-        }
-    }
-}
-
-@Composable
-fun SettingsScreen() {
-    Scaffold(topBar = { TopAppBar(title = { Text("Settings") }) }) { padding ->
-        Column(modifier = Modifier.padding(padding).padding(16.dp)) {
-            Text("Tuning: Standard (E A D G B E) — tuner will be added later")
+            Button(onClick = onOpenSettings) { Text("Settings") }
         }
     }
 }

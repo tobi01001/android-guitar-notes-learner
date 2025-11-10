@@ -17,8 +17,18 @@ class NoteRecognizer {
         // Note names in chromatic scale
         private val NOTE_NAMES =
             arrayOf(
-                "C", "C#", "D", "D#", "E", "F",
-                "F#", "G", "G#", "A", "A#", "B",
+                "C",
+                "C#",
+                "D",
+                "D#",
+                "E",
+                "F",
+                "F#",
+                "G",
+                "G#",
+                "A",
+                "A#",
+                "B",
             )
 
         // Threshold for considering a note match (in cents)
@@ -37,16 +47,12 @@ class NoteRecognizer {
     /**
      * Converts frequency to MIDI note number.
      */
-    private fun frequencyToMidi(frequency: Double): Double {
-        return 69.0 + 12.0 * log2(frequency / A4_FREQUENCY)
-    }
+    private fun frequencyToMidi(frequency: Double): Double = 69.0 + 12.0 * log2(frequency / A4_FREQUENCY)
 
     /**
      * Converts MIDI note number to note name.
      */
-    private fun midiToNoteName(midiNote: Int): String {
-        return NOTE_NAMES[midiNote % 12]
-    }
+    private fun midiToNoteName(midiNote: Int): String = NOTE_NAMES[midiNote % 12]
 
     /**
      * Calculates cents deviation from nearest note.
@@ -54,9 +60,7 @@ class NoteRecognizer {
     private fun calculateCents(
         actualMidi: Double,
         targetMidi: Int,
-    ): Double {
-        return (actualMidi - targetMidi) * 100.0
-    }
+    ): Double = (actualMidi - targetMidi) * 100.0
 
     /**
      * Recognizes a note from a detected frequency.

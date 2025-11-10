@@ -32,7 +32,7 @@ fun PracticeSessionScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val audioPermissionRequired by viewModel.audioPermissionRequired.collectAsStateWithLifecycle()
-val showPermissionRationale by viewModel.showPermissionRationale.collectAsStateWithLifecycle()
+    val showPermissionRationale by viewModel.showPermissionRationale.collectAsStateWithLifecycle()
 
     // Audio permission launcher
     val audioPermissionLauncher =
@@ -49,7 +49,7 @@ val showPermissionRationale by viewModel.showPermissionRationale.collectAsStateW
     if (showPermissionRationale) {
         PermissionRationaleScreen(
             onRequestPermission = { viewModel.requestAudioPermission() },
-            onDismiss = { viewModel.onPermissionRationaleDismissed() }
+            onDismiss = { viewModel.onPermissionRationaleDismissed() },
         )
     }
 
