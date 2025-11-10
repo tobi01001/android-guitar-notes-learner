@@ -19,63 +19,64 @@ import com.androidguitarnotes.app.R
 fun PracticeConfigScreen(
     onBack: () -> Unit,
     onStartPractice: (PracticeConfig) -> Unit,
-    viewModel: PracticeConfigViewModel = viewModel()
+    viewModel: PracticeConfigViewModel = viewModel(),
 ) {
     val config by viewModel.config.collectAsStateWithLifecycle()
-    
+
     Scaffold(
         topBar = {
             TopAppBar(title = { Text(stringResource(R.string.practice_config_title)) })
-        }
+        },
     ) { padding ->
         Column(
-            modifier = Modifier
-                .padding(padding)
-                .padding(16.dp)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            modifier =
+                Modifier
+                    .padding(padding)
+                    .padding(16.dp)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             StringSelectionSection(
                 selectedStrings = config.selectedStrings,
-                onToggleString = { viewModel.toggleString(it) }
+                onToggleString = { viewModel.toggleString(it) },
             )
-            
+
             FretRangeSection(
                 fretFrom = config.fretFrom,
                 fretTo = config.fretTo,
-                onFretRangeChange = { from, to -> viewModel.setFretRange(from, to) }
+                onFretRangeChange = { from, to -> viewModel.setFretRange(from, to) },
             )
-            
+
             NoteModeSection(
                 selectedMode = config.noteMode,
-                onModeSelected = { viewModel.setNoteMode(it) }
+                onModeSelected = { viewModel.setNoteMode(it) },
             )
-            
+
             DurationSection(
                 durationType = config.durationType,
                 durationMinutes = config.durationMinutes,
                 noteCount = config.noteCount,
                 onDurationTypeChange = { viewModel.setDurationType(it) },
                 onDurationMinutesChange = { viewModel.setDurationMinutes(it) },
-                onNoteCountChange = { viewModel.setNoteCount(it) }
+                onNoteCountChange = { viewModel.setNoteCount(it) },
             )
-            
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 OutlinedButton(
                     onClick = onBack,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text(stringResource(R.string.back))
                 }
-                
+
                 Button(
                     onClick = { onStartPractice(config) },
                     enabled = viewModel.isConfigValid(),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text(stringResource(R.string.start_practice))
                 }
@@ -87,33 +88,33 @@ fun PracticeConfigScreen(
 @Composable
 private fun StringSelectionSection(
     selectedStrings: Set<Int>,
-    onToggleString: (Int) -> Unit
+    onToggleString: (Int) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = stringResource(R.string.select_strings),
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleMedium,
         )
-        
+
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             for (stringNum in 1..6) {
                 FilterChip(
                     selected = selectedStrings.contains(stringNum),
                     onClick = { onToggleString(stringNum) },
                     label = { Text(stringResource(R.string.string_number, stringNum)) },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
-        
+
         if (selectedStrings.isEmpty()) {
             Text(
                 text = stringResource(R.string.at_least_one_string),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error
+                color = MaterialTheme.colorScheme.error,
             )
         }
     }
@@ -123,25 +124,25 @@ private fun StringSelectionSection(
 private fun FretRangeSection(
     fretFrom: Int,
     fretTo: Int,
-    onFretRangeChange: (Int, Int) -> Unit
+    onFretRangeChange: (Int, Int) -> Unit,
 ) {
     var fromText by remember(fretFrom) { mutableStateOf(fretFrom.toString()) }
     var toText by remember(fretTo) { mutableStateOf(fretTo.toString()) }
-    
+
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = stringResource(R.string.fret_range),
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleMedium,
         )
-        
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             OutlinedTextField(
                 value = fromText,
-                onValueChange = { 
+                onValueChange = {
                     fromText = it
                     it.toIntOrNull()?.let { from ->
                         if (from >= 0 && from <= 24) {
@@ -152,14 +153,14 @@ private fun FretRangeSection(
                 label = { Text(stringResource(R.string.fret_from)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
-            
+
             Text("—")
-            
+
             OutlinedTextField(
                 value = toText,
-                onValueChange = { 
+                onValueChange = {
                     toText = it
                     it.toIntOrNull()?.let { to ->
                         if (to >= 0 && to <= 24) {
@@ -170,15 +171,15 @@ private fun FretRangeSection(
                 label = { Text(stringResource(R.string.fret_to)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
         }
-        
+
         if (fretFrom > fretTo || fretTo > 24) {
             Text(
                 text = stringResource(R.string.invalid_fret_range),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error
+                color = MaterialTheme.colorScheme.error,
             )
         }
     }
@@ -187,34 +188,36 @@ private fun FretRangeSection(
 @Composable
 private fun NoteModeSection(
     selectedMode: NoteMode,
-    onModeSelected: (NoteMode) -> Unit
+    onModeSelected: (NoteMode) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = stringResource(R.string.note_mode),
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleMedium,
         )
-        
+
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             NoteMode.entries.forEach { mode ->
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     RadioButton(
                         selected = selectedMode == mode,
-                        onClick = { onModeSelected(mode) }
+                        onClick = { onModeSelected(mode) },
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = when (mode) {
-                            NoteMode.SCALE -> stringResource(R.string.note_mode_scale)
-                            NoteMode.WHOLE_NOTES -> stringResource(R.string.note_mode_whole)
-                            NoteMode.SEMITONES -> stringResource(R.string.note_mode_semitones)
-                        },
-                        modifier = Modifier.weight(1f)
+                        text =
+                            when (mode) {
+                                NoteMode.SCALE -> stringResource(R.string.note_mode_scale)
+                                NoteMode.WHOLE_NOTES -> stringResource(R.string.note_mode_whole)
+                                NoteMode.SEMITONES -> stringResource(R.string.note_mode_semitones)
+                            },
+                        modifier = Modifier.weight(1f),
                     )
                 }
             }
@@ -229,37 +232,37 @@ private fun DurationSection(
     noteCount: Int,
     onDurationTypeChange: (DurationType) -> Unit,
     onDurationMinutesChange: (Int) -> Unit,
-    onNoteCountChange: (Int) -> Unit
+    onNoteCountChange: (Int) -> Unit,
 ) {
     var minutesText by remember(durationMinutes) { mutableStateOf(durationMinutes.toString()) }
     var countText by remember(noteCount) { mutableStateOf(noteCount.toString()) }
-    
+
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = stringResource(R.string.practice_duration),
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleMedium,
         )
-        
+
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 RadioButton(
                     selected = durationType == DurationType.TIME,
-                    onClick = { onDurationTypeChange(DurationType.TIME) }
+                    onClick = { onDurationTypeChange(DurationType.TIME) },
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = stringResource(R.string.duration_mode_time),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
-            
+
             if (durationType == DurationType.TIME) {
                 OutlinedTextField(
                     value = minutesText,
-                    onValueChange = { 
+                    onValueChange = {
                         minutesText = it
                         it.toIntOrNull()?.let { minutes ->
                             val MAX_MINUTES = 480
@@ -271,29 +274,29 @@ private fun DurationSection(
                     label = { Text(stringResource(R.string.minutes)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
-            
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 RadioButton(
                     selected = durationType == DurationType.COUNT,
-                    onClick = { onDurationTypeChange(DurationType.COUNT) }
+                    onClick = { onDurationTypeChange(DurationType.COUNT) },
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = stringResource(R.string.duration_mode_count),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
-            
+
             if (durationType == DurationType.COUNT) {
                 OutlinedTextField(
                     value = countText,
-                    onValueChange = { 
+                    onValueChange = {
                         countText = it
                         it.toIntOrNull()?.let { count ->
                             if (count > 0 && count <= 1000) {
@@ -304,7 +307,7 @@ private fun DurationSection(
                     label = { Text(stringResource(R.string.note_count)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }

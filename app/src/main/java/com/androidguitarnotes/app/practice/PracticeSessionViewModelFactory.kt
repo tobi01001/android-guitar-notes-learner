@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModelProvider
  * Factory for creating PracticeSessionViewModel with config parameter.
  */
 class PracticeSessionViewModelFactory(
-    private val config: PracticeConfig
+    private val config: PracticeConfig,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

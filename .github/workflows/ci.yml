@@ -46,6 +46,16 @@ jobs:
           name: lint-results
           path: app/build/reports/lint-results-*.html
       
+      - name: Run ktlint Code Format Check
+        run: ./gradlew ktlintCheck --stacktrace
+      
+      - name: Upload ktlint Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ktlint-results
+          path: app/build/reports/ktlint/**/*.txt
+      
       - name: Run Unit Tests
         run: ./gradlew test --stacktrace
       

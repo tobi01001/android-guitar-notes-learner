@@ -1,10 +1,8 @@
 package com.androidguitarnotes.app
 
-import android.Manifest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,16 +27,16 @@ fun GuitarNotesApp() {
     MaterialTheme {
         val navController = rememberNavController()
         var practiceConfig by remember { mutableStateOf<PracticeConfig?>(null) }
-        
+
         NavHost(navController, startDestination = "home") {
             composable("home") { HomeScreen(onStartPractice = { navController.navigate("practice") }) }
-            composable("practice") { 
+            composable("practice") {
                 PracticeConfigScreen(
                     onBack = { navController.popBackStack() },
                     onStartPractice = { config ->
                         practiceConfig = config
                         navController.navigate("practiceSession")
-                    }
+                    },
                 )
             }
             composable("practiceSession") {
@@ -46,7 +44,7 @@ fun GuitarNotesApp() {
                 if (config != null) {
                     PracticeSessionScreen(
                         config = config,
-                        onBack = { navController.popBackStack() }
+                        onBack = { navController.popBackStack() },
                     )
                 }
             }
