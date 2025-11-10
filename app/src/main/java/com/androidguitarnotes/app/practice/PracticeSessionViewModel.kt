@@ -22,6 +22,7 @@ class PracticeSessionViewModel(private val config: PracticeConfig) : ViewModel()
     private var timerJob: Job? = null
     private var startTimeMillis: Long = 0
     private var pausedTimeMillis: Long = 0
+    private var totalPausedDuration: Long = 0
     
     /**
      * Starts a new practice session.
@@ -30,6 +31,7 @@ class PracticeSessionViewModel(private val config: PracticeConfig) : ViewModel()
         val firstNote = noteGenerator.generateNote()
         startTimeMillis = System.currentTimeMillis()
         pausedTimeMillis = 0
+        totalPausedDuration = 0
         
         val totalNotes = if (config.durationType == DurationType.COUNT) {
             config.noteCount
@@ -102,9 +104,9 @@ class PracticeSessionViewModel(private val config: PracticeConfig) : ViewModel()
     fun resumeSession() {
         val currentState = _state.value
         if (currentState is PracticeSessionState.Paused) {
-            // Adjust start time to account for paused duration
+            // Accumulate paused duration for multiple pause/resume cycles
             val pausedDuration = System.currentTimeMillis() - pausedTimeMillis
-            startTimeMillis += pausedDuration
+            totalPausedDuration += pausedDuration
             
             _state.value = PracticeSessionState.Active(
                 currentNote = currentState.currentNote,
@@ -145,7 +147,7 @@ class PracticeSessionViewModel(private val config: PracticeConfig) : ViewModel()
                 
                 val currentState = _state.value
                 if (currentState is PracticeSessionState.Active) {
-                    val elapsedSeconds = (System.currentTimeMillis() - startTimeMillis) / 1000
+                    val elapsedSeconds = (System.currentTimeMillis() - startTimeMillis - totalPausedDuration) / 1000
                     
                     // Check if time-based session is complete
                     if (config.durationType == DurationType.TIME && 
@@ -155,6 +157,9 @@ class PracticeSessionViewModel(private val config: PracticeConfig) : ViewModel()
                     }
                     
                     _state.value = currentState.copy(elapsedTimeSeconds = elapsedSeconds)
+                } else {
+                    // Exit loop if state is no longer Active
+                    break
                 }
             }
         }
@@ -165,7 +170,7 @@ class PracticeSessionViewModel(private val config: PracticeConfig) : ViewModel()
      */
     private fun completeSession(notesCompleted: Int) {
         timerJob?.cancel()
-        val totalTime = (System.currentTimeMillis() - startTimeMillis) / 1000
+        val totalTime = (System.currentTimeMillis() - startTimeMillis - totalPausedDuration) / 1000
         _state.value = PracticeSessionState.Completed(
             notesCompleted = notesCompleted,
             totalTimeSeconds = totalTime

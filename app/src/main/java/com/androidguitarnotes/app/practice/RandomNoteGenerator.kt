@@ -7,25 +7,9 @@ import kotlin.random.Random
  */
 class RandomNoteGenerator(private val config: PracticeConfig) {
     
-    // Standard tuning notes for each string (open string)
-    // String 1 (high E) to String 6 (low E)
-    private val openStringNotes = listOf(
-        "E",  // String 1
-        "B",  // String 2
-        "G",  // String 3
-        "D",  // String 4
-        "A",  // String 5
-        "E"   // String 6
-    )
-    
     // Chromatic scale (all semitones)
     private val chromaticScale = listOf(
         "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
-    )
-    
-    // Whole notes only (no sharps/flats)
-    private val wholeNotes = listOf(
-        "C", "D", "E", "F", "G", "A", "B"
     )
     
     // Starting position of each open string in chromatic scale

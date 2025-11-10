@@ -10,6 +10,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.androidguitarnotes.app.R
 
 /**
@@ -19,7 +20,9 @@ import com.androidguitarnotes.app.R
 fun PracticeSessionScreen(
     config: PracticeConfig,
     onBack: () -> Unit,
-    viewModel: PracticeSessionViewModel = remember { PracticeSessionViewModel(config) }
+    viewModel: PracticeSessionViewModel = viewModel(
+        factory = PracticeSessionViewModelFactory(config)
+    )
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     
@@ -354,7 +357,7 @@ private fun ProgressIndicator(
         // Notes progress
         if (totalNotes != null) {
             LinearProgressIndicator(
-                progress = { notesCompleted.toFloat() / totalNotes.toFloat() },
+                progress = { if (totalNotes > 0) notesCompleted.toFloat() / totalNotes.toFloat() else 0f },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp)
@@ -376,7 +379,7 @@ private fun ProgressIndicator(
         // Time progress
         if (totalTimeSeconds != null) {
             LinearProgressIndicator(
-                progress = { elapsedTimeSeconds.toFloat() / totalTimeSeconds.toFloat() },
+                progress = { if (totalTimeSeconds > 0) elapsedTimeSeconds.toFloat() / totalTimeSeconds.toFloat() else 0f },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp)
