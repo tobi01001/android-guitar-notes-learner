@@ -356,8 +356,9 @@ private fun ProgressIndicator(
     ) {
         // Notes progress
         if (totalNotes != null) {
+            val progressNotesVal = if (totalNotes > 0) notesCompleted.toFloat() / totalNotes.toFloat() else 0f
             LinearProgressIndicator(
-                progress = { if (totalNotes > 0) notesCompleted.toFloat() / totalNotes.toFloat() else 0f },
+                progress = progressNotesVal,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp)
@@ -378,8 +379,9 @@ private fun ProgressIndicator(
         
         // Time progress
         if (totalTimeSeconds != null) {
+            val progressTimeVal = if (totalTimeSeconds > 0) elapsedTimeSeconds.toFloat() / totalTimeSeconds.toFloat() else 0f
             LinearProgressIndicator(
-                progress = { if (totalTimeSeconds > 0) elapsedTimeSeconds.toFloat() / totalTimeSeconds.toFloat() else 0f },
+                progress = progressTimeVal,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp)
