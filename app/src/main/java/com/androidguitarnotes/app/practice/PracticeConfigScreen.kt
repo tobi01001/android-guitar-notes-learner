@@ -382,6 +382,10 @@ private fun getScaleName(scale: Scale): String {
         Scale.G_MAJOR -> stringResource(R.string.scale_g_major)
         Scale.A_MINOR -> stringResource(R.string.scale_a_minor)
         Scale.E_MINOR -> stringResource(R.string.scale_e_minor)
+    }
+}
+
+@Composable
 private fun ProgressionModeSection(
     progressionMode: ProgressionMode,
     autoIntervalSeconds: Float,

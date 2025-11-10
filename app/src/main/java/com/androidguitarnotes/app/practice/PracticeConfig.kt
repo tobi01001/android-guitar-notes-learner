@@ -41,6 +41,9 @@ enum class Scale(val notes: List<String>) {
     G_MAJOR(listOf("G", "A", "B", "C", "D", "E", "F#")),
     A_MINOR(listOf("A", "B", "C", "D", "E", "F", "G")),
     E_MINOR(listOf("E", "F#", "G", "A", "B", "C", "D")),
+}
+
+/**
  * Defines how progression through notes occurs during practice.
  */
 enum class ProgressionMode {
