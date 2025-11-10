@@ -10,7 +10,7 @@ data class PracticeConfig(
     val noteMode: NoteMode = NoteMode.WHOLE_NOTES,
     val durationType: DurationType = DurationType.TIME,
     val durationMinutes: Int = 5,
-    val noteCount: Int = 20
+    val noteCount: Int = 20,
 )
 
 /**
@@ -19,7 +19,7 @@ data class PracticeConfig(
 enum class NoteMode {
     SCALE,
     WHOLE_NOTES,
-    SEMITONES
+    SEMITONES,
 }
 
 /**
@@ -27,5 +27,5 @@ enum class NoteMode {
  */
 enum class DurationType {
     TIME,
-    COUNT
+    COUNT,
 }

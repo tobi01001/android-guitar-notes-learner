@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jlleitschuh.gradle.ktlint")
 }
 
 android {
@@ -30,9 +31,10 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
-        freeCompilerArgs += listOf(
-            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api"
-        )
+        freeCompilerArgs +=
+            listOf(
+                "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
+            )
     }
 
     packagingOptions {
@@ -50,4 +52,17 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
     testImplementation("junit:junit:4.13.2")
     testImplementation("io.mockk:mockk:1.13.8")
+}
+
+// ktlint configuration
+ktlint {
+    version.set("1.5.0")
+    android.set(true)
+    // Set to true to allow build to continue with formatting issues
+    // Run `./gradlew ktlintFormat` to auto-fix formatting
+    ignoreFailures.set(true)
+    reporters {
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
+    }
 }

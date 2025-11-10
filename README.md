@@ -13,6 +13,42 @@ Quick start (local)
 1. Open project in Android Studio (use an Android Studio version that supports the Android Gradle Plugin used in the build files).
 2. Build and run on a device (microphone required for audio features).
 
+## Development
+
+### Testing
+Run unit tests with:
+```bash
+./gradlew test
+```
+
+### Code Formatting
+This project uses [ktlint](https://github.com/pinterest/ktlint) for Kotlin code formatting.
+
+Check code formatting:
+```bash
+./gradlew ktlintCheck
+```
+
+Auto-fix formatting issues:
+```bash
+./gradlew ktlintFormat
+```
+
+### Linting
+Run Android Lint checks:
+```bash
+./gradlew lint
+```
+
+### CI/CD
+The project includes a GitHub Actions workflow that automatically:
+- Builds debug and release APKs
+- Runs Android Lint checks
+- Runs ktlint code formatting checks
+- Runs all unit tests
+
+All checks run on push to main and on pull requests.
+
 Planned initial features (M1)
 - App skeleton with Compose navigation (Home / Practice / Settings).
 - Practice configuration UI (string selection, fret range, mode, duration).
