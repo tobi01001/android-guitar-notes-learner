@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -15,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.androidguitarnotes.app.R
+import com.androidguitarnotes.app.permissions.PermissionRationaleScreen
 
 /**
  * Practice session screen showing the current note and session progress.
@@ -24,11 +26,12 @@ fun PracticeSessionScreen(
     config: PracticeConfig,
     onBack: () -> Unit,
     viewModel: PracticeSessionViewModel = viewModel(
-        factory = PracticeSessionViewModelFactory(config)
+        factory = PracticeSessionViewModelFactory(config, LocalContext.current.applicationContext)
     )
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val audioPermissionRequired by viewModel.audioPermissionRequired.collectAsStateWithLifecycle()
+    val showPermissionRationale by viewModel.showPermissionRationale.collectAsStateWithLifecycle()
     
     // Audio permission launcher
     val audioPermissionLauncher = rememberLauncherForActivityResult(
@@ -39,6 +42,14 @@ fun PracticeSessionScreen(
         } else {
             viewModel.onAudioPermissionDenied()
         }
+    }
+    
+    // Show permission rationale dialog
+    if (showPermissionRationale) {
+        PermissionRationaleScreen(
+            onRequestPermission = { viewModel.requestAudioPermission() },
+            onDismiss = { viewModel.onPermissionRationaleDismissed() }
+        )
     }
     
     // Request permission when needed
@@ -65,7 +76,7 @@ fun PracticeSessionScreen(
                     ReadyScreen(
                         onStart = { 
                             viewModel.startSession()
-                            viewModel.requestAudioPermission()
+                            viewModel.checkAndRequestAudioPermission()
                         },
                         onBack = onBack
                     )

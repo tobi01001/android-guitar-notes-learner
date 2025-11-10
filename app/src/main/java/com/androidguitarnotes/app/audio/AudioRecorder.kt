@@ -3,6 +3,7 @@ package com.androidguitarnotes.app.audio
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -34,6 +35,8 @@ class AudioRecorder {
      * Starts recording and returns a flow of audio data chunks.
      * 
      * @return Flow of ShortArray containing audio samples
+     * @throws SecurityException if RECORD_AUDIO permission is not granted
+     * @throws IllegalStateException if AudioRecord initialization fails
      */
     fun startRecording(): Flow<ShortArray> = flow {
         try {
@@ -46,7 +49,7 @@ class AudioRecorder {
             )
             
             if (audioRecord?.state != AudioRecord.STATE_INITIALIZED) {
-                throw IllegalStateException("AudioRecord initialization failed")
+                throw IllegalStateException("AudioRecord initialization failed - check permissions")
             }
             
             audioRecord?.startRecording()
@@ -60,8 +63,18 @@ class AudioRecorder {
                     // Create a copy to avoid reusing the same buffer
                     val audioData = buffer.copyOf(readResult)
                     emit(audioData)
+                } else if (readResult < 0) {
+                    // Error reading audio data
+                    Log.e("AudioRecorder", "Error reading audio: $readResult")
+                    break
                 }
             }
+        } catch (e: SecurityException) {
+            Log.e("AudioRecorder", "SecurityException - missing RECORD_AUDIO permission", e)
+            throw e
+        } catch (e: Exception) {
+            Log.e("AudioRecorder", "Error in audio recording", e)
+            throw e
         } finally {
             stopRecording()
         }
