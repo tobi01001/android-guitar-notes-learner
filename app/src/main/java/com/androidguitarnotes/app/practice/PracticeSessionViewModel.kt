@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 class PracticeSessionViewModel(
     private val config: PracticeConfig,
     private val audioManager: AudioManager = AudioManager(),
-    private val permissionManager: PermissionManager,
+    private val permissionManager: PermissionManager
 ) : ViewModel() {
     private val noteGenerator = RandomNoteGenerator(config)
 
@@ -30,8 +30,12 @@ class PracticeSessionViewModel(
     private val _showPermissionRationale = MutableStateFlow(false)
     val showPermissionRationale: StateFlow<Boolean> = _showPermissionRationale.asStateFlow()
 
+    private val _autoIntervalCountdown = MutableStateFlow<Float?>(null)
+    val autoIntervalCountdown: StateFlow<Float?> = _autoIntervalCountdown.asStateFlow()
+
     private var timerJob: Job? = null
     private var audioListeningJob: Job? = null
+    private var autoIntervalJob: Job? = null
     private var startTimeMillis: Long = 0
     private var pausedTimeMillis: Long = 0
     private var totalPausedDuration: Long = 0
@@ -119,7 +123,11 @@ class PracticeSessionViewModel(
             )
 
         startTimer()
-        // Audio listening will be started after permission is granted
+        // Audio listening will be started after permission is granted (for AUDIO_VERIFICATION mode)
+        // Auto-interval timer started if AUTO_INTERVAL mode
+        if (config.progressionMode == ProgressionMode.AUTO_INTERVAL) {
+            startAutoIntervalTimer()
+        }
     }
 
     /**
@@ -156,6 +164,13 @@ class PracticeSessionViewModel(
                                         }
 
                                     _state.value = currentState.copy(noteFeedback = feedback)
+
+                                    // Auto-advance if in AUDIO_VERIFICATION mode and note is correct
+                                    if (config.progressionMode == ProgressionMode.AUDIO_VERIFICATION && isCorrect) {
+                                        // Small delay before advancing to show the "Correct!" feedback
+                                        delay(800)
+                                        nextNote()
+                                    }
                                 }
                                 is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
                                     _state.value =
@@ -207,7 +222,13 @@ class PracticeSessionViewModel(
                 currentState.copy(
                     currentNote = nextNote,
                     notesCompleted = newNotesCompleted,
+                    noteFeedback = PracticeSessionState.NoteFeedback.None,
                 )
+
+            // Restart auto-interval timer if in AUTO_INTERVAL mode
+            if (config.progressionMode == ProgressionMode.AUTO_INTERVAL) {
+                startAutoIntervalTimer()
+            }
         }
     }
 
@@ -220,6 +241,7 @@ class PracticeSessionViewModel(
             pausedTimeMillis = System.currentTimeMillis()
             timerJob?.cancel()
             stopAudioListening()
+            stopAutoIntervalTimer()
 
             _state.value =
                 PracticeSessionState.Paused(
@@ -253,9 +275,14 @@ class PracticeSessionViewModel(
                 )
 
             startTimer()
-            // Only start audio if permission is granted
-            if (permissionManager.isRecordAudioPermissionGranted()) {
+            // Only start audio if permission is granted and in AUDIO_VERIFICATION mode
+            if (config.progressionMode == ProgressionMode.AUDIO_VERIFICATION &&
+                permissionManager.isRecordAudioPermissionGranted()) {
                 startAudioListening()
+            }
+            // Restart auto-interval timer if in AUTO_INTERVAL mode
+            if (config.progressionMode == ProgressionMode.AUTO_INTERVAL) {
+                startAutoIntervalTimer()
             }
         }
     }
@@ -308,11 +335,49 @@ class PracticeSessionViewModel(
     }
 
     /**
+     * Starts the auto-interval timer for AUTO_INTERVAL progression mode.
+     */
+    private fun startAutoIntervalTimer() {
+        autoIntervalJob?.cancel()
+        _autoIntervalCountdown.value = config.autoIntervalSeconds
+
+        autoIntervalJob =
+            viewModelScope.launch {
+                val intervalMillis = (config.autoIntervalSeconds * 1000).toLong()
+                val updateIntervalMs = 100L // Update countdown every 100ms for smooth UI
+                val startTime = System.currentTimeMillis()
+
+                while (true) {
+                    val elapsed = System.currentTimeMillis() - startTime
+                    val remaining = (intervalMillis - elapsed) / 1000f
+
+                    if (remaining <= 0) {
+                        _autoIntervalCountdown.value = null
+                        nextNote()
+                        break
+                    }
+
+                    _autoIntervalCountdown.value = remaining
+                    delay(updateIntervalMs)
+                }
+            }
+    }
+
+    /**
+     * Stops the auto-interval timer.
+     */
+    private fun stopAutoIntervalTimer() {
+        autoIntervalJob?.cancel()
+        _autoIntervalCountdown.value = null
+    }
+
+    /**
      * Completes the practice session.
      */
     private fun completeSession(notesCompleted: Int) {
         timerJob?.cancel()
         stopAudioListening()
+        stopAutoIntervalTimer()
         val totalTime = (System.currentTimeMillis() - startTimeMillis - totalPausedDuration) / 1000
         _state.value =
             PracticeSessionState.Completed(
@@ -325,5 +390,6 @@ class PracticeSessionViewModel(
         super.onCleared()
         timerJob?.cancel()
         stopAudioListening()
+        stopAutoIntervalTimer()
     }
 }
