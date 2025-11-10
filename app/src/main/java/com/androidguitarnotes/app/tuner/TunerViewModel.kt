@@ -3,6 +3,7 @@ package com.androidguitarnotes.app.tuner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.androidguitarnotes.app.audio.AudioManager
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,9 +21,7 @@ class TunerViewModel(
     private val _state = MutableStateFlow(TunerState())
     val state: StateFlow<TunerState> = _state.asStateFlow()
     
-    companion object {
-        private const val IN_TUNE_THRESHOLD_CENTS = 10.0  // ±10 cents is considered in tune
-    }
+    private var listeningJob: Job? = null
     
     /**
      * Selects a guitar string to tune.
@@ -39,7 +38,8 @@ class TunerViewModel(
         
         _state.value = _state.value.copy(isListening = true)
         
-        viewModelScope.launch {
+        listeningJob?.cancel()
+        listeningJob = viewModelScope.launch {
             audioManager.startListening().collect { result ->
                 when (result) {
                     is AudioManager.AudioAnalysisResult.NoteDetected -> {
@@ -70,6 +70,8 @@ class TunerViewModel(
      * Stops listening for audio input.
      */
     fun stopListening() {
+        listeningJob?.cancel()
+        listeningJob = null
         audioManager.stopListening()
         _state.value = _state.value.copy(
             isListening = false,
@@ -89,7 +91,7 @@ class TunerViewModel(
      */
     fun isInTune(): Boolean {
         val status = _state.value.tuningStatus
-        return status is TuningStatus.Detecting && abs(status.cents) <= IN_TUNE_THRESHOLD_CENTS
+        return status is TuningStatus.Detecting && abs(status.cents) <= TunerConstants.IN_TUNE_THRESHOLD_CENTS
     }
     
     override fun onCleared() {

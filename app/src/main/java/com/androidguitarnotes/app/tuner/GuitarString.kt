@@ -10,8 +10,6 @@ data class GuitarString(
     val frequency: Double   // Target frequency in Hz
 ) {
     companion object {
-        private const val A4_FREQUENCY = 440.0
-        
         /**
          * Standard guitar tuning (E A D G B E)
          */

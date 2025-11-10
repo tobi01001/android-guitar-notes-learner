@@ -1,6 +1,16 @@
 package com.androidguitarnotes.app.tuner
 
 /**
+ * Tuner constants.
+ */
+object TunerConstants {
+    /**
+     * Threshold for considering a string in tune (±10 cents).
+     */
+    const val IN_TUNE_THRESHOLD_CENTS = 10.0
+}
+
+/**
  * Represents the tuning status for a guitar string.
  */
 sealed class TuningStatus {

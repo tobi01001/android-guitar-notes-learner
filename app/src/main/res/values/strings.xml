@@ -56,9 +56,9 @@
     <string name="tuner">Tuner</string>
     <string name="select_string_to_tune">Select a string to tune</string>
     <string name="string_name_octave">%1$s%2$d</string>
-    <string name="target_frequency">Target: %.2f Hz</string>
-    <string name="detected_frequency">Detected: %.2f Hz</string>
-    <string name="cents_deviation">%+.0f cents</string>
+    <string name="target_frequency">Target: %1$.2f Hz</string>
+    <string name="detected_frequency">Detected: %1$.2f Hz</string>
+    <string name="cents_deviation">%1$+.0f cents</string>
     <string name="in_tune">In Tune!</string>
     <string name="tune_up">Tune Up ↑</string>
     <string name="tune_down">Tune Down ↓</string>

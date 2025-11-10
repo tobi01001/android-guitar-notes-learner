@@ -32,6 +32,11 @@ fun TunerScreen(
     modifier: Modifier = Modifier
 ) {
     val audioManager = remember { AudioManager() }
+    DisposableEffect(audioManager) {
+        onDispose {
+            audioManager.stopListening()
+        }
+    }
     val viewModel: TunerViewModel = viewModel(
         factory = TunerViewModelFactory(audioManager)
     )
@@ -201,7 +206,7 @@ private fun TuningIndicator(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    stringResource(R.string.target_frequency).format(state.selectedString.frequency),
+                    stringResource(R.string.target_frequency, state.selectedString.frequency),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -242,9 +247,9 @@ private fun TuningGauge(
     detectedFrequency: Double,
     modifier: Modifier = Modifier
 ) {
-    val isInTune = abs(cents) <= 10.0
-    val isTooFlat = cents < -10.0
-    val isTooSharp = cents > 10.0
+    val isInTune = abs(cents) <= TunerConstants.IN_TUNE_THRESHOLD_CENTS
+    val isTooFlat = cents < -TunerConstants.IN_TUNE_THRESHOLD_CENTS
+    val isTooSharp = cents > TunerConstants.IN_TUNE_THRESHOLD_CENTS
     
     // Animate the indicator color
     val indicatorColor by animateColorAsState(
@@ -293,11 +298,11 @@ private fun TuningGauge(
         // Numeric display
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                stringResource(R.string.detected_frequency).format(detectedFrequency),
+                stringResource(R.string.detected_frequency, detectedFrequency),
                 style = MaterialTheme.typography.bodyLarge
             )
             Text(
-                stringResource(R.string.cents_deviation).format(cents),
+                stringResource(R.string.cents_deviation, cents),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = indicatorColor
@@ -318,13 +323,17 @@ private fun CentsDeviationBar(
     val maxCents = 50.0  // Show ±50 cents
     val normalizedPosition = (cents / maxCents).coerceIn(-1.0, 1.0).toFloat()
     
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
             .height(80.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
+        val containerWidth = maxWidth
+        val indicatorSize = 40.dp
+        val offsetX = (containerWidth - indicatorSize) * ((normalizedPosition + 1f) / 2f)
+        
         // Center line
         Box(
             modifier = Modifier
@@ -337,9 +346,9 @@ private fun CentsDeviationBar(
         // Indicator
         Box(
             modifier = Modifier
-                .size(40.dp)
+                .size(indicatorSize)
                 .align(Alignment.CenterStart)
-                .offset(x = ((normalizedPosition + 1f) / 2f * (1f - 40.dp.value / 400.dp.value) * 100).dp)
+                .offset(x = offsetX)
                 .clip(CircleShape)
                 .background(color)
                 .border(3.dp, MaterialTheme.colorScheme.surface, CircleShape)
