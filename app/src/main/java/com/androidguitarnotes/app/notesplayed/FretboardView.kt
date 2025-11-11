@@ -39,25 +39,25 @@ fun FretboardView(
             emptyList()
         }
 
-    Column(
+    Row(
         modifier =
             modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         // Fret numbers
         FretNumbers(maxFret = maxFret)
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.width(8.dp))
 
         // Strings and frets
-        Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            for (stringNumber in 1..GUITAR_STRINGS) {
-                StringRow(
+            for (stringNumber in GUITAR_STRINGS downTo 1) {
+                StringColumn(
                     stringNumber = stringNumber,
                     maxFret = maxFret,
                     highlightedPositions = highlightedPositions,
@@ -69,19 +69,18 @@ fun FretboardView(
 }
 
 /**
- * Displays fret numbers above the fretboard.
+ * Displays fret numbers on the left side of the fretboard.
  */
 @Composable
 private fun FretNumbers(
     maxFret: Int,
     modifier: Modifier = Modifier,
 ) {
-    Row(
+    Column(
         modifier =
             modifier
-                .fillMaxWidth()
-                .padding(start = 40.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+                .padding(top = 40.dp),
+        verticalArrangement = Arrangement.SpaceEvenly,
     ) {
         for (fret in 0..maxFret) {
             Box(
@@ -103,19 +102,18 @@ private fun FretNumbers(
  * Displays a single string with its frets.
  */
 @Composable
-private fun StringRow(
+private fun StringColumn(
     stringNumber: Int,
     maxFret: Int,
     highlightedPositions: List<FretboardHelper.FretPosition>,
     detectedNote: String?,
     modifier: Modifier = Modifier,
 ) {
-    Row(
+    Column(
         modifier =
             modifier
-                .fillMaxWidth()
-                .height(32.dp),
-        verticalAlignment = Alignment.CenterVertically,
+                .width(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // String label
         Text(
@@ -125,16 +123,16 @@ private fun StringRow(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier =
                 Modifier
-                    .width(32.dp)
-                    .wrapContentWidth(Alignment.CenterHorizontally),
+                    .height(32.dp)
+                    .wrapContentHeight(Alignment.CenterVertically),
         )
 
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Frets
-        Row(
+        Column(
             modifier = Modifier.weight(1f),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalArrangement = Arrangement.SpaceEvenly,
         ) {
             for (fret in 0..maxFret) {
                 val isHighlighted =
