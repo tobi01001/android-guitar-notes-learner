@@ -88,12 +88,9 @@ fun PracticeSessionScreen(
                             viewModel.startSession()
                             // Request audio permission for AUDIO_VERIFICATION mode (required)
                             // or for other modes to enable note detection display (optional)
-                            if (config.progressionMode == ProgressionMode.AUDIO_VERIFICATION) {
-                                viewModel.checkAndRequestAudioPermission()
-                            } else {
-                                // For Manual/Timer modes, try to start audio if permission is already granted
-                                viewModel.checkAndRequestAudioPermission()
-                            }
+                            // Request audio permission for AUDIO_VERIFICATION mode (required)
+                            // or for other modes to enable note detection display (optional)
+                            viewModel.checkAndRequestAudioPermission()
                         },
                         onBack = onBack,
                     )
