@@ -116,20 +116,24 @@ class AudioRecorder {
      * Permission handling is managed by the calling ViewModel/UI layer.
      *
      * @param sensitivityMultiplier Multiplier for audio sensitivity (0.5 to 2.0, default 1.0)
+     * @param audioSourceType Audio source type (null for auto-selection)
      * @return Flow of AudioDataWithLevel containing audio samples and level
      * @throws SecurityException if RECORD_AUDIO permission is not granted
      * @throws IllegalStateException if AudioRecord initialization fails
      * @throws IllegalArgumentException if sensitivityMultiplier is outside valid range
      */
     @SuppressLint("MissingPermission")
-    fun startRecording(sensitivityMultiplier: Float = 1.0f): Flow<AudioDataWithLevel> =
+    fun startRecording(
+        sensitivityMultiplier: Float = 1.0f,
+        audioSourceType: Int? = null,
+    ): Flow<AudioDataWithLevel> =
         flow {
             require(sensitivityMultiplier in 0.5f..2.0f) {
                 "Sensitivity multiplier must be between 0.5 and 2.0, got $sensitivityMultiplier"
             }
 
             try {
-                val audioSource = selectBestAudioSource()
+                val audioSource = audioSourceType ?: selectBestAudioSource()
                 audioRecord =
                     AudioRecord(
                         audioSource,

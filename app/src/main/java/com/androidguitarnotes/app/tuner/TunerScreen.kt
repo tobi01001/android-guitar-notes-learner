@@ -21,6 +21,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.androidguitarnotes.app.R
 import com.androidguitarnotes.app.audio.AudioManager
+import com.androidguitarnotes.app.ui.NoteColors
 import kotlin.math.abs
 
 /**
@@ -142,9 +143,16 @@ private fun StringButton(
 ) {
     val backgroundColor =
         if (isSelected) {
-            MaterialTheme.colorScheme.primaryContainer
+            NoteColors.getLightColorForNote(guitarString.noteName)
         } else {
             MaterialTheme.colorScheme.surface
+        }
+
+    val contentColor =
+        if (isSelected) {
+            NoteColors.getDarkColorForNote(guitarString.noteName)
+        } else {
+            MaterialTheme.colorScheme.onSurface
         }
 
     Button(
@@ -155,7 +163,7 @@ private fun StringButton(
         colors =
             ButtonDefaults.buttonColors(
                 containerColor = backgroundColor,
-                contentColor = MaterialTheme.colorScheme.onSurface,
+                contentColor = contentColor,
             ),
         shape = CircleShape,
         contentPadding = PaddingValues(0.dp),
@@ -260,9 +268,10 @@ private fun TuningGauge(
     detectedFrequency: Double?,
     modifier: Modifier = Modifier,
 ) {
+    val maxCents = 50.0 // Show ±50 cents
     // When cents is null, we're not detecting - show grey dot at far left
     val isDetecting = cents != null
-    val safeCents = cents ?: -MAX_CENTS // Default to far left when not detecting
+    val safeCents = cents ?: -maxCents // Default to far left when not detecting
 
     val isInTune = cents != null && abs(cents) <= TunerConstants.IN_TUNE_THRESHOLD_CENTS
     val isTooFlat = cents != null && cents < -TunerConstants.IN_TUNE_THRESHOLD_CENTS
@@ -317,7 +326,7 @@ private fun TuningGauge(
         )
 
         // Numeric display - only show when detecting
-        if (isDetecting && detectedFrequency != null) {
+        if (isDetecting && detectedFrequency != null && cents != null) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     stringResource(R.string.detected_frequency, detectedFrequency),

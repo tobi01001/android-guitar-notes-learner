@@ -1,5 +1,7 @@
 package com.androidguitarnotes.app.settings
 
+import android.media.MediaRecorder
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,19 +12,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Divider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -43,6 +49,9 @@ fun SettingsScreen(
     val defaultTuning by viewModel.defaultTuning.collectAsStateWithLifecycle()
     val microphoneSensitivity by viewModel.microphoneSensitivity.collectAsStateWithLifecycle()
     val autoAdjustSensitivity by viewModel.autoAdjustSensitivity.collectAsStateWithLifecycle()
+    val audioSource by viewModel.audioSource.collectAsStateWithLifecycle()
+
+    var showAudioSourceDialog by remember { mutableStateOf(false) }
 
     // Use remember with cleanup for proper lifecycle management
     val audioManager =
@@ -154,6 +163,16 @@ fun SettingsScreen(
                 )
 
                 Divider()
+
+                // Audio Input Source Selection
+                SettingsClickableItem(
+                    title = stringResource(R.string.audio_input_source),
+                    subtitle = getAudioSourceName(audioSource),
+                    description = stringResource(R.string.audio_input_source_description),
+                    onClick = { showAudioSourceDialog = true },
+                )
+
+                Divider()
             }
 
             // About Section
@@ -164,6 +183,18 @@ fun SettingsScreen(
                 subtitle = stringResource(R.string.version_value),
             )
         }
+    }
+
+    // Audio Source Selection Dialog
+    if (showAudioSourceDialog) {
+        AudioSourceDialog(
+            currentSource = audioSource,
+            onSourceSelected = { source ->
+                viewModel.setAudioSource(source)
+                showAudioSourceDialog = false
+            },
+            onDismiss = { showAudioSourceDialog = false },
+        )
     }
 }
 
@@ -323,3 +354,118 @@ private fun AudioLevelBar(
         )
     }
 }
+
+@Composable
+private fun SettingsClickableItem(
+    title: String,
+    subtitle: String? = null,
+    description: String? = null,
+    onClick: () -> Unit,
+) {
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        if (subtitle != null) {
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (description != null) {
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun AudioSourceDialog(
+    currentSource: Int?,
+    onSourceSelected: (Int?) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.audio_input_source)) },
+        text = {
+            Column {
+                AudioSourceOption(
+                    name = stringResource(R.string.audio_source_auto),
+                    source = null,
+                    currentSource = currentSource,
+                    onSelect = onSourceSelected,
+                )
+                AudioSourceOption(
+                    name = stringResource(R.string.audio_source_unprocessed),
+                    source = MediaRecorder.AudioSource.UNPROCESSED,
+                    currentSource = currentSource,
+                    onSelect = onSourceSelected,
+                )
+                AudioSourceOption(
+                    name = stringResource(R.string.audio_source_voice_recognition),
+                    source = MediaRecorder.AudioSource.VOICE_RECOGNITION,
+                    currentSource = currentSource,
+                    onSelect = onSourceSelected,
+                )
+                AudioSourceOption(
+                    name = stringResource(R.string.audio_source_mic),
+                    source = MediaRecorder.AudioSource.MIC,
+                    currentSource = currentSource,
+                    onSelect = onSourceSelected,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.ok))
+            }
+        },
+    )
+}
+
+@Composable
+private fun AudioSourceOption(
+    name: String,
+    source: Int?,
+    currentSource: Int?,
+    onSelect: (Int?) -> Unit,
+) {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable { onSelect(source) }
+                .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioButton(
+            selected = source == currentSource,
+            onClick = { onSelect(source) },
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = name)
+    }
+}
+
+@Composable
+private fun getAudioSourceName(source: Int?): String =
+    when (source) {
+        null -> stringResource(R.string.audio_source_auto)
+        MediaRecorder.AudioSource.UNPROCESSED -> stringResource(R.string.audio_source_unprocessed)
+        MediaRecorder.AudioSource.VOICE_RECOGNITION -> stringResource(R.string.audio_source_voice_recognition)
+        MediaRecorder.AudioSource.MIC -> stringResource(R.string.audio_source_mic)
+        else -> stringResource(R.string.audio_source_auto)
+    }
