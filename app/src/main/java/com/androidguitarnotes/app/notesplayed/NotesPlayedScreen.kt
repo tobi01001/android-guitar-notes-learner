@@ -166,7 +166,7 @@ private fun NoteCard(
                             if (detectedNote != null) {
                                 NoteColors.getColorForNote(detectedNote.noteName)
                             } else {
-                                MaterialTheme.colorScheme.primary
+                                MaterialTheme.colorScheme.surfaceVariant
                             },
                         ),
                 contentAlignment = Alignment.Center,
@@ -185,7 +185,7 @@ private fun NoteCard(
                         style = MaterialTheme.typography.displayLarge,
                         fontSize = 72.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }

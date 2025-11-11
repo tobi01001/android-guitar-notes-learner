@@ -326,14 +326,14 @@ private fun TuningGauge(
         )
 
         // Numeric display - only show when detecting
-        if (isDetecting && detectedFrequency != null) {
+        if (isDetecting && detectedFrequency != null && cents != null) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     stringResource(R.string.detected_frequency, detectedFrequency),
                     style = MaterialTheme.typography.bodyLarge,
                 )
                 Text(
-                    stringResource(R.string.cents_deviation, cents ?: 0.0),
+                    stringResource(R.string.cents_deviation, cents),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = indicatorColor,

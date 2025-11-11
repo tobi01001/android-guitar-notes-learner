@@ -9,6 +9,12 @@ object FretboardHelper {
     // Standard tuning open strings (from string 6 to string 1)
     private val OPEN_STRING_NOTES = listOf("E", "A", "D", "G", "B", "E")
 
+    // Cache for fretboard positions by note name (without octave)
+    private val notePositionsCache = mutableMapOf<Pair<String, Int>, List<FretPosition>>()
+
+    // Cache for fretboard positions by note name with octave
+    private val notePositionsWithOctaveCache = mutableMapOf<Pair<String, Int>, List<FretPosition>>()
+
     /**
      * Represents a position on the fretboard.
      */
@@ -32,43 +38,51 @@ object FretboardHelper {
     /**
      * Find all fretboard positions that match a given note name.
      * Returns positions up to the specified maximum fret.
+     * Results are cached for performance.
      */
     fun findPositionsForNote(
         noteName: String,
         maxFret: Int = 12,
     ): List<FretPosition> {
-        val positions = mutableListOf<FretPosition>()
+        val cacheKey = Pair(noteName, maxFret)
+        return notePositionsCache.getOrPut(cacheKey) {
+            val positions = mutableListOf<FretPosition>()
 
-        for (stringNumber in 1..6) {
-            for (fret in 0..maxFret) {
-                if (getNoteAtPosition(stringNumber, fret) == noteName) {
-                    positions.add(FretPosition(stringNumber, fret))
+            for (stringNumber in 1..6) {
+                for (fret in 0..maxFret) {
+                    if (getNoteAtPosition(stringNumber, fret) == noteName) {
+                        positions.add(FretPosition(stringNumber, fret))
+                    }
                 }
             }
-        }
 
-        return positions
+            positions
+        }
     }
 
     /**
      * Find all fretboard positions that match a given note name with octave.
      * Returns positions up to the specified maximum fret.
+     * Results are cached for performance.
      */
     fun findPositionsForNoteWithOctave(
         noteNameWithOctave: String,
         maxFret: Int = 12,
     ): List<FretPosition> {
-        val positions = mutableListOf<FretPosition>()
+        val cacheKey = Pair(noteNameWithOctave, maxFret)
+        return notePositionsWithOctaveCache.getOrPut(cacheKey) {
+            val positions = mutableListOf<FretPosition>()
 
-        for (stringNumber in 1..6) {
-            for (fret in 0..maxFret) {
-                if (getNoteAtPositionWithOctave(stringNumber, fret) == noteNameWithOctave) {
-                    positions.add(FretPosition(stringNumber, fret))
+            for (stringNumber in 1..6) {
+                for (fret in 0..maxFret) {
+                    if (getNoteAtPositionWithOctave(stringNumber, fret) == noteNameWithOctave) {
+                        positions.add(FretPosition(stringNumber, fret))
+                    }
                 }
             }
-        }
 
-        return positions
+            positions
+        }
     }
 
     /**
