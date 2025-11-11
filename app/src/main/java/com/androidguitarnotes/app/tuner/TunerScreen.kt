@@ -262,7 +262,7 @@ private fun TuningGauge(
 ) {
     // When cents is null, we're not detecting - show grey dot at far left
     val isDetecting = cents != null
-    val safeCents = cents ?: -MAX_CENTS // Default to far left when not detecting
+    val safeCents = cents ?: -TunerConstants.MAX_CENTS // Default to far left when not detecting
 
     val isInTune = cents != null && abs(cents) <= TunerConstants.IN_TUNE_THRESHOLD_CENTS
     val isTooFlat = cents != null && cents < -TunerConstants.IN_TUNE_THRESHOLD_CENTS
@@ -317,7 +317,7 @@ private fun TuningGauge(
         )
 
         // Numeric display - only show when detecting
-        if (isDetecting && detectedFrequency != null) {
+        if (isDetecting && detectedFrequency != null && cents != null) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     stringResource(R.string.detected_frequency, detectedFrequency),
