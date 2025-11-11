@@ -38,7 +38,21 @@ class AudioRecorder {
     data class AudioDataWithLevel(
         val audioData: FloatArray,
         val level: Float,
-    )
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is AudioDataWithLevel) return false
+            if (!audioData.contentEquals(other.audioData)) return false
+            if (level != other.level) return false
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = audioData.contentHashCode()
+            result = 31 * result + level.hashCode()
+            return result
+        }
+    }
 
     /**
      * Starts recording and returns a flow of audio data chunks with level information.
@@ -50,10 +64,15 @@ class AudioRecorder {
      * @return Flow of AudioDataWithLevel containing audio samples and level
      * @throws SecurityException if RECORD_AUDIO permission is not granted
      * @throws IllegalStateException if AudioRecord initialization fails
+     * @throws IllegalArgumentException if sensitivityMultiplier is outside valid range
      */
     @SuppressLint("MissingPermission")
     fun startRecording(sensitivityMultiplier: Float = 1.0f): Flow<AudioDataWithLevel> =
         flow {
+            require(sensitivityMultiplier in 0.5f..2.0f) {
+                "Sensitivity multiplier must be between 0.5 and 2.0, got $sensitivityMultiplier"
+            }
+
             try {
                 audioRecord =
                     AudioRecord(
@@ -79,11 +98,11 @@ class AudioRecorder {
                         // Create a copy to avoid reusing the same buffer
                         val audioData = buffer.copyOf(readResult)
 
-                        // Calculate audio level (RMS)
-                        val level = calculateAudioLevel(audioData)
-
                         // Apply sensitivity multiplier
                         val adjustedData = applySensitivity(audioData, sensitivityMultiplier)
+
+                        // Calculate audio level (RMS) after sensitivity adjustment
+                        val level = calculateAudioLevel(adjustedData)
 
                         emit(AudioDataWithLevel(adjustedData, level))
                     } else if (readResult < 0) {

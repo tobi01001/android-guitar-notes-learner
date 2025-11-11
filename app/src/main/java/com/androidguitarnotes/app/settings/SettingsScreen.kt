@@ -23,9 +23,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,8 +33,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.androidguitarnotes.app.R
 import com.androidguitarnotes.app.audio.AudioManager
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreen(
@@ -48,53 +44,36 @@ fun SettingsScreen(
     val microphoneSensitivity by viewModel.microphoneSensitivity.collectAsStateWithLifecycle()
     val autoAdjustSensitivity by viewModel.autoAdjustSensitivity.collectAsStateWithLifecycle()
 
-    val audioManager = remember { AudioManager() }
-    val coroutineScope = rememberCoroutineScope()
-    var audioLevelJob: Job? by remember { mutableStateOf(null) }
+    // Use remember with cleanup for proper lifecycle management
+    val audioManager =
+        remember {
+            AudioManager()
+        }
     var currentAudioLevel by remember { mutableFloatStateOf(0f) }
 
-    DisposableEffect(audioFeedbackEnabled) {
+    // Single effect to handle audio listening based on both parameters
+    LaunchedEffect(microphoneSensitivity, audioFeedbackEnabled) {
         if (audioFeedbackEnabled) {
-            audioLevelJob =
-                coroutineScope.launch {
-                    try {
-                        audioManager.startListening(microphoneSensitivity).collect { result ->
-                            currentAudioLevel =
-                                when (result) {
-                                    is AudioManager.AudioAnalysisResult.NoteDetected -> result.audioLevel
-                                    is AudioManager.AudioAnalysisResult.NoNoteDetected -> result.audioLevel
-                                }
+            try {
+                audioManager.startListening(microphoneSensitivity).collect { result ->
+                    currentAudioLevel =
+                        when (result) {
+                            is AudioManager.AudioAnalysisResult.NoteDetected -> result.audioLevel
+                            is AudioManager.AudioAnalysisResult.NoNoteDetected -> result.audioLevel
                         }
-                    } catch (e: Exception) {
-                        // Ignore permission errors in settings
-                    }
                 }
-        }
-
-        onDispose {
-            audioLevelJob?.cancel()
-            audioManager.stopListening()
+            } catch (e: Exception) {
+                // Ignore permission errors in settings
+            }
+        } else {
+            currentAudioLevel = 0f
         }
     }
 
-    LaunchedEffect(microphoneSensitivity, audioFeedbackEnabled) {
-        if (audioFeedbackEnabled) {
-            audioLevelJob?.cancel()
+    // Cleanup when screen is disposed
+    DisposableEffect(Unit) {
+        onDispose {
             audioManager.stopListening()
-            audioLevelJob =
-                coroutineScope.launch {
-                    try {
-                        audioManager.startListening(microphoneSensitivity).collect { result ->
-                            currentAudioLevel =
-                                when (result) {
-                                    is AudioManager.AudioAnalysisResult.NoteDetected -> result.audioLevel
-                                    is AudioManager.AudioAnalysisResult.NoNoteDetected -> result.audioLevel
-                                }
-                        }
-                    } catch (e: Exception) {
-                        // Ignore permission errors in settings
-                    }
-                }
         }
     }
 
@@ -139,8 +118,8 @@ fun SettingsScreen(
             if (audioFeedbackEnabled) {
                 val sensitivityLabel =
                     when {
-                        microphoneSensitivity < 0.8f -> stringResource(R.string.sensitivity_low)
-                        microphoneSensitivity > 1.2f -> stringResource(R.string.sensitivity_high)
+                        microphoneSensitivity <= 0.7f -> stringResource(R.string.sensitivity_low)
+                        microphoneSensitivity >= 1.3f -> stringResource(R.string.sensitivity_high)
                         else -> stringResource(R.string.sensitivity_normal)
                     }
 
