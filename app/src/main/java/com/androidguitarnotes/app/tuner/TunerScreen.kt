@@ -308,7 +308,7 @@ private fun TuningGauge(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 48.dp),
+                    .height(48.dp),
             contentAlignment = Alignment.Center,
         ) {
             if (isDetecting) {
@@ -348,7 +348,7 @@ private fun TuningGauge(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 64.dp),
+                    .height(64.dp),
             contentAlignment = Alignment.Center,
         ) {
             if (isDetecting && detectedFrequency != null && cents != null) {

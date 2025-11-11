@@ -499,7 +499,7 @@ private fun NoteFeedbackDisplay(feedback: PracticeSessionState.NoteFeedback) {
         modifier =
             Modifier
                 .fillMaxWidth()
-                .heightIn(min = 72.dp),
+                .height(72.dp),
         contentAlignment = Alignment.Center,
     ) {
         when (feedback) {
