@@ -21,6 +21,61 @@ class AudioRecorder {
         private const val CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO
         private const val AUDIO_FORMAT = AudioFormat.ENCODING_PCM_FLOAT
         private const val BUFFER_SIZE_MULTIPLIER = 2
+
+        /**
+         * Selects the best audio source for pitch detection.
+         * Prioritizes UNPROCESSED for highest precision (API 29+),
+         * falls back to VOICE_RECOGNITION, then MIC as last resort.
+         */
+        private fun selectBestAudioSource(): Int {
+            // Try UNPROCESSED first (API 29+, best for pitch detection)
+            val unprocessed = MediaRecorder.AudioSource.UNPROCESSED
+            if (isAudioSourceAvailable(unprocessed)) {
+                Log.d("AudioRecorder", "Using UNPROCESSED audio source")
+                return unprocessed
+            }
+
+            // Try VOICE_RECOGNITION as fallback
+            val voiceRecognition = MediaRecorder.AudioSource.VOICE_RECOGNITION
+            if (isAudioSourceAvailable(voiceRecognition)) {
+                Log.d("AudioRecorder", "Using VOICE_RECOGNITION audio source")
+                return voiceRecognition
+            }
+
+            // Use MIC as last resort
+            Log.d("AudioRecorder", "Using MIC audio source")
+            return MediaRecorder.AudioSource.MIC
+        }
+
+        /**
+         * Checks if an audio source is available on this device.
+         */
+        private fun isAudioSourceAvailable(audioSource: Int): Boolean {
+            return try {
+                val bufferSize =
+                    AudioRecord.getMinBufferSize(
+                        SAMPLE_RATE,
+                        CHANNEL_CONFIG,
+                        AUDIO_FORMAT,
+                    )
+                if (bufferSize <= 0) return false
+
+                val audioRecord =
+                    AudioRecord(
+                        audioSource,
+                        SAMPLE_RATE,
+                        CHANNEL_CONFIG,
+                        AUDIO_FORMAT,
+                        bufferSize,
+                    )
+                val available = audioRecord.state == AudioRecord.STATE_INITIALIZED
+                audioRecord.release()
+                available
+            } catch (e: Exception) {
+                Log.w("AudioRecorder", "Audio source $audioSource not available", e)
+                false
+            }
+        }
     }
 
     @Volatile
@@ -74,9 +129,10 @@ class AudioRecorder {
             }
 
             try {
+                val audioSource = selectBestAudioSource()
                 audioRecord =
                     AudioRecord(
-                        MediaRecorder.AudioSource.MIC,
+                        audioSource,
                         SAMPLE_RATE,
                         CHANNEL_CONFIG,
                         AUDIO_FORMAT,
@@ -125,17 +181,31 @@ class AudioRecorder {
     /**
      * Calculates the audio level (RMS) from audio samples.
      * Returns a value between 0.0 and 1.0.
+     *
+     * Applies logarithmic scaling to improve visibility of low-level signals
+     * and make the level meter more responsive to typical audio input ranges.
      */
     private fun calculateAudioLevel(audioData: FloatArray): Float {
         if (audioData.isEmpty()) return 0f
 
+        // Calculate RMS
         var sum = 0.0
         for (sample in audioData) {
             sum += sample * sample
         }
+        val rms = kotlin.math.sqrt(sum / audioData.size).toFloat()
 
-        val rms = kotlin.math.sqrt(sum / audioData.size)
-        return rms.toFloat().coerceIn(0f, 1f)
+        // Apply logarithmic scaling for better visualization
+        // This helps make low audio levels more visible
+        // Using dB-like scaling: 20 * log10(rms) normalized to 0-1 range
+        // Assuming typical guitar input ranges from -60dB to 0dB
+        if (rms < 0.001f) return 0f // Below threshold
+
+        val db = 20f * kotlin.math.log10(rms.toDouble()).toFloat()
+        // Map -60dB to 0.0 and 0dB to 1.0
+        val normalizedLevel = ((db + 60f) / 60f).coerceIn(0f, 1f)
+
+        return normalizedLevel
     }
 
     /**

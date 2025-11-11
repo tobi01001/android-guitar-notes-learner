@@ -53,6 +53,9 @@ fun SettingsScreen(
 
     // Single effect to handle audio listening based on both parameters
     LaunchedEffect(microphoneSensitivity, audioFeedbackEnabled) {
+        // Stop any previous listening session before starting a new one
+        audioManager.stopListening()
+
         if (audioFeedbackEnabled) {
             try {
                 audioManager.startListening(microphoneSensitivity).collect { result ->
