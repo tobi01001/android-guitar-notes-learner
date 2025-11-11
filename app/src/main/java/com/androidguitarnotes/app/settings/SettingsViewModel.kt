@@ -42,23 +42,12 @@ class SettingsViewModel : ViewModel() {
 
     private val _audioSource = MutableStateFlow(AudioSource.AUTO)
     val audioSource: StateFlow<AudioSource> = _audioSource.asStateFlow()
-    // Audio source: null means auto-select
-    private val _audioSource = MutableStateFlow<Int?>(null)
-    val audioSource: StateFlow<Int?> = _audioSource.asStateFlow()
 
     /**
      * Toggles audio feedback setting.
      */
     fun toggleAudioFeedback(enabled: Boolean) {
         _audioFeedbackEnabled.value = enabled
-    }
-
-    /**
-     * Sets the audio source.
-     * Pass null for automatic selection.
-     */
-    fun setAudioSource(source: Int?) {
-        _audioSource.value = source
     }
 
     /**

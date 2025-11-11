@@ -1,6 +1,5 @@
 package com.androidguitarnotes.app.settings
 
-import android.media.MediaRecorder
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,11 +13,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Divider
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
@@ -156,16 +152,6 @@ fun SettingsScreen(
                     description = stringResource(R.string.auto_adjust_description),
                     checked = autoAdjustSensitivity,
                     onCheckedChange = { viewModel.toggleAutoAdjustSensitivity(it) },
-                )
-
-                Divider()
-
-                // Audio Source Selection
-                AudioSourceSelector(
-                    title = stringResource(R.string.audio_source),
-                    description = stringResource(R.string.audio_source_description),
-                    selectedSource = audioSource,
-                    onSourceSelected = { viewModel.setAudioSource(it) },
                 )
 
                 Divider()
@@ -370,14 +356,6 @@ private fun AudioLevelBar(
 }
 
 @Composable
-private fun AudioSourceSelector(
-    title: String,
-    description: String,
-    selectedSource: AudioSource,
-    onSourceSelected: (AudioSource) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-
 private fun SettingsClickableItem(
     title: String,
     subtitle: String? = null,
@@ -395,42 +373,6 @@ private fun SettingsClickableItem(
             text = title,
             style = MaterialTheme.typography.bodyLarge,
         )
-        Text(
-            text = description,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
-        )
-
-        // Dropdown button
-        OutlinedButton(
-            onClick = { expanded = true },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(
-                text = selectedSource.displayName,
-                modifier = Modifier.weight(1f),
-            )
-            Text("▼")
-        }
-
-        // Dropdown menu
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            AudioSource.entries.forEach { source ->
-                DropdownMenuItem(
-                    text = { Text(source.displayName) },
-                    onClick = {
-                        onSourceSelected(source)
-                        expanded = false
-                    },
-                )
-            }
-        }
-    }
-}
         if (subtitle != null) {
             Text(
                 text = subtitle,
@@ -451,8 +393,8 @@ private fun SettingsClickableItem(
 
 @Composable
 private fun AudioSourceDialog(
-    currentSource: Int?,
-    onSourceSelected: (Int?) -> Unit,
+    currentSource: AudioSource,
+    onSourceSelected: (AudioSource) -> Unit,
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
@@ -460,30 +402,14 @@ private fun AudioSourceDialog(
         title = { Text(stringResource(R.string.audio_input_source)) },
         text = {
             Column {
-                AudioSourceOption(
-                    name = stringResource(R.string.audio_source_auto),
-                    source = null,
-                    currentSource = currentSource,
-                    onSelect = onSourceSelected,
-                )
-                AudioSourceOption(
-                    name = stringResource(R.string.audio_source_unprocessed),
-                    source = MediaRecorder.AudioSource.UNPROCESSED,
-                    currentSource = currentSource,
-                    onSelect = onSourceSelected,
-                )
-                AudioSourceOption(
-                    name = stringResource(R.string.audio_source_voice_recognition),
-                    source = MediaRecorder.AudioSource.VOICE_RECOGNITION,
-                    currentSource = currentSource,
-                    onSelect = onSourceSelected,
-                )
-                AudioSourceOption(
-                    name = stringResource(R.string.audio_source_mic),
-                    source = MediaRecorder.AudioSource.MIC,
-                    currentSource = currentSource,
-                    onSelect = onSourceSelected,
-                )
+                AudioSource.entries.forEach { source ->
+                    AudioSourceOption(
+                        name = source.displayName,
+                        source = source,
+                        currentSource = currentSource,
+                        onSelect = onSourceSelected,
+                    )
+                }
             }
         },
         confirmButton = {
@@ -497,9 +423,9 @@ private fun AudioSourceDialog(
 @Composable
 private fun AudioSourceOption(
     name: String,
-    source: Int?,
-    currentSource: Int?,
-    onSelect: (Int?) -> Unit,
+    source: AudioSource,
+    currentSource: AudioSource,
+    onSelect: (AudioSource) -> Unit,
 ) {
     Row(
         modifier =
@@ -519,11 +445,4 @@ private fun AudioSourceOption(
 }
 
 @Composable
-private fun getAudioSourceName(source: Int?): String =
-    when (source) {
-        null -> stringResource(R.string.audio_source_auto)
-        MediaRecorder.AudioSource.UNPROCESSED -> stringResource(R.string.audio_source_unprocessed)
-        MediaRecorder.AudioSource.VOICE_RECOGNITION -> stringResource(R.string.audio_source_voice_recognition)
-        MediaRecorder.AudioSource.MIC -> stringResource(R.string.audio_source_mic)
-        else -> stringResource(R.string.audio_source_auto)
-    }
+private fun getAudioSourceName(source: AudioSource): String = source.displayName
