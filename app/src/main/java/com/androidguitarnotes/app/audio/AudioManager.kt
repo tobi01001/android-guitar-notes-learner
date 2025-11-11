@@ -19,21 +19,25 @@ class AudioManager {
             val noteName: String,
             val frequency: Double,
             val cents: Double,
+            val audioLevel: Float,
         ) : AudioAnalysisResult()
 
-        data object NoNoteDetected : AudioAnalysisResult()
+        data class NoNoteDetected(
+            val audioLevel: Float,
+        ) : AudioAnalysisResult()
     }
 
     /**
      * Starts listening for audio and analyzing pitch.
      *
+     * @param sensitivityMultiplier Multiplier for audio sensitivity (0.5 to 2.0, default 1.0)
      * @return Flow of AudioAnalysisResult
      */
-    fun startListening(): Flow<AudioAnalysisResult> =
+    fun startListening(sensitivityMultiplier: Float = 1.0f): Flow<AudioAnalysisResult> =
         audioRecorder
-            .startRecording()
-            .map { audioData ->
-                val frequency = pitchDetector.detectPitch(audioData)
+            .startRecording(sensitivityMultiplier)
+            .map { audioDataWithLevel ->
+                val frequency = pitchDetector.detectPitch(audioDataWithLevel.audioData)
 
                 if (frequency != null) {
                     val recognizedNote = noteRecognizer.recognizeNote(frequency)
@@ -41,9 +45,12 @@ class AudioManager {
                         noteName = recognizedNote.noteName,
                         frequency = recognizedNote.frequency,
                         cents = recognizedNote.cents,
+                        audioLevel = audioDataWithLevel.level,
                     )
                 } else {
-                    AudioAnalysisResult.NoNoteDetected
+                    AudioAnalysisResult.NoNoteDetected(
+                        audioLevel = audioDataWithLevel.level,
+                    )
                 }
             }
 

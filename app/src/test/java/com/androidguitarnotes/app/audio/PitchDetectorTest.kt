@@ -15,14 +15,14 @@ class PitchDetectorTest {
 
     @Test
     fun `detectPitch returns null for empty data`() {
-        val result = detector.detectPitch(ShortArray(0))
+        val result = detector.detectPitch(FloatArray(0))
 
         assertNull(result)
     }
 
     @Test
     fun `detectPitch returns null for insufficient data`() {
-        val result = detector.detectPitch(ShortArray(10))
+        val result = detector.detectPitch(FloatArray(10))
 
         assertNull(result)
     }
@@ -106,14 +106,14 @@ class PitchDetectorTest {
         frequency: Double,
         sampleRate: Int,
         samples: Int,
-    ): ShortArray {
-        val audioData = ShortArray(samples)
-        val amplitude = Short.MAX_VALUE * 0.8
+    ): FloatArray {
+        val audioData = FloatArray(samples)
+        val amplitude = 0.8f
 
         for (i in 0 until samples) {
             val time = i.toDouble() / sampleRate
             val value = amplitude * sin(2 * PI * frequency * time)
-            audioData[i] = value.toInt().toShort()
+            audioData[i] = value.toFloat()
         }
 
         return audioData

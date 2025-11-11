@@ -19,7 +19,7 @@ class AudioRecorder {
     companion object {
         private const val SAMPLE_RATE = 44100
         private const val CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO
-        private const val AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT
+        private const val AUDIO_FORMAT = AudioFormat.ENCODING_PCM_FLOAT
         private const val BUFFER_SIZE_MULTIPLIER = 2
     }
 
@@ -33,17 +33,26 @@ class AudioRecorder {
         ) * BUFFER_SIZE_MULTIPLIER
 
     /**
-     * Starts recording and returns a flow of audio data chunks.
+     * Represents audio data with its level.
+     */
+    data class AudioDataWithLevel(
+        val audioData: FloatArray,
+        val level: Float,
+    )
+
+    /**
+     * Starts recording and returns a flow of audio data chunks with level information.
      *
      * Note: RECORD_AUDIO permission must be granted before calling this method.
      * Permission handling is managed by the calling ViewModel/UI layer.
      *
-     * @return Flow of ShortArray containing audio samples
+     * @param sensitivityMultiplier Multiplier for audio sensitivity (0.5 to 2.0, default 1.0)
+     * @return Flow of AudioDataWithLevel containing audio samples and level
      * @throws SecurityException if RECORD_AUDIO permission is not granted
      * @throws IllegalStateException if AudioRecord initialization fails
      */
     @SuppressLint("MissingPermission")
-    fun startRecording(): Flow<ShortArray> =
+    fun startRecording(sensitivityMultiplier: Float = 1.0f): Flow<AudioDataWithLevel> =
         flow {
             try {
                 audioRecord =
@@ -61,15 +70,22 @@ class AudioRecorder {
 
                 audioRecord?.startRecording()
 
-                val buffer = ShortArray(bufferSize / 2)
+                val buffer = FloatArray(bufferSize / 4)
 
                 while (coroutineContext.isActive) {
-                    val readResult = audioRecord?.read(buffer, 0, buffer.size) ?: 0
+                    val readResult = audioRecord?.read(buffer, 0, buffer.size, AudioRecord.READ_BLOCKING) ?: 0
 
                     if (readResult > 0) {
                         // Create a copy to avoid reusing the same buffer
                         val audioData = buffer.copyOf(readResult)
-                        emit(audioData)
+
+                        // Calculate audio level (RMS)
+                        val level = calculateAudioLevel(audioData)
+
+                        // Apply sensitivity multiplier
+                        val adjustedData = applySensitivity(audioData, sensitivityMultiplier)
+
+                        emit(AudioDataWithLevel(adjustedData, level))
                     } else if (readResult < 0) {
                         // Error reading audio data
                         Log.e("AudioRecorder", "Error reading audio: $readResult")
@@ -86,6 +102,36 @@ class AudioRecorder {
                 stopRecording()
             }
         }.flowOn(Dispatchers.IO)
+
+    /**
+     * Calculates the audio level (RMS) from audio samples.
+     * Returns a value between 0.0 and 1.0.
+     */
+    private fun calculateAudioLevel(audioData: FloatArray): Float {
+        if (audioData.isEmpty()) return 0f
+
+        var sum = 0.0
+        for (sample in audioData) {
+            sum += sample * sample
+        }
+
+        val rms = kotlin.math.sqrt(sum / audioData.size)
+        return rms.toFloat().coerceIn(0f, 1f)
+    }
+
+    /**
+     * Applies sensitivity multiplier to audio data.
+     */
+    private fun applySensitivity(
+        audioData: FloatArray,
+        multiplier: Float,
+    ): FloatArray {
+        if (multiplier == 1.0f) return audioData
+
+        return FloatArray(audioData.size) { i ->
+            (audioData[i] * multiplier).coerceIn(-1f, 1f)
+        }
+    }
 
     /**
      * Stops recording and releases resources.

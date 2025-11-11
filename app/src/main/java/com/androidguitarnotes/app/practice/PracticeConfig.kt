@@ -36,7 +36,9 @@ enum class DurationType {
 /**
  * Represents a musical scale with its notes.
  */
-enum class Scale(val notes: List<String>) {
+enum class Scale(
+    val notes: List<String>,
+) {
     C_MAJOR(listOf("C", "D", "E", "F", "G", "A", "B")),
     G_MAJOR(listOf("G", "A", "B", "C", "D", "E", "F#")),
     A_MINOR(listOf("A", "B", "C", "D", "E", "F", "G")),
@@ -51,12 +53,12 @@ enum class ProgressionMode {
      * User manually clicks "Next Note" button to advance.
      */
     MANUAL,
-    
+
     /**
      * Automatically advances to next note when correct note is detected via audio.
      */
     AUDIO_VERIFICATION,
-    
+
     /**
      * Automatically advances to next note after a configured time interval.
      */

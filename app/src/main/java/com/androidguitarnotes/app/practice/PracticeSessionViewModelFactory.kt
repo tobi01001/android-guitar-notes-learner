@@ -19,7 +19,7 @@ class PracticeSessionViewModelFactory(
             return PracticeSessionViewModel(
                 config = config,
                 audioManager = AudioManager(),
-                permissionManager = PermissionManager(context)
+                permissionManager = PermissionManager(context),
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

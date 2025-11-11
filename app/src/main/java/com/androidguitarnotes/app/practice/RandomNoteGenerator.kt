@@ -1,7 +1,5 @@
 package com.androidguitarnotes.app.practice
 
-import kotlin.random.Random
-
 /**
  * Generates random notes based on practice configuration.
  */
@@ -45,7 +43,7 @@ class RandomNoteGenerator(
      */
     private val validPositions: List<Pair<Int, Int>> by lazy {
         val positions = mutableListOf<Pair<Int, Int>>()
-        
+
         for (stringNumber in config.selectedStrings) {
             for (fret in config.fretFrom..config.fretTo) {
                 val noteName = calculateNoteName(stringNumber, fret)
@@ -54,9 +52,11 @@ class RandomNoteGenerator(
                 }
             }
         }
-        
+
         if (positions.isEmpty()) {
-            throw IllegalStateException("No valid note positions found for the selected configuration. Please check your scale, mode, and fret range.")
+            throw IllegalStateException(
+                "No valid note positions found for the selected configuration. Please check your scale, mode, and fret range.",
+            )
         }
         positions
     }
@@ -67,7 +67,7 @@ class RandomNoteGenerator(
     fun generateNote(): PracticeNote {
         // Select a random valid position from cached list
         val (stringNumber, fret) = validPositions.random()
-        
+
         // Calculate note name
         val noteName = calculateNoteName(stringNumber, fret)
 
@@ -77,13 +77,12 @@ class RandomNoteGenerator(
     /**
      * Checks if a note is allowed based on the current note mode.
      */
-    private fun isNoteAllowed(noteName: String): Boolean {
-        return when (config.noteMode) {
+    private fun isNoteAllowed(noteName: String): Boolean =
+        when (config.noteMode) {
             NoteMode.SEMITONES -> true // All notes allowed
             NoteMode.WHOLE_NOTES -> noteName in naturalNotes
             NoteMode.SCALE -> noteName in config.selectedScale.notes
         }
-    }
 
     /**
      * Calculates the note name for a given string and fret.

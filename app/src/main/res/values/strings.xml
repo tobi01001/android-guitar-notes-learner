@@ -100,6 +100,14 @@
     <string name="default_tuning">Default Tuning</string>
     <string name="tuning_standard">Standard (E A D G B E)</string>
     <string name="tuning_description">Default guitar tuning for practice and tuner</string>
+    <string name="microphone_sensitivity">Microphone Sensitivity</string>
+    <string name="sensitivity_description">Adjust how sensitive the microphone is to input</string>
+    <string name="auto_adjust_sensitivity">Auto-Adjust Sensitivity</string>
+    <string name="auto_adjust_description">Automatically adjust sensitivity based on input levels</string>
+    <string name="audio_input_level">Audio Input Level</string>
+    <string name="sensitivity_low">Low</string>
+    <string name="sensitivity_normal">Normal</string>
+    <string name="sensitivity_high">High</string>
     
     <!-- Notes Played -->
     <string name="notes_played_title">Notes Played</string>
