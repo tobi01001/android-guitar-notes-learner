@@ -89,6 +89,7 @@ class AudioRecorder {
         /**
          * Checks if an audio source is available on this device.
          */
+        @SuppressLint("MissingPermission")
         private fun isAudioSourceAvailable(audioSource: Int): Boolean {
             return try {
                 val bufferSize =
