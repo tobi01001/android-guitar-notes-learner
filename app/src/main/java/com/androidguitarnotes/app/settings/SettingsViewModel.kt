@@ -1,5 +1,6 @@
 package com.androidguitarnotes.app.settings
 
+import android.media.MediaRecorder
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,11 +22,23 @@ class SettingsViewModel : ViewModel() {
     private val _autoAdjustSensitivity = MutableStateFlow(false)
     val autoAdjustSensitivity: StateFlow<Boolean> = _autoAdjustSensitivity.asStateFlow()
 
+    // Audio source: null means auto-select
+    private val _audioSource = MutableStateFlow<Int?>(null)
+    val audioSource: StateFlow<Int?> = _audioSource.asStateFlow()
+
     /**
      * Toggles audio feedback setting.
      */
     fun toggleAudioFeedback(enabled: Boolean) {
         _audioFeedbackEnabled.value = enabled
+    }
+
+    /**
+     * Sets the audio source.
+     * Pass null for automatic selection.
+     */
+    fun setAudioSource(source: Int?) {
+        _audioSource.value = source
     }
 
     /**
