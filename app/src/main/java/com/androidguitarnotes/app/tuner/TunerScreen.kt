@@ -303,7 +303,20 @@ private fun TuningGauge(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = modifier,
     ) {
-        // Status text - reserve consistent space to prevent jumping
+        // Status text - always visible to prevent jumping
+        // Shows status when detecting, shows placeholder when not
+        val statusAlpha by animateFloatAsState(
+            targetValue = if (isDetecting) 1.0f else 0.3f,
+            label = "statusAlpha",
+        )
+        
+        val statusText = when {
+            isInTune -> stringResource(R.string.in_tune)
+            isTooFlat -> stringResource(R.string.tune_up)
+            isTooSharp -> stringResource(R.string.tune_down)
+            else -> stringResource(R.string.tune_up) // Default placeholder
+        }
+        
         Box(
             modifier =
                 Modifier
@@ -311,30 +324,12 @@ private fun TuningGauge(
                     .height(48.dp),
             contentAlignment = Alignment.Center,
         ) {
-            if (isDetecting) {
-                if (isInTune) {
-                    Text(
-                        stringResource(R.string.in_tune),
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = indicatorColor,
-                        fontWeight = FontWeight.Bold,
-                    )
-                } else if (isTooFlat) {
-                    Text(
-                        stringResource(R.string.tune_up),
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = indicatorColor,
-                        fontWeight = FontWeight.Bold,
-                    )
-                } else if (isTooSharp) {
-                    Text(
-                        stringResource(R.string.tune_down),
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = indicatorColor,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-            }
+            Text(
+                statusText,
+                style = MaterialTheme.typography.headlineMedium,
+                color = indicatorColor.copy(alpha = statusAlpha),
+                fontWeight = FontWeight.Bold,
+            )
         }
 
         // Cents deviation bar - always show
@@ -343,7 +338,12 @@ private fun TuningGauge(
             color = indicatorColor,
         )
 
-        // Numeric display - reserve consistent space
+        // Numeric display - always visible to prevent jumping
+        val numericAlpha by animateFloatAsState(
+            targetValue = if (isDetecting) 1.0f else 0.3f,
+            label = "numericAlpha",
+        )
+        
         Box(
             modifier =
                 Modifier
@@ -351,19 +351,24 @@ private fun TuningGauge(
                     .height(64.dp),
             contentAlignment = Alignment.Center,
         ) {
-            if (isDetecting && detectedFrequency != null && cents != null) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        stringResource(R.string.detected_frequency, detectedFrequency),
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                    Text(
-                        stringResource(R.string.cents_deviation, cents),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = indicatorColor,
-                    )
-                }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    stringResource(
+                        R.string.detected_frequency, 
+                        detectedFrequency ?: 0.0
+                    ),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = numericAlpha),
+                )
+                Text(
+                    stringResource(
+                        R.string.cents_deviation, 
+                        cents ?: 0.0
+                    ),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = indicatorColor.copy(alpha = numericAlpha),
+                )
             }
         }
     }
