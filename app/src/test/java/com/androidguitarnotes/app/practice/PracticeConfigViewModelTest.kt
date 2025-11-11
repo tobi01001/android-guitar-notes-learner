@@ -42,7 +42,6 @@ class PracticeConfigViewModelTest {
     fun `initial config is valid`() {
         val viewModel = PracticeConfigViewModel(createMockRepository())
         testDispatcher.scheduler.advanceUntilIdle()
-        testDispatcher.scheduler.advanceUntilIdle()
 
         assertTrue("Initial config should be valid", viewModel.isConfigValid())
     }
