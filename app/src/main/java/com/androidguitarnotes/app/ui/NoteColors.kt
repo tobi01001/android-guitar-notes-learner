@@ -56,7 +56,14 @@ object NoteColors {
      */
     fun getLightColorForNote(noteName: String): Color {
         val baseColor = getColorForNote(noteName)
-        return baseColor.copy(alpha = 0.3f)
+        // Blend the base color with white to get a lighter, fully opaque color
+        val blendRatio = 0.7f // 70% base color, 30% white
+        return Color(
+            red = baseColor.red * blendRatio + (1f - blendRatio) * 1f,
+            green = baseColor.green * blendRatio + (1f - blendRatio) * 1f,
+            blue = baseColor.blue * blendRatio + (1f - blendRatio) * 1f,
+            alpha = 1f,
+        )
     }
 
     /**
