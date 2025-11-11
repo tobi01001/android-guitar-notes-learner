@@ -352,9 +352,10 @@ private fun ScaleSelectionSection(
                 trailingIcon = {
                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(),
             )
 
             ExposedDropdownMenu(
@@ -376,14 +377,13 @@ private fun ScaleSelectionSection(
 }
 
 @Composable
-private fun getScaleName(scale: Scale): String {
-    return when (scale) {
+private fun getScaleName(scale: Scale): String =
+    when (scale) {
         Scale.C_MAJOR -> stringResource(R.string.scale_c_major)
         Scale.G_MAJOR -> stringResource(R.string.scale_g_major)
         Scale.A_MINOR -> stringResource(R.string.scale_a_minor)
         Scale.E_MINOR -> stringResource(R.string.scale_e_minor)
     }
-}
 
 @Composable
 private fun ProgressionModeSection(
@@ -392,8 +392,8 @@ private fun ProgressionModeSection(
     onProgressionModeChange: (ProgressionMode) -> Unit,
     onAutoIntervalChange: (Float) -> Unit,
 ) {
-    var intervalText by remember(autoIntervalSeconds) { 
-        mutableStateOf(String.format("%.1f", autoIntervalSeconds)) 
+    var intervalText by remember(autoIntervalSeconds) {
+        mutableStateOf(String.format("%.1f", autoIntervalSeconds))
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -448,9 +448,10 @@ private fun ProgressionModeSection(
                     },
                     valueRange = 0.5f..10.0f,
                     steps = 18, // 0.5 step increments
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp),
                 )
                 Text(
                     text = stringResource(R.string.auto_interval_label) + ": " + intervalText,

@@ -44,7 +44,7 @@ class NotesPlayedViewModelTest {
     @Test
     fun `startListening should update isListening to true`() =
         runTest {
-            every { audioManager.startListening() } returns flowOf()
+            every { audioManager.startListening(any()) } returns flowOf()
 
             viewModel.startListening()
 
@@ -55,7 +55,7 @@ class NotesPlayedViewModelTest {
     @Test
     fun `stopListening should update isListening to false and clear detected note`() =
         runTest {
-            every { audioManager.startListening() } returns flowOf()
+            every { audioManager.startListening(any()) } returns flowOf()
             viewModel.startListening()
 
             viewModel.stopListening()
@@ -74,8 +74,9 @@ class NotesPlayedViewModelTest {
                     noteName = "A",
                     frequency = 440.0,
                     cents = 0.0,
+                    audioLevel = 0.5f,
                 )
-            every { audioManager.startListening() } returns flowOf(noteResult)
+            every { audioManager.startListening(any()) } returns flowOf(noteResult)
 
             viewModel.startListening()
 
@@ -95,10 +96,11 @@ class NotesPlayedViewModelTest {
                     noteName = "A",
                     frequency = 440.0,
                     cents = 0.0,
+                    audioLevel = 0.5f,
                 )
-            val noNoteResult = AudioManager.AudioAnalysisResult.NoNoteDetected
+            val noNoteResult = AudioManager.AudioAnalysisResult.NoNoteDetected(audioLevel = 0.1f)
 
-            every { audioManager.startListening() } returns flowOf(noteResult, noNoteResult)
+            every { audioManager.startListening(any()) } returns flowOf(noteResult, noNoteResult)
 
             viewModel.startListening()
 
@@ -110,7 +112,7 @@ class NotesPlayedViewModelTest {
     @Test
     fun `stopListening should be called when viewModel is cleared`() =
         runTest {
-            every { audioManager.startListening() } returns flowOf()
+            every { audioManager.startListening(any()) } returns flowOf()
             viewModel.startListening()
 
             // Simulate clearing by stopping listening
