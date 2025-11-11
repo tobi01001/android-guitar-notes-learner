@@ -19,6 +19,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class NotesPlayedViewModelTest {
     private lateinit var audioManager: AudioManager
+    private lateinit var settingsViewModel: com.androidguitarnotes.app.settings.SettingsViewModel
     private lateinit var viewModel: NotesPlayedViewModel
     private val testDispatcher = UnconfinedTestDispatcher()
 
@@ -26,7 +27,10 @@ class NotesPlayedViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         audioManager = mockk(relaxed = true)
-        viewModel = NotesPlayedViewModel(audioManager)
+        settingsViewModel =
+            com.androidguitarnotes.app.settings
+                .SettingsViewModel()
+        viewModel = NotesPlayedViewModel(audioManager, settingsViewModel)
     }
 
     @After
@@ -44,7 +48,7 @@ class NotesPlayedViewModelTest {
     @Test
     fun `startListening should update isListening to true`() =
         runTest {
-            every { audioManager.startListening(any()) } returns flowOf()
+            every { audioManager.startListening(any(), any()) } returns flowOf()
 
             viewModel.startListening()
 
@@ -55,7 +59,7 @@ class NotesPlayedViewModelTest {
     @Test
     fun `stopListening should update isListening to false and clear detected note`() =
         runTest {
-            every { audioManager.startListening(any()) } returns flowOf()
+            every { audioManager.startListening(any(), any()) } returns flowOf()
             viewModel.startListening()
 
             viewModel.stopListening()
@@ -78,7 +82,7 @@ class NotesPlayedViewModelTest {
                     octave = 4,
                     noteNameWithOctave = "A4",
                 )
-            every { audioManager.startListening(any()) } returns flowOf(noteResult)
+            every { audioManager.startListening(any(), any()) } returns flowOf(noteResult)
 
             viewModel.startListening()
 
@@ -104,7 +108,7 @@ class NotesPlayedViewModelTest {
                 )
             val noNoteResult = AudioManager.AudioAnalysisResult.NoNoteDetected(audioLevel = 0.1f)
 
-            every { audioManager.startListening(any()) } returns flowOf(noteResult, noNoteResult)
+            every { audioManager.startListening(any(), any()) } returns flowOf(noteResult, noNoteResult)
 
             viewModel.startListening()
 
@@ -116,7 +120,7 @@ class NotesPlayedViewModelTest {
     @Test
     fun `stopListening should be called when viewModel is cleared`() =
         runTest {
-            every { audioManager.startListening(any()) } returns flowOf()
+            every { audioManager.startListening(any(), any()) } returns flowOf()
             viewModel.startListening()
 
             // Simulate clearing by stopping listening

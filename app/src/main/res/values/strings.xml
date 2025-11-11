@@ -108,12 +108,14 @@
     <string name="sensitivity_low">Low</string>
     <string name="sensitivity_normal">Normal</string>
     <string name="sensitivity_high">High</string>
+    <string name="audio_source">Audio Source</string>
+    <string name="audio_source_description">Select which audio input source to use for recording</string>
+    <string name="audio_source_auto">Auto (Best Quality)</string>
+    <string name="audio_source_unprocessed">Unprocessed</string>
+    <string name="audio_source_voice_recognition">Voice Recognition</string>
+    <string name="audio_source_mic">Microphone</string>
     <string name="audio_input_source">Audio Input Source</string>
     <string name="audio_input_source_description">Select which microphone to use for audio detection</string>
-    <string name="audio_source_auto">Automatic (Recommended)</string>
-    <string name="audio_source_mic">Standard Microphone</string>
-    <string name="audio_source_voice_recognition">Voice Recognition</string>
-    <string name="audio_source_unprocessed">Unprocessed (Best Quality)</string>
     
     <!-- Notes Played -->
     <string name="notes_played_title">Notes Played</string>

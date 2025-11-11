@@ -152,4 +152,37 @@ class SettingsViewModelTest {
 
             assertFalse("Auto-adjust sensitivity should be disabled", autoAdjust)
         }
+
+    @Test
+    fun `default audio source is AUTO`() =
+        runTest {
+            val viewModel = SettingsViewModel()
+
+            val audioSource = viewModel.audioSource.first()
+
+            assertEquals("Audio source should be AUTO by default", AudioSource.AUTO, audioSource)
+        }
+
+    @Test
+    fun `setAudioSource updates state`() =
+        runTest {
+            val viewModel = SettingsViewModel()
+
+            viewModel.setAudioSource(AudioSource.UNPROCESSED)
+            val audioSource = viewModel.audioSource.first()
+
+            assertEquals("Audio source should be UNPROCESSED", AudioSource.UNPROCESSED, audioSource)
+        }
+
+    @Test
+    fun `setAudioSource can be changed multiple times`() =
+        runTest {
+            val viewModel = SettingsViewModel()
+
+            viewModel.setAudioSource(AudioSource.UNPROCESSED)
+            viewModel.setAudioSource(AudioSource.MIC)
+            val audioSource = viewModel.audioSource.first()
+
+            assertEquals("Audio source should be MIC", AudioSource.MIC, audioSource)
+        }
 }

@@ -31,6 +31,7 @@ import kotlin.math.abs
 fun TunerScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    settingsViewModel: com.androidguitarnotes.app.settings.SettingsViewModel = viewModel(),
 ) {
     val audioManager = remember { AudioManager() }
     DisposableEffect(audioManager) {
@@ -40,7 +41,7 @@ fun TunerScreen(
     }
     val viewModel: TunerViewModel =
         viewModel(
-            factory = TunerViewModelFactory(audioManager),
+            factory = TunerViewModelFactory(audioManager, settingsViewModel),
         )
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -268,10 +269,9 @@ private fun TuningGauge(
     detectedFrequency: Double?,
     modifier: Modifier = Modifier,
 ) {
-    val maxCents = 50.0 // Show ±50 cents
     // When cents is null, we're not detecting - show grey dot at far left
     val isDetecting = cents != null
-    val safeCents = cents ?: -maxCents // Default to far left when not detecting
+    val safeCents = cents ?: -TunerConstants.MAX_CENTS // Default to far left when not detecting
 
     val isInTune = cents != null && abs(cents) <= TunerConstants.IN_TUNE_THRESHOLD_CENTS
     val isTooFlat = cents != null && cents < -TunerConstants.IN_TUNE_THRESHOLD_CENTS

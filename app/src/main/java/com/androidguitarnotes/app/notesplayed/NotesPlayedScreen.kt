@@ -26,10 +26,11 @@ import com.androidguitarnotes.app.ui.NoteColors
 fun NotesPlayedScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    settingsViewModel: com.androidguitarnotes.app.settings.SettingsViewModel = viewModel(),
 ) {
     val viewModel: NotesPlayedViewModel =
         viewModel(
-            factory = NotesPlayedViewModelFactory(),
+            factory = NotesPlayedViewModelFactory(settingsViewModel),
         )
     val state by viewModel.state.collectAsStateWithLifecycle()
 

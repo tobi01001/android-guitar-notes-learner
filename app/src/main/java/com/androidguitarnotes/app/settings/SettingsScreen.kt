@@ -1,6 +1,5 @@
 package com.androidguitarnotes.app.settings
 
-import android.media.MediaRecorder
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -60,14 +59,15 @@ fun SettingsScreen(
         }
     var currentAudioLevel by remember { mutableFloatStateOf(0f) }
 
-    // Single effect to handle audio listening based on both parameters
-    LaunchedEffect(microphoneSensitivity, audioFeedbackEnabled) {
+    // Single effect to handle audio listening based on all relevant parameters
+    LaunchedEffect(microphoneSensitivity, audioFeedbackEnabled, audioSource) {
         // Stop any previous listening session before starting a new one
         audioManager.stopListening()
 
         if (audioFeedbackEnabled) {
             try {
-                audioManager.startListening(microphoneSensitivity).collect { result ->
+                val audioSourceValue = if (audioSource.value == -1) null else audioSource.value
+                audioManager.startListening(microphoneSensitivity, audioSourceValue).collect { result ->
                     currentAudioLevel =
                         when (result) {
                             is AudioManager.AudioAnalysisResult.NoteDetected -> result.audioLevel
@@ -393,8 +393,8 @@ private fun SettingsClickableItem(
 
 @Composable
 private fun AudioSourceDialog(
-    currentSource: Int?,
-    onSourceSelected: (Int?) -> Unit,
+    currentSource: AudioSource,
+    onSourceSelected: (AudioSource) -> Unit,
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
@@ -402,30 +402,14 @@ private fun AudioSourceDialog(
         title = { Text(stringResource(R.string.audio_input_source)) },
         text = {
             Column {
-                AudioSourceOption(
-                    name = stringResource(R.string.audio_source_auto),
-                    source = null,
-                    currentSource = currentSource,
-                    onSelect = onSourceSelected,
-                )
-                AudioSourceOption(
-                    name = stringResource(R.string.audio_source_unprocessed),
-                    source = MediaRecorder.AudioSource.UNPROCESSED,
-                    currentSource = currentSource,
-                    onSelect = onSourceSelected,
-                )
-                AudioSourceOption(
-                    name = stringResource(R.string.audio_source_voice_recognition),
-                    source = MediaRecorder.AudioSource.VOICE_RECOGNITION,
-                    currentSource = currentSource,
-                    onSelect = onSourceSelected,
-                )
-                AudioSourceOption(
-                    name = stringResource(R.string.audio_source_mic),
-                    source = MediaRecorder.AudioSource.MIC,
-                    currentSource = currentSource,
-                    onSelect = onSourceSelected,
-                )
+                AudioSource.entries.forEach { source ->
+                    AudioSourceOption(
+                        name = source.displayName,
+                        source = source,
+                        currentSource = currentSource,
+                        onSelect = onSourceSelected,
+                    )
+                }
             }
         },
         confirmButton = {
@@ -439,9 +423,9 @@ private fun AudioSourceDialog(
 @Composable
 private fun AudioSourceOption(
     name: String,
-    source: Int?,
-    currentSource: Int?,
-    onSelect: (Int?) -> Unit,
+    source: AudioSource,
+    currentSource: AudioSource,
+    onSelect: (AudioSource) -> Unit,
 ) {
     Row(
         modifier =
@@ -461,11 +445,4 @@ private fun AudioSourceOption(
 }
 
 @Composable
-private fun getAudioSourceName(source: Int?): String =
-    when (source) {
-        null -> stringResource(R.string.audio_source_auto)
-        MediaRecorder.AudioSource.UNPROCESSED -> stringResource(R.string.audio_source_unprocessed)
-        MediaRecorder.AudioSource.VOICE_RECOGNITION -> stringResource(R.string.audio_source_voice_recognition)
-        MediaRecorder.AudioSource.MIC -> stringResource(R.string.audio_source_mic)
-        else -> stringResource(R.string.audio_source_auto)
-    }
+private fun getAudioSourceName(source: AudioSource): String = source.displayName
