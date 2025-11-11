@@ -155,7 +155,9 @@ class PracticeSessionViewModel(
                             when (result) {
                                 is AudioManager.AudioAnalysisResult.NoteDetected -> {
                                     val expectedNote = currentState.currentNote.noteName
-                                    val isCorrect = result.noteName == expectedNote
+                                    val expectedOctave = currentState.currentNote.octave
+                                    // Check both note name and octave for accurate position verification
+                                    val isCorrect = result.noteName == expectedNote && result.octave == expectedOctave
 
                                     val feedback =
                                         if (isCorrect) {

@@ -1,5 +1,10 @@
 package com.androidguitarnotes.app.notesplayed
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -7,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -120,13 +126,27 @@ private fun NoteDisplayArea(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         if (isListening) {
-            // Always show card and fretboard when listening
+            // Always show card when listening
             NoteCard(detectedNote = detectedNote)
-            FretboardView(
-                detectedNote = detectedNote?.noteName,
-                detectedNoteWithOctave = detectedNote?.noteNameWithOctave,
-                maxFret = 12,
+            
+            // Animate fretboard visibility with fade in/out
+            val fretboardAlpha by animateFloatAsState(
+                targetValue = if (detectedNote != null) 1.0f else 0.0f,
+                animationSpec = tween(
+                    durationMillis = if (detectedNote != null) 50 else 200,
+                ),
+                label = "fretboardAlpha",
             )
+            
+            if (fretboardAlpha > 0.01f) {
+                Box(modifier = Modifier.alpha(fretboardAlpha)) {
+                    FretboardView(
+                        detectedNote = detectedNote?.noteName,
+                        detectedNoteWithOctave = detectedNote?.noteNameWithOctave,
+                        maxFret = 12,
+                    )
+                }
+            }
         } else {
             EmptyStateMessage(
                 message = stringResource(R.string.no_note_detected),
@@ -143,6 +163,22 @@ private fun NoteCard(
     detectedNote: DetectedNoteInfo?,
     modifier: Modifier = Modifier,
 ) {
+    // Animate note letter size based on detection (subtle pulse effect)
+    val noteScale by animateFloatAsState(
+        targetValue = if (detectedNote != null) 1.0f else 0.95f,
+        animationSpec = tween(durationMillis = 100),
+        label = "noteScale",
+    )
+
+    // Animate alpha for fade in/out effect
+    val noteAlpha by animateFloatAsState(
+        targetValue = if (detectedNote != null) 1.0f else 0.5f,
+        animationSpec = tween(
+            durationMillis = if (detectedNote != null) 50 else 200,
+        ),
+        label = "noteAlpha",
+    )
+
     Card(
         modifier =
             modifier
@@ -167,11 +203,11 @@ private fun NoteCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
-            // Large note name display
+            // Large note name display with animation
             Box(
                 modifier =
                     Modifier
-                        .size(120.dp)
+                        .size((120.dp.value * noteScale).dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(
                             if (detectedNote != null) {
@@ -179,7 +215,8 @@ private fun NoteCard(
                             } else {
                                 MaterialTheme.colorScheme.surfaceVariant
                             },
-                        ),
+                        )
+                        .alpha(noteAlpha),
                 contentAlignment = Alignment.Center,
             ) {
                 if (detectedNote != null) {
