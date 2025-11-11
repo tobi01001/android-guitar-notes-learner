@@ -14,6 +14,45 @@ import kotlin.coroutines.coroutineContext
 
 /**
  * Records audio from microphone and provides audio samples for pitch detection.
+ *
+ * ## Microphone Sensitivity
+ *
+ * ### Manual Sensitivity Control
+ * The `sensitivityMultiplier` parameter (range 0.5 to 2.0) directly multiplies the audio samples,
+ * effectively increasing or decreasing the gain before pitch detection. This is controlled by the
+ * user via the microphone sensitivity slider in settings.
+ * - Values < 1.0: Reduce sensitivity (useful for loud environments or strong pickups)
+ * - Values = 1.0: No adjustment (default)
+ * - Values > 1.0: Increase sensitivity (useful for quiet guitars or low-quality microphones)
+ *
+ * ### Auto-Adjust Sensitivity
+ * The "Auto-Adjust Sensitivity" setting in the app is currently **not implemented** in the audio
+ * processing pipeline. When enabled in settings, it has no effect on the actual audio processing.
+ * The setting exists as a placeholder for future implementation.
+ *
+ * **Future Implementation Plan:**
+ * Auto-adjust sensitivity would analyze the incoming audio level over time and automatically
+ * adjust the sensitivity multiplier to maintain optimal signal levels for pitch detection.
+ * This would work in conjunction with (not replace) the manual sensitivity slider, where:
+ * - The manual slider sets a base multiplier
+ * - Auto-adjust applies dynamic adjustments on top of the base multiplier
+ * - The combined effect would be: `finalSensitivity = baseSensitivity * autoAdjustFactor`
+ *
+ * ### Base Sensitivity and Microphone Input
+ * The base sensitivity is determined by:
+ * 1. Hardware microphone characteristics (gain, frequency response)
+ * 2. Android audio source selection (UNPROCESSED, VOICE_RECOGNITION, MIC)
+ *    - UNPROCESSED: Raw audio with minimal processing (best for pitch detection)
+ *    - VOICE_RECOGNITION: Optimized for speech (may apply noise reduction)
+ *    - MIC: General-purpose microphone input
+ * 3. Device-specific audio processing (AGC, noise suppression, etc.)
+ *
+ * ### Sensitivity Issues (e.g., Fairphone 6)
+ * If sensitivity seems too low on certain devices:
+ * 1. Increase the manual sensitivity slider above 1.0
+ * 2. Try different audio sources in settings (e.g., UNPROCESSED vs MIC)
+ * 3. Ensure the device's microphone is not blocked or damaged
+ * 4. Check if the device has aggressive AGC that may need to be disabled in system settings
  */
 class AudioRecorder {
     companion object {
