@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.androidguitarnotes.app.R
+import com.androidguitarnotes.app.ui.KeepScreenOn
 import com.androidguitarnotes.app.ui.NoteColors
 
 /**
@@ -39,6 +40,9 @@ fun NotesPlayedScreen(
             factory = NotesPlayedViewModelFactory(settingsViewModel),
         )
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    // Keep screen on while listening
+    KeepScreenOn(enabled = state.isListening)
 
     Scaffold(
         topBar = {

@@ -21,6 +21,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.androidguitarnotes.app.R
 import com.androidguitarnotes.app.audio.AudioManager
+import com.androidguitarnotes.app.ui.KeepScreenOn
 import com.androidguitarnotes.app.ui.NoteColors
 import kotlin.math.abs
 
@@ -50,6 +51,9 @@ fun TunerScreen(
             factory = TunerViewModelFactory(audioManager, settingsViewModel),
         )
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    // Keep screen on while listening
+    KeepScreenOn(enabled = state.isListening)
 
     Scaffold(
         topBar = {
@@ -304,7 +308,7 @@ private fun TuningGauge(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 48.dp),
+                    .height(48.dp),
             contentAlignment = Alignment.Center,
         ) {
             if (isDetecting) {
@@ -344,7 +348,7 @@ private fun TuningGauge(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 64.dp),
+                    .height(64.dp),
             contentAlignment = Alignment.Center,
         ) {
             if (isDetecting && detectedFrequency != null && cents != null) {
