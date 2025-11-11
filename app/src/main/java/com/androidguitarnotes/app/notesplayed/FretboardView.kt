@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -45,9 +46,15 @@ fun FretboardView(
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
     ) {
         // Fret numbers
         FretNumbers(maxFret = maxFret)
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        // Fret markers (dots)
+        FretMarkers(maxFret = maxFret)
 
         Spacer(modifier = Modifier.width(8.dp))
 
@@ -65,6 +72,67 @@ fun FretboardView(
             }
         }
     }
+}
+
+/**
+ * Displays standard fret markers (dots at frets 3, 5, 7, 9 and double dots at 12).
+ */
+@Composable
+private fun FretMarkers(
+    maxFret: Int,
+    modifier: Modifier = Modifier,
+) {
+    val markerFrets = setOf(3, 5, 7, 9)
+
+    Column(
+        modifier =
+            modifier
+                .width(24.dp)
+                // Padding aligns fret markers with the fret positions below, accounting for the string label area.
+                .padding(top = 40.dp),
+        verticalArrangement = Arrangement.SpaceEvenly,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        for (fret in 0..maxFret) {
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.Center,
+            ) {
+                when {
+                    fret == 12 -> {
+                        // Double dots at fret 12
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            MarkerDot(size = 6.dp)
+                            MarkerDot(size = 6.dp)
+                        }
+                    }
+                    fret in markerFrets -> {
+                        // Single dot at frets 3, 5, 7, 9
+                        MarkerDot(size = 8.dp)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Displays a single fret marker dot.
+ */
+@Composable
+private fun MarkerDot(
+    size: Dp,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier =
+            modifier
+                .size(size)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)),
+    )
 }
 
 /**
