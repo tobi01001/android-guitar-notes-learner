@@ -317,7 +317,7 @@ private fun TuningGauge(
         )
 
         // Numeric display - only show when detecting
-        if (isDetecting && detectedFrequency != null && cents != null) {
+        if (isDetecting && detectedFrequency != null) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     stringResource(R.string.detected_frequency, detectedFrequency),
