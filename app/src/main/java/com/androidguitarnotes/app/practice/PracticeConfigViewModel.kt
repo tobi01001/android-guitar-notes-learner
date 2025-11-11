@@ -42,77 +42,52 @@ class PracticeConfigViewModel(
                 } else {
                     currentStrings + stringNumber
                 }
-            val newConfig = currentConfig.copy(selectedStrings = newStrings)
-            saveConfig(newConfig)
-            newConfig
+            currentConfig.copy(selectedStrings = newStrings)
         }
+        saveConfig(_config.value)
     }
 
     fun setFretRange(
         from: Int,
         to: Int,
     ) {
-        _config.update {
-            val newConfig = it.copy(fretFrom = from, fretTo = to)
-            saveConfig(newConfig)
-            newConfig
-        }
+        _config.update { it.copy(fretFrom = from, fretTo = to) }
+        saveConfig(_config.value)
     }
 
     fun setNoteMode(mode: NoteMode) {
-        _config.update {
-            val newConfig = it.copy(noteMode = mode)
-            saveConfig(newConfig)
-            newConfig
-        }
+        _config.update { it.copy(noteMode = mode) }
+        saveConfig(_config.value)
     }
 
     fun setSelectedScale(scale: Scale) {
-        _config.update {
-            val newConfig = it.copy(selectedScale = scale)
-            saveConfig(newConfig)
-            newConfig
-        }
+        _config.update { it.copy(selectedScale = scale) }
+        saveConfig(_config.value)
     }
 
     fun setDurationType(type: DurationType) {
-        _config.update {
-            val newConfig = it.copy(durationType = type)
-            saveConfig(newConfig)
-            newConfig
-        }
+        _config.update { it.copy(durationType = type) }
+        saveConfig(_config.value)
     }
 
     fun setDurationMinutes(minutes: Int) {
-        _config.update {
-            val newConfig = it.copy(durationMinutes = minutes)
-            saveConfig(newConfig)
-            newConfig
-        }
+        _config.update { it.copy(durationMinutes = minutes) }
+        saveConfig(_config.value)
     }
 
     fun setNoteCount(count: Int) {
-        _config.update {
-            val newConfig = it.copy(noteCount = count)
-            saveConfig(newConfig)
-            newConfig
-        }
+        _config.update { it.copy(noteCount = count) }
+        saveConfig(_config.value)
     }
 
     fun setProgressionMode(mode: ProgressionMode) {
-        _config.update {
-            val newConfig = it.copy(progressionMode = mode)
-            saveConfig(newConfig)
-            newConfig
-        }
+        _config.update { it.copy(progressionMode = mode) }
+        saveConfig(_config.value)
     }
 
     fun setAutoIntervalSeconds(seconds: Float) {
-        _config.update {
-            val newConfig = it.copy(autoIntervalSeconds = seconds)
-            saveConfig(newConfig)
-            newConfig
-        }
+        _config.update { it.copy(autoIntervalSeconds = seconds) }
+        saveConfig(_config.value)
     }
 
     private fun saveConfig(config: PracticeConfig) {
