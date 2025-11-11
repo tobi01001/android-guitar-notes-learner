@@ -45,7 +45,6 @@ class SettingsViewModelTest {
         runTest {
             val viewModel = SettingsViewModel(createMockRepository())
             testDispatcher.scheduler.advanceUntilIdle()
-            testDispatcher.scheduler.advanceUntilIdle()
 
             val audioFeedbackEnabled = viewModel.audioFeedbackEnabled.first()
 
