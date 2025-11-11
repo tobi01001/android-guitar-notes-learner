@@ -27,6 +27,7 @@ private const val GUITAR_STRINGS = 6
  * @param detectedNoteWithOctave The note name with octave (e.g., 'A4', 'C#3').
  *                               If provided, only positions matching the octave will be highlighted.
  * @param maxFret The maximum fret number to display (default is 12).
+ * @param highlightAlpha The alpha (opacity) value for highlighted notes (0.0 to 1.0).
  * @param modifier Modifier to be applied to the fretboard container.
  */
 @Composable
@@ -34,6 +35,7 @@ fun FretboardView(
     detectedNote: String?,
     detectedNoteWithOctave: String? = null,
     maxFret: Int = 12,
+    highlightAlpha: Float = 1.0f,
     modifier: Modifier = Modifier,
 ) {
     val highlightedPositions =
@@ -76,6 +78,7 @@ fun FretboardView(
                     maxFret = maxFret,
                     highlightedPositions = highlightedPositions,
                     detectedNote = detectedNote,
+                    highlightAlpha = highlightAlpha,
                 )
             }
         }
@@ -183,6 +186,7 @@ private fun StringColumn(
     maxFret: Int,
     highlightedPositions: List<FretboardHelper.FretPosition>,
     detectedNote: String?,
+    highlightAlpha: Float = 1.0f,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -219,6 +223,7 @@ private fun StringColumn(
                 FretMarker(
                     isHighlighted = isHighlighted,
                     noteName = detectedNote,
+                    highlightAlpha = highlightAlpha,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -233,6 +238,7 @@ private fun StringColumn(
 private fun FretMarker(
     isHighlighted: Boolean,
     noteName: String?,
+    highlightAlpha: Float = 1.0f,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -249,8 +255,8 @@ private fun FretMarker(
                     Modifier
                         .fillMaxSize()
                         .clip(CircleShape)
-                        .background(noteColor)
-                        .border(2.dp, NoteColors.getDarkColorForNote(noteName), CircleShape),
+                        .background(noteColor.copy(alpha = highlightAlpha))
+                        .border(2.dp, NoteColors.getDarkColorForNote(noteName).copy(alpha = highlightAlpha), CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -258,7 +264,7 @@ private fun FretMarker(
                     style = MaterialTheme.typography.labelSmall,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = highlightAlpha),
                 )
             }
         } else {

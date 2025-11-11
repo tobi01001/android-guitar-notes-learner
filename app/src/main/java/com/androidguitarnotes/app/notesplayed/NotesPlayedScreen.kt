@@ -129,24 +129,22 @@ private fun NoteDisplayArea(
             // Always show card when listening
             NoteCard(detectedNote = detectedNote)
             
-            // Animate fretboard visibility with fade in/out
-            val fretboardAlpha by animateFloatAsState(
+            // Animate only the highlighted notes on the fretboard, not the entire fretboard
+            val highlightAlpha by animateFloatAsState(
                 targetValue = if (detectedNote != null) 1.0f else 0.0f,
                 animationSpec = tween(
                     durationMillis = if (detectedNote != null) 50 else 200,
                 ),
-                label = "fretboardAlpha",
+                label = "highlightAlpha",
             )
             
-            if (fretboardAlpha > 0.01f) {
-                Box(modifier = Modifier.alpha(fretboardAlpha)) {
-                    FretboardView(
-                        detectedNote = detectedNote?.noteName,
-                        detectedNoteWithOctave = detectedNote?.noteNameWithOctave,
-                        maxFret = 12,
-                    )
-                }
-            }
+            // Always show fretboard, only fade the highlighted notes
+            FretboardView(
+                detectedNote = detectedNote?.noteName,
+                detectedNoteWithOctave = detectedNote?.noteNameWithOctave,
+                maxFret = 12,
+                highlightAlpha = highlightAlpha,
+            )
         } else {
             EmptyStateMessage(
                 message = stringResource(R.string.no_note_detected),
