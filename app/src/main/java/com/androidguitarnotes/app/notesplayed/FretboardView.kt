@@ -46,9 +46,15 @@ fun FretboardView(
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
     ) {
         // Fret numbers
         FretNumbers(maxFret = maxFret)
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        // Fret markers (dots)
+        FretMarkers(maxFret = maxFret)
 
         Spacer(modifier = Modifier.width(8.dp))
 
@@ -63,6 +69,68 @@ fun FretboardView(
                     highlightedPositions = highlightedPositions,
                     detectedNote = detectedNote,
                 )
+            }
+        }
+    }
+}
+
+/**
+ * Displays standard fret markers (dots at frets 3, 5, 7, 9 and double dots at 12).
+ */
+@Composable
+private fun FretMarkers(
+    maxFret: Int,
+    modifier: Modifier = Modifier,
+) {
+    val markerFrets = setOf(3, 5, 7, 9, 12)
+
+    Column(
+        modifier =
+            modifier
+                .width(24.dp)
+                // Padding aligns fret markers with the fret positions below, accounting for the string label area.
+                .padding(top = 40.dp),
+        verticalArrangement = Arrangement.SpaceEvenly,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        for (fret in 0..maxFret) {
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.Center,
+            ) {
+                when {
+                    fret == 12 -> {
+                        // Double dots at fret 12
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Box(
+                                modifier =
+                                    Modifier
+                                        .size(6.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)),
+                            )
+                            Box(
+                                modifier =
+                                    Modifier
+                                        .size(6.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)),
+                            )
+                        }
+                    }
+                    fret in markerFrets -> {
+                        // Single dot at frets 3, 5, 7, 9
+                        Box(
+                            modifier =
+                                Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)),
+                        )
+                    }
+                }
             }
         }
     }
