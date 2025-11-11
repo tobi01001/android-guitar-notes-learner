@@ -42,6 +42,8 @@ class NoteRecognizer {
         val noteName: String,
         val frequency: Double,
         val cents: Double, // Deviation from perfect pitch in cents
+        val octave: Int, // Octave number
+        val noteNameWithOctave: String, // Note name with octave (e.g., "A4", "C#3")
     )
 
     /**
@@ -70,11 +72,15 @@ class NoteRecognizer {
         val nearestMidi = round(midiNote).toInt()
         val cents = calculateCents(midiNote, nearestMidi)
         val noteName = midiToNoteName(nearestMidi)
+        val octave = (nearestMidi / 12) - 1
+        val noteNameWithOctave = "$noteName$octave"
 
         return RecognizedNote(
             noteName = noteName,
             frequency = frequency,
             cents = cents,
+            octave = octave,
+            noteNameWithOctave = noteNameWithOctave,
         )
     }
 

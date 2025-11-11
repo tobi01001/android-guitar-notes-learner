@@ -23,17 +23,24 @@ private const val GUITAR_STRINGS = 6
  *
  * @param detectedNote The note name to highlight on the fretboard (e.g., 'A', 'C#', 'F').
  *                     If null, no positions will be highlighted.
+ * @param detectedNoteWithOctave The note name with octave (e.g., 'A4', 'C#3').
+ *                               If provided, only positions matching the octave will be highlighted.
  * @param maxFret The maximum fret number to display (default is 12).
  * @param modifier Modifier to be applied to the fretboard container.
  */
 @Composable
 fun FretboardView(
     detectedNote: String?,
+    detectedNoteWithOctave: String? = null,
     maxFret: Int = 12,
     modifier: Modifier = Modifier,
 ) {
     val highlightedPositions =
-        if (detectedNote != null) {
+        if (detectedNoteWithOctave != null) {
+            // Use octave-sensitive detection if available
+            FretboardHelper.findPositionsForNoteWithOctave(detectedNoteWithOctave, maxFret)
+        } else if (detectedNote != null) {
+            // Fall back to note name only
             FretboardHelper.findPositionsForNote(detectedNote, maxFret)
         } else {
             emptyList()

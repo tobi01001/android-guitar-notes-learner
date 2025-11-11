@@ -49,4 +49,46 @@ object FretboardHelper {
 
         return positions
     }
+
+    /**
+     * Find all fretboard positions that match a given note name with octave.
+     * Returns positions up to the specified maximum fret.
+     */
+    fun findPositionsForNoteWithOctave(
+        noteNameWithOctave: String,
+        maxFret: Int = 12,
+    ): List<FretPosition> {
+        val positions = mutableListOf<FretPosition>()
+
+        for (stringNumber in 1..6) {
+            for (fret in 0..maxFret) {
+                if (getNoteAtPositionWithOctave(stringNumber, fret) == noteNameWithOctave) {
+                    positions.add(FretPosition(stringNumber, fret))
+                }
+            }
+        }
+
+        return positions
+    }
+
+    /**
+     * Get the note name with octave at a specific fretboard position.
+     */
+    fun getNoteAtPositionWithOctave(
+        stringNumber: Int,
+        fret: Int,
+    ): String {
+        val openNoteIndex = NOTE_NAMES.indexOf(OPEN_STRING_NOTES[6 - stringNumber])
+        val noteIndex = (openNoteIndex + fret) % 12
+        val noteName = NOTE_NAMES[noteIndex]
+        
+        // Calculate octave based on open string and fret
+        // Standard tuning: E2, A2, D3, G3, B3, E4
+        val openOctaves = listOf(2, 2, 3, 3, 3, 4) // String 6 to String 1
+        val baseOctave = openOctaves[6 - stringNumber]
+        val octaveOffset = (openNoteIndex + fret) / 12
+        val octave = baseOctave + octaveOffset
+        
+        return "$noteName$octave"
+    }
 }

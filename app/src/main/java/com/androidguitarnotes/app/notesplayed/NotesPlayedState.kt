@@ -15,4 +15,6 @@ data class DetectedNoteInfo(
     val noteName: String,
     val frequency: Double,
     val cents: Double,
+    val octave: Int,
+    val noteNameWithOctave: String,
 )

@@ -20,6 +20,8 @@ class AudioManager {
             val frequency: Double,
             val cents: Double,
             val audioLevel: Float,
+            val octave: Int,
+            val noteNameWithOctave: String,
         ) : AudioAnalysisResult()
 
         data class NoNoteDetected(
@@ -46,6 +48,8 @@ class AudioManager {
                         frequency = recognizedNote.frequency,
                         cents = recognizedNote.cents,
                         audioLevel = audioDataWithLevel.level,
+                        octave = recognizedNote.octave,
+                        noteNameWithOctave = recognizedNote.noteNameWithOctave,
                     )
                 } else {
                     AudioAnalysisResult.NoNoteDetected(
