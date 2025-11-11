@@ -28,7 +28,10 @@ fun PracticeSessionScreen(
     onBack: () -> Unit,
     settingsViewModel: com.androidguitarnotes.app.settings.SettingsViewModel =
         viewModel(
-            factory = com.androidguitarnotes.app.settings.SettingsViewModelFactory(LocalContext.current.applicationContext),
+            factory =
+                com.androidguitarnotes.app.settings.SettingsViewModelFactory(
+                    LocalContext.current.applicationContext,
+                ),
         ),
     viewModel: PracticeSessionViewModel =
         viewModel(

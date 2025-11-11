@@ -21,7 +21,10 @@ fun PracticeConfigScreen(
     onStartPractice: (PracticeConfig) -> Unit,
     viewModel: PracticeConfigViewModel =
         viewModel(
-            factory = PracticeConfigViewModelFactory(androidx.compose.ui.platform.LocalContext.current.applicationContext),
+            factory =
+                PracticeConfigViewModelFactory(
+                    androidx.compose.ui.platform.LocalContext.current.applicationContext,
+                ),
         ),
 ) {
     val config by viewModel.config.collectAsStateWithLifecycle()
@@ -319,8 +322,8 @@ private fun DurationSection(
                     onValueChange = {
                         minutesText = it
                         it.toIntOrNull()?.let { minutes ->
-                            val MAX_MINUTES = 480
-                            if (minutes > 0 && minutes <= MAX_MINUTES) {
+                            val maxMinutes = 480
+                            if (minutes > 0 && minutes <= maxMinutes) {
                                 onDurationMinutesChange(minutes)
                             }
                         }

@@ -28,7 +28,10 @@ fun NotesPlayedScreen(
     modifier: Modifier = Modifier,
     settingsViewModel: com.androidguitarnotes.app.settings.SettingsViewModel =
         viewModel(
-            factory = com.androidguitarnotes.app.settings.SettingsViewModelFactory(androidx.compose.ui.platform.LocalContext.current.applicationContext),
+            factory =
+                com.androidguitarnotes.app.settings.SettingsViewModelFactory(
+                    androidx.compose.ui.platform.LocalContext.current.applicationContext,
+                ),
         ),
 ) {
     val viewModel: NotesPlayedViewModel =
