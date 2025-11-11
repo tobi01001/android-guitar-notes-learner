@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.androidguitarnotes.app.ui.NoteColors
 
 private const val GUITAR_STRINGS = 6
 
@@ -242,13 +243,14 @@ private fun FretMarker(
         contentAlignment = Alignment.Center,
     ) {
         if (isHighlighted && noteName != null) {
+            val noteColor = NoteColors.getColorForNote(noteName)
             Box(
                 modifier =
                     Modifier
                         .fillMaxSize()
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary)
-                        .border(2.dp, MaterialTheme.colorScheme.onPrimary, CircleShape),
+                        .background(noteColor)
+                        .border(2.dp, NoteColors.getDarkColorForNote(noteName), CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(

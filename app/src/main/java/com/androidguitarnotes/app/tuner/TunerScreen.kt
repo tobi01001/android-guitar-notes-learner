@@ -21,6 +21,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.androidguitarnotes.app.R
 import com.androidguitarnotes.app.audio.AudioManager
+import com.androidguitarnotes.app.ui.NoteColors
 import kotlin.math.abs
 
 /**
@@ -142,9 +143,16 @@ private fun StringButton(
 ) {
     val backgroundColor =
         if (isSelected) {
-            MaterialTheme.colorScheme.primaryContainer
+            NoteColors.getLightColorForNote(guitarString.noteName)
         } else {
             MaterialTheme.colorScheme.surface
+        }
+
+    val contentColor =
+        if (isSelected) {
+            NoteColors.getDarkColorForNote(guitarString.noteName)
+        } else {
+            MaterialTheme.colorScheme.onSurface
         }
 
     Button(
@@ -155,7 +163,7 @@ private fun StringButton(
         colors =
             ButtonDefaults.buttonColors(
                 containerColor = backgroundColor,
-                contentColor = MaterialTheme.colorScheme.onSurface,
+                contentColor = contentColor,
             ),
         shape = CircleShape,
         contentPadding = PaddingValues(0.dp),

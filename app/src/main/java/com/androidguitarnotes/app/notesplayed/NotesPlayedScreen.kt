@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.androidguitarnotes.app.R
+import com.androidguitarnotes.app.ui.NoteColors
 
 /**
  * Notes Played screen composable.
@@ -141,7 +142,12 @@ private fun NoteCard(
                 .padding(horizontal = 16.dp),
         colors =
             CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                containerColor =
+                    if (detectedNote != null) {
+                        NoteColors.getLightColorForNote(detectedNote.noteName)
+                    } else {
+                        MaterialTheme.colorScheme.primaryContainer
+                    },
             ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
@@ -159,7 +165,13 @@ private fun NoteCard(
                     Modifier
                         .size(120.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.primary),
+                        .background(
+                            if (detectedNote != null) {
+                                NoteColors.getColorForNote(detectedNote.noteName)
+                            } else {
+                                MaterialTheme.colorScheme.primary
+                            },
+                        ),
                 contentAlignment = Alignment.Center,
             ) {
                 if (detectedNote != null) {

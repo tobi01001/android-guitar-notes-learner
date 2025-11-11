@@ -1,0 +1,76 @@
+package com.androidguitarnotes.app.ui
+
+import androidx.compose.ui.graphics.Color
+
+/**
+ * Color scheme for musical notes.
+ * Each natural note (A-G) has a distinct color, and semitones have blended colors.
+ */
+object NoteColors {
+    // Natural note colors - using a color wheel approach
+    private val A_COLOR = Color(0xFFE53935) // Red
+    private val B_COLOR = Color(0xFFFF6F00) // Orange
+    private val C_COLOR = Color(0xFFFDD835) // Yellow
+    private val D_COLOR = Color(0xFF43A047) // Green
+    private val E_COLOR = Color(0xFF1E88E5) // Blue
+    private val F_COLOR = Color(0xFF5E35B1) // Purple
+    private val G_COLOR = Color(0xFFD81B60) // Pink/Magenta
+
+    /**
+     * Returns the color for a given note name.
+     * Semitones (sharp notes) return a blend of the adjacent natural note colors.
+     */
+    fun getColorForNote(noteName: String): Color {
+        return when (noteName) {
+            "A" -> A_COLOR
+            "A#" -> blendColors(A_COLOR, B_COLOR)
+            "B" -> B_COLOR
+            "C" -> C_COLOR
+            "C#" -> blendColors(C_COLOR, D_COLOR)
+            "D" -> D_COLOR
+            "D#" -> blendColors(D_COLOR, E_COLOR)
+            "E" -> E_COLOR
+            "F" -> F_COLOR
+            "F#" -> blendColors(F_COLOR, G_COLOR)
+            "G" -> G_COLOR
+            "G#" -> blendColors(G_COLOR, A_COLOR)
+            else -> Color.Gray // Default for unrecognized notes
+        }
+    }
+
+    /**
+     * Blends two colors by averaging their RGB components.
+     */
+    private fun blendColors(
+        color1: Color,
+        color2: Color,
+    ): Color {
+        return Color(
+            red = (color1.red + color2.red) / 2f,
+            green = (color1.green + color2.green) / 2f,
+            blue = (color1.blue + color2.blue) / 2f,
+            alpha = 1f,
+        )
+    }
+
+    /**
+     * Returns a lighter variant of the note color (for backgrounds).
+     */
+    fun getLightColorForNote(noteName: String): Color {
+        val baseColor = getColorForNote(noteName)
+        return baseColor.copy(alpha = 0.3f)
+    }
+
+    /**
+     * Returns a darker variant of the note color (for borders/emphasis).
+     */
+    fun getDarkColorForNote(noteName: String): Color {
+        val baseColor = getColorForNote(noteName)
+        return Color(
+            red = baseColor.red * 0.7f,
+            green = baseColor.green * 0.7f,
+            blue = baseColor.blue * 0.7f,
+            alpha = 1f,
+        )
+    }
+}
