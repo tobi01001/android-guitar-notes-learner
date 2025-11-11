@@ -17,6 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.androidguitarnotes.app.R
 import com.androidguitarnotes.app.permissions.PermissionRationaleScreen
+import com.androidguitarnotes.app.ui.KeepScreenOn
 import com.androidguitarnotes.app.ui.NoteColors
 
 /**
@@ -41,6 +42,9 @@ fun PracticeSessionScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val audioPermissionRequired by viewModel.audioPermissionRequired.collectAsStateWithLifecycle()
     val showPermissionRationale by viewModel.showPermissionRationale.collectAsStateWithLifecycle()
+
+    // Keep screen on during active practice session
+    KeepScreenOn(enabled = state is PracticeSessionState.Active)
 
     // Audio permission launcher
     val audioPermissionLauncher =
