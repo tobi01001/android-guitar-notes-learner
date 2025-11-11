@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.7"
+        android:scaleY="0.7"
+        android:translateX="16.2"
+        android:translateY="16.2">
+        
+        <!-- Guitar pick outline -->
+        <path
+            android:strokeColor="#14304A"
+            android:strokeWidth="3"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:fillColor="#00000000"
+            android:pathData="M54,20 
+                C62,20 68,23 72,28 
+                C76,33 78,40 78,48 
+                C78,56 76,64 72,70 
+                C68,76 62,80 54,84 
+                C46,80 40,76 36,70 
+                C32,64 30,56 30,48 
+                C30,40 32,33 36,28 
+                C40,23 46,20 54,20 Z" />
+        
+        <!-- Sound wave with gradient effect - using multiple paths for color transition -->
+        <!-- Blue section (left) -->
+        <path
+            android:strokeColor="#00C8FF"
+            android:strokeWidth="2.5"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000"
+            android:pathData="M35,54 
+                L38,54 
+                Q40,52 42,54 
+                Q44,56 46,54 
+                L48,54" />
+        
+        <!-- Green-blue transition (middle-left) -->
+        <path
+            android:strokeColor="#00DFC8"
+            android:strokeWidth="2.5"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000"
+            android:pathData="M48,54 
+                L50,54 
+                Q51,55 52,54 
+                L54,40" />
+        
+        <!-- Peak (center) - bright green -->
+        <path
+            android:strokeColor="#00FF64"
+            android:strokeWidth="3"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000"
+            android:pathData="M54,40 
+                L54,54 
+                Q55,55 56,54 
+                L58,54" />
+        
+        <!-- Green transition (middle-right) -->
+        <path
+            android:strokeColor="#00F080"
+            android:strokeWidth="2.5"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000"
+            android:pathData="M58,54 
+                Q60,52 62,54 
+                Q64,56 66,54 
+                L68,54" />
+        
+        <!-- Blue-green section (right) -->
+        <path
+            android:strokeColor="#00A0FF"
+            android:strokeWidth="2.5"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000"
+            android:pathData="M68,54 
+                Q70,52 72,54 
+                L73,54" />
+        
+        <!-- Glow effect around peak -->
+        <path
+            android:fillColor="#00FF96"
+            android:fillAlpha="0.3"
+            android:pathData="M54,40 m-8,0 a8,8 0,1,1 16,0 a8,8 0,1,1 -16,0" />
+        <path
+            android:fillColor="#00FFAA"
+            android:fillAlpha="0.5"
+            android:pathData="M54,40 m-5,0 a5,5 0,1,1 10,0 a5,5 0,1,1 -10,0" />
+        <path
+            android:fillColor="#00FFC8"
+            android:fillAlpha="0.7"
+            android:pathData="M54,40 m-3,0 a3,3 0,1,1 6,0 a3,3 0,1,1 -6,0" />
+    </group>
+</vector>
