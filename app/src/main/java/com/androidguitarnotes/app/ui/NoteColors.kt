@@ -20,8 +20,8 @@ object NoteColors {
      * Returns the color for a given note name.
      * Semitones (sharp notes) return a blend of the adjacent natural note colors.
      */
-    fun getColorForNote(noteName: String): Color {
-        return when (noteName) {
+    fun getColorForNote(noteName: String): Color =
+        when (noteName) {
             "A" -> A_COLOR
             "A#" -> blendColors(A_COLOR, B_COLOR)
             "B" -> B_COLOR
@@ -36,7 +36,6 @@ object NoteColors {
             "G#" -> blendColors(G_COLOR, A_COLOR)
             else -> Color.Gray // Default for unrecognized notes
         }
-    }
 
     /**
      * Blends two colors by averaging their RGB components.
@@ -44,14 +43,13 @@ object NoteColors {
     private fun blendColors(
         color1: Color,
         color2: Color,
-    ): Color {
-        return Color(
+    ): Color =
+        Color(
             red = (color1.red + color2.red) / 2f,
             green = (color1.green + color2.green) / 2f,
             blue = (color1.blue + color2.blue) / 2f,
             alpha = 1f,
         )
-    }
 
     /**
      * Returns a lighter variant of the note color (for backgrounds).

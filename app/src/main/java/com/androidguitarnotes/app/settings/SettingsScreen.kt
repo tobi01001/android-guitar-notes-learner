@@ -1,5 +1,7 @@
 package com.androidguitarnotes.app.settings
 
+import android.media.MediaRecorder
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,13 +12,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Divider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -30,11 +35,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import android.media.MediaRecorder
-import androidx.compose.foundation.clickable
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.TextButton
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.androidguitarnotes.app.R
@@ -50,7 +50,7 @@ fun SettingsScreen(
     val microphoneSensitivity by viewModel.microphoneSensitivity.collectAsStateWithLifecycle()
     val autoAdjustSensitivity by viewModel.autoAdjustSensitivity.collectAsStateWithLifecycle()
     val audioSource by viewModel.audioSource.collectAsStateWithLifecycle()
-    
+
     var showAudioSourceDialog by remember { mutableStateOf(false) }
 
     // Use remember with cleanup for proper lifecycle management
@@ -461,12 +461,11 @@ private fun AudioSourceOption(
 }
 
 @Composable
-private fun getAudioSourceName(source: Int?): String {
-    return when (source) {
+private fun getAudioSourceName(source: Int?): String =
+    when (source) {
         null -> stringResource(R.string.audio_source_auto)
         MediaRecorder.AudioSource.UNPROCESSED -> stringResource(R.string.audio_source_unprocessed)
         MediaRecorder.AudioSource.VOICE_RECOGNITION -> stringResource(R.string.audio_source_voice_recognition)
         MediaRecorder.AudioSource.MIC -> stringResource(R.string.audio_source_mic)
         else -> stringResource(R.string.audio_source_auto)
     }
-}
