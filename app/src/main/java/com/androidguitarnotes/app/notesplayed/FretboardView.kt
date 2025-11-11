@@ -10,8 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -82,7 +82,7 @@ private fun FretMarkers(
     maxFret: Int,
     modifier: Modifier = Modifier,
 ) {
-    val markerFrets = setOf(3, 5, 7, 9, 12)
+    val markerFrets = setOf(3, 5, 7, 9)
 
     Column(
         modifier =
@@ -104,36 +104,35 @@ private fun FretMarkers(
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .size(6.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)),
-                            )
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .size(6.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)),
-                            )
+                            MarkerDot(size = 6.dp)
+                            MarkerDot(size = 6.dp)
                         }
                     }
                     fret in markerFrets -> {
                         // Single dot at frets 3, 5, 7, 9
-                        Box(
-                            modifier =
-                                Modifier
-                                    .size(8.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)),
-                        )
+                        MarkerDot(size = 8.dp)
                     }
                 }
             }
         }
     }
+}
+
+/**
+ * Displays a single fret marker dot.
+ */
+@Composable
+private fun MarkerDot(
+    size: Dp,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier =
+            modifier
+                .size(size)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)),
+    )
 }
 
 /**
