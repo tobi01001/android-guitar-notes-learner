@@ -30,6 +30,7 @@ import kotlin.math.abs
 fun TunerScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    settingsViewModel: com.androidguitarnotes.app.settings.SettingsViewModel = viewModel(),
 ) {
     val audioManager = remember { AudioManager() }
     DisposableEffect(audioManager) {
@@ -39,7 +40,7 @@ fun TunerScreen(
     }
     val viewModel: TunerViewModel =
         viewModel(
-            factory = TunerViewModelFactory(audioManager),
+            factory = TunerViewModelFactory(audioManager, settingsViewModel),
         )
     val state by viewModel.state.collectAsStateWithLifecycle()
 

@@ -25,9 +25,10 @@ import com.androidguitarnotes.app.permissions.PermissionRationaleScreen
 fun PracticeSessionScreen(
     config: PracticeConfig,
     onBack: () -> Unit,
+    settingsViewModel: com.androidguitarnotes.app.settings.SettingsViewModel = viewModel(),
     viewModel: PracticeSessionViewModel =
         viewModel(
-            factory = PracticeSessionViewModelFactory(config, LocalContext.current.applicationContext),
+            factory = PracticeSessionViewModelFactory(config, LocalContext.current.applicationContext, settingsViewModel),
         ),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()

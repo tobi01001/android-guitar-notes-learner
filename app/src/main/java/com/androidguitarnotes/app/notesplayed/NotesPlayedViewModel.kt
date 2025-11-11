@@ -3,6 +3,7 @@ package com.androidguitarnotes.app.notesplayed
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.androidguitarnotes.app.audio.AudioManager
+import com.androidguitarnotes.app.settings.SettingsViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +16,7 @@ import kotlinx.coroutines.launch
  */
 class NotesPlayedViewModel(
     private val audioManager: AudioManager,
+    private val settingsViewModel: SettingsViewModel,
 ) : ViewModel() {
     private val _state = MutableStateFlow(NotesPlayedState())
     val state: StateFlow<NotesPlayedState> = _state.asStateFlow()
@@ -32,7 +34,10 @@ class NotesPlayedViewModel(
             viewModelScope.launch {
                 try {
                     _state.value = _state.value.copy(isListening = true)
-                    audioManager.startListening().collect { result ->
+                    val audioSource = settingsViewModel.audioSource.value
+                    val audioSourceValue = if (audioSource.value == -1) null else audioSource.value
+                    
+                    audioManager.startListening(audioSource = audioSourceValue).collect { result ->
                         when (result) {
                             is AudioManager.AudioAnalysisResult.NoteDetected -> {
                                 _state.value =

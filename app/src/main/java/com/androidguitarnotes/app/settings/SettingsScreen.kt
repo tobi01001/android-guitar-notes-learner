@@ -11,8 +11,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
@@ -23,6 +26,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -43,6 +47,7 @@ fun SettingsScreen(
     val defaultTuning by viewModel.defaultTuning.collectAsStateWithLifecycle()
     val microphoneSensitivity by viewModel.microphoneSensitivity.collectAsStateWithLifecycle()
     val autoAdjustSensitivity by viewModel.autoAdjustSensitivity.collectAsStateWithLifecycle()
+    val audioSource by viewModel.audioSource.collectAsStateWithLifecycle()
 
     // Use remember with cleanup for proper lifecycle management
     val audioManager =
@@ -51,14 +56,15 @@ fun SettingsScreen(
         }
     var currentAudioLevel by remember { mutableFloatStateOf(0f) }
 
-    // Single effect to handle audio listening based on both parameters
-    LaunchedEffect(microphoneSensitivity, audioFeedbackEnabled) {
+    // Single effect to handle audio listening based on all relevant parameters
+    LaunchedEffect(microphoneSensitivity, audioFeedbackEnabled, audioSource) {
         // Stop any previous listening session before starting a new one
         audioManager.stopListening()
 
         if (audioFeedbackEnabled) {
             try {
-                audioManager.startListening(microphoneSensitivity).collect { result ->
+                val audioSourceValue = if (audioSource.value == -1) null else audioSource.value
+                audioManager.startListening(microphoneSensitivity, audioSourceValue).collect { result ->
                     currentAudioLevel =
                         when (result) {
                             is AudioManager.AudioAnalysisResult.NoteDetected -> result.audioLevel
@@ -143,6 +149,16 @@ fun SettingsScreen(
                     description = stringResource(R.string.auto_adjust_description),
                     checked = autoAdjustSensitivity,
                     onCheckedChange = { viewModel.toggleAutoAdjustSensitivity(it) },
+                )
+
+                Divider()
+
+                // Audio Source Selection
+                AudioSourceSelector(
+                    title = stringResource(R.string.audio_source),
+                    description = stringResource(R.string.audio_source_description),
+                    selectedSource = audioSource,
+                    onSourceSelected = { viewModel.setAudioSource(it) },
                 )
 
                 Divider()
@@ -321,5 +337,61 @@ private fun AudioLevelBar(
                     .fillMaxWidth()
                     .height(8.dp),
         )
+    }
+}
+
+@Composable
+private fun AudioSourceSelector(
+    title: String,
+    description: String,
+    selectedSource: AudioSource,
+    onSourceSelected: (AudioSource) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Text(
+            text = description,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+        )
+
+        // Dropdown button
+        OutlinedButton(
+            onClick = { expanded = true },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(
+                text = selectedSource.displayName,
+                modifier = Modifier.weight(1f),
+            )
+            Text("▼")
+        }
+
+        // Dropdown menu
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            AudioSource.entries.forEach { source ->
+                DropdownMenuItem(
+                    text = { Text(source.displayName) },
+                    onClick = {
+                        onSourceSelected(source)
+                        expanded = false
+                    },
+                )
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@ package com.androidguitarnotes.app.tuner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.androidguitarnotes.app.audio.AudioManager
+import com.androidguitarnotes.app.settings.SettingsViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,6 +17,7 @@ import kotlin.math.log2
  */
 class TunerViewModel(
     private val audioManager: AudioManager,
+    private val settingsViewModel: SettingsViewModel,
 ) : ViewModel() {
     private val _state = MutableStateFlow(TunerState())
     val state: StateFlow<TunerState> = _state.asStateFlow()
@@ -40,7 +42,10 @@ class TunerViewModel(
         listeningJob?.cancel()
         listeningJob =
             viewModelScope.launch {
-                audioManager.startListening().collect { result ->
+                val audioSource = settingsViewModel.audioSource.value
+                val audioSourceValue = if (audioSource.value == -1) null else audioSource.value
+                
+                audioManager.startListening(audioSource = audioSourceValue).collect { result ->
                     when (result) {
                         is AudioManager.AudioAnalysisResult.NoteDetected -> {
                             val selectedString = _state.value.selectedString

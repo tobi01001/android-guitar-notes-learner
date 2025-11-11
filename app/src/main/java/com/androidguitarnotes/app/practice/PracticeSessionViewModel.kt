@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.androidguitarnotes.app.audio.AudioManager
 import com.androidguitarnotes.app.permissions.PermissionManager
+import com.androidguitarnotes.app.settings.SettingsViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +20,7 @@ class PracticeSessionViewModel(
     private val config: PracticeConfig,
     private val audioManager: AudioManager = AudioManager(),
     private val permissionManager: PermissionManager,
+    private val settingsViewModel: SettingsViewModel,
 ) : ViewModel() {
     private val noteGenerator = RandomNoteGenerator(config)
 
@@ -145,7 +147,10 @@ class PracticeSessionViewModel(
         audioListeningJob =
             viewModelScope.launch {
                 try {
-                    audioManager.startListening().collect { result ->
+                    val audioSource = settingsViewModel.audioSource.value
+                    val audioSourceValue = if (audioSource.value == -1) null else audioSource.value
+                    
+                    audioManager.startListening(audioSource = audioSourceValue).collect { result ->
                         val currentState = _state.value
                         if (currentState is PracticeSessionState.Active) {
                             when (result) {
