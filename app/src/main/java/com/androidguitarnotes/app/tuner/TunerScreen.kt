@@ -221,9 +221,16 @@ private fun TuningIndicator(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Visual tuning indicator
-        when (val status = state.tuningStatus) {
+        // Visual tuning indicator - always show the bar
+        val status = state.tuningStatus
+        when (status) {
             is TuningStatus.NotDetected -> {
+                // Show bar with grey dot at far left
+                TuningGauge(
+                    cents = null, // null indicates no detection
+                    detectedFrequency = null,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     if (state.isListening) {
                         stringResource(R.string.no_sound_detected)
@@ -249,18 +256,23 @@ private fun TuningIndicator(
  */
 @Composable
 private fun TuningGauge(
-    cents: Double,
-    detectedFrequency: Double,
+    cents: Double?,
+    detectedFrequency: Double?,
     modifier: Modifier = Modifier,
 ) {
-    val isInTune = abs(cents) <= TunerConstants.IN_TUNE_THRESHOLD_CENTS
-    val isTooFlat = cents < -TunerConstants.IN_TUNE_THRESHOLD_CENTS
-    val isTooSharp = cents > TunerConstants.IN_TUNE_THRESHOLD_CENTS
+    // When cents is null, we're not detecting - show grey dot at far left
+    val isDetecting = cents != null
+    val safeCents = cents ?: -50.0 // Default to far left when not detecting
+
+    val isInTune = cents != null && abs(cents) <= TunerConstants.IN_TUNE_THRESHOLD_CENTS
+    val isTooFlat = cents != null && cents < -TunerConstants.IN_TUNE_THRESHOLD_CENTS
+    val isTooSharp = cents != null && cents > TunerConstants.IN_TUNE_THRESHOLD_CENTS
 
     // Animate the indicator color
     val indicatorColor by animateColorAsState(
         targetValue =
             when {
+                !isDetecting -> Color.Gray // Grey when not detecting
                 isInTune -> Color(0xFF4CAF50) // Green
                 else -> Color(0xFFFF9800) // Orange
             },
@@ -272,48 +284,52 @@ private fun TuningGauge(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = modifier,
     ) {
-        // Status text
-        if (isInTune) {
-            Text(
-                stringResource(R.string.in_tune),
-                style = MaterialTheme.typography.headlineMedium,
-                color = indicatorColor,
-                fontWeight = FontWeight.Bold,
-            )
-        } else if (isTooFlat) {
-            Text(
-                stringResource(R.string.tune_up),
-                style = MaterialTheme.typography.headlineMedium,
-                color = indicatorColor,
-                fontWeight = FontWeight.Bold,
-            )
-        } else if (isTooSharp) {
-            Text(
-                stringResource(R.string.tune_down),
-                style = MaterialTheme.typography.headlineMedium,
-                color = indicatorColor,
-                fontWeight = FontWeight.Bold,
-            )
+        // Status text - only show when detecting
+        if (isDetecting) {
+            if (isInTune) {
+                Text(
+                    stringResource(R.string.in_tune),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = indicatorColor,
+                    fontWeight = FontWeight.Bold,
+                )
+            } else if (isTooFlat) {
+                Text(
+                    stringResource(R.string.tune_up),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = indicatorColor,
+                    fontWeight = FontWeight.Bold,
+                )
+            } else if (isTooSharp) {
+                Text(
+                    stringResource(R.string.tune_down),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = indicatorColor,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
         }
 
-        // Cents deviation bar
+        // Cents deviation bar - always show
         CentsDeviationBar(
-            cents = cents,
+            cents = safeCents,
             color = indicatorColor,
         )
 
-        // Numeric display
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                stringResource(R.string.detected_frequency, detectedFrequency),
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            Text(
-                stringResource(R.string.cents_deviation, cents),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = indicatorColor,
-            )
+        // Numeric display - only show when detecting
+        if (isDetecting && detectedFrequency != null && cents != null) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    stringResource(R.string.detected_frequency, detectedFrequency),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                Text(
+                    stringResource(R.string.cents_deviation, cents),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = indicatorColor,
+                )
+            }
         }
     }
 }
@@ -328,7 +344,18 @@ private fun CentsDeviationBar(
     modifier: Modifier = Modifier,
 ) {
     val maxCents = 50.0 // Show ±50 cents
-    val normalizedPosition = (cents / maxCents).coerceIn(-1.0, 1.0).toFloat()
+    val targetPosition = (cents / maxCents).coerceIn(-1.0, 1.0).toFloat()
+
+    // Animate the position with cubic easing for smooth motion
+    val animatedPosition by animateFloatAsState(
+        targetValue = targetPosition,
+        animationSpec =
+            tween(
+                durationMillis = 300,
+                easing = FastOutSlowInEasing, // Cubic Bezier curve for smooth transitions
+            ),
+        label = "dotPosition",
+    )
 
     BoxWithConstraints(
         modifier =
@@ -340,7 +367,7 @@ private fun CentsDeviationBar(
     ) {
         val containerWidth = maxWidth
         val indicatorSize = 40.dp
-        val offsetX = (containerWidth - indicatorSize) * ((normalizedPosition + 1f) / 2f)
+        val offsetX = (containerWidth - indicatorSize) * ((animatedPosition + 1f) / 2f)
 
         // Center line
         Box(
