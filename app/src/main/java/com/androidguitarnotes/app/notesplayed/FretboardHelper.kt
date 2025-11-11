@@ -84,6 +84,7 @@ object FretboardHelper {
 
         // Calculate octave based on open string and fret
         // Standard tuning: E2, A2, D3, G3, B3, E4
+        // Order: [String 6 (low E), String 5 (A), String 4 (D), String 3 (G), String 2 (B), String 1 (high E)]
         val openOctaves = listOf(2, 2, 3, 3, 3, 4) // String 6 to String 1
         val baseOctave = openOctaves[6 - stringNumber]
         val octaveOffset = (openNoteIndex + fret) / 12
