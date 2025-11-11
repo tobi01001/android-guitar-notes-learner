@@ -9,11 +9,15 @@ import kotlinx.coroutines.flow.asStateFlow
 /**
  * Audio source options for recording.
  */
-enum class AudioSource(val value: Int, val displayName: String) {
+enum class AudioSource(
+    val value: Int,
+    val displayName: String,
+) {
     AUTO(-1, "Auto (Best Quality)"),
     UNPROCESSED(MediaRecorder.AudioSource.UNPROCESSED, "Unprocessed"),
     VOICE_RECOGNITION(MediaRecorder.AudioSource.VOICE_RECOGNITION, "Voice Recognition"),
-    MIC(MediaRecorder.AudioSource.MIC, "Microphone");
+    MIC(MediaRecorder.AudioSource.MIC, "Microphone"),
+    ;
 
     companion object {
         fun fromValue(value: Int): AudioSource = entries.find { it.value == value } ?: AUTO

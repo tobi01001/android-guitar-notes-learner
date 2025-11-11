@@ -149,7 +149,7 @@ class PracticeSessionViewModel(
                 try {
                     val audioSource = settingsViewModel.audioSource.value
                     val audioSourceValue = if (audioSource.value == -1) null else audioSource.value
-                    
+
                     audioManager.startListening(audioSource = audioSourceValue).collect { result ->
                         val currentState = _state.value
                         if (currentState is PracticeSessionState.Active) {

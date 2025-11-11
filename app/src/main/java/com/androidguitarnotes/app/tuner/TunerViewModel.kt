@@ -44,7 +44,7 @@ class TunerViewModel(
             viewModelScope.launch {
                 val audioSource = settingsViewModel.audioSource.value
                 val audioSourceValue = if (audioSource.value == -1) null else audioSource.value
-                
+
                 audioManager.startListening(audioSource = audioSourceValue).collect { result ->
                     when (result) {
                         is AudioManager.AudioAnalysisResult.NoteDetected -> {
