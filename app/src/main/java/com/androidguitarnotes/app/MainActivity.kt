@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.*
+import com.androidguitarnotes.app.notesplayed.NotesPlayedScreen
 import com.androidguitarnotes.app.practice.PracticeConfig
 import com.androidguitarnotes.app.practice.PracticeConfigScreen
 import com.androidguitarnotes.app.practice.PracticeSessionScreen
@@ -35,6 +36,7 @@ fun GuitarNotesApp() {
                 HomeScreen(
                     onStartPractice = { navController.navigate("practice") },
                     onOpenTuner = { navController.navigate("tuner") },
+                    onOpenNotesPlayed = { navController.navigate("notesPlayed") },
                     onOpenSettings = { navController.navigate("settings") },
                 )
             }
@@ -61,6 +63,11 @@ fun GuitarNotesApp() {
                     onBack = { navController.popBackStack() },
                 )
             }
+            composable("notesPlayed") {
+                NotesPlayedScreen(
+                    onBack = { navController.popBackStack() },
+                )
+            }
             composable("settings") {
                 SettingsScreen(
                     onBack = { navController.popBackStack() },
@@ -74,6 +81,7 @@ fun GuitarNotesApp() {
 fun HomeScreen(
     onStartPractice: () -> Unit,
     onOpenTuner: () -> Unit,
+    onOpenNotesPlayed: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
     Scaffold(topBar = { TopAppBar(title = { Text("Guitar Notes Learner") }) }) { padding ->
@@ -81,6 +89,7 @@ fun HomeScreen(
             Text("Welcome — select Practice to start a session")
             Button(onClick = onStartPractice) { Text("Practice") }
             Button(onClick = onOpenTuner) { Text("Tuner") }
+            Button(onClick = onOpenNotesPlayed) { Text("Notes Played") }
             Button(onClick = onOpenSettings) { Text("Settings") }
         }
     }
