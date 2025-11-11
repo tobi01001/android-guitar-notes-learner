@@ -26,4 +26,24 @@ class AudioRecorderTest {
 
         assertTrue("Level should be between 0 and 1", result.level >= 0f && result.level <= 1f)
     }
+
+    @Test
+    fun `AudioDataWithLevel equals compares content not reference`() {
+        val audioData1 = floatArrayOf(0.1f, 0.2f, 0.3f)
+        val audioData2 = floatArrayOf(0.1f, 0.2f, 0.3f)
+        val result1 = AudioRecorder.AudioDataWithLevel(audioData1, 0.5f)
+        val result2 = AudioRecorder.AudioDataWithLevel(audioData2, 0.5f)
+
+        assertEquals("AudioDataWithLevel with same content should be equal", result1, result2)
+    }
+
+    @Test
+    fun `AudioDataWithLevel hashCode is consistent`() {
+        val audioData1 = floatArrayOf(0.1f, 0.2f, 0.3f)
+        val audioData2 = floatArrayOf(0.1f, 0.2f, 0.3f)
+        val result1 = AudioRecorder.AudioDataWithLevel(audioData1, 0.5f)
+        val result2 = AudioRecorder.AudioDataWithLevel(audioData2, 0.5f)
+
+        assertEquals("Equal objects should have equal hash codes", result1.hashCode(), result2.hashCode())
+    }
 }
