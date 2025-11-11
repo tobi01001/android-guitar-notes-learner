@@ -19,7 +19,7 @@ class AudioRecorder {
     companion object {
         private const val SAMPLE_RATE = 44100
         private const val CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO
-        private const val AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT
+        private const val AUDIO_FORMAT = AudioFormat.ENCODING_PCM_FLOAT
         private const val BUFFER_SIZE_MULTIPLIER = 2
     }
 
@@ -36,7 +36,7 @@ class AudioRecorder {
      * Represents audio data with its level.
      */
     data class AudioDataWithLevel(
-        val audioData: ShortArray,
+        val audioData: FloatArray,
         val level: Float,
     )
 
@@ -70,10 +70,10 @@ class AudioRecorder {
 
                 audioRecord?.startRecording()
 
-                val buffer = ShortArray(bufferSize / 2)
+                val buffer = FloatArray(bufferSize / 4)
 
                 while (coroutineContext.isActive) {
-                    val readResult = audioRecord?.read(buffer, 0, buffer.size) ?: 0
+                    val readResult = audioRecord?.read(buffer, 0, buffer.size, AudioRecord.READ_BLOCKING) ?: 0
 
                     if (readResult > 0) {
                         // Create a copy to avoid reusing the same buffer
@@ -107,13 +107,12 @@ class AudioRecorder {
      * Calculates the audio level (RMS) from audio samples.
      * Returns a value between 0.0 and 1.0.
      */
-    private fun calculateAudioLevel(audioData: ShortArray): Float {
+    private fun calculateAudioLevel(audioData: FloatArray): Float {
         if (audioData.isEmpty()) return 0f
 
         var sum = 0.0
         for (sample in audioData) {
-            val normalized = sample.toFloat() / Short.MAX_VALUE
-            sum += normalized * normalized
+            sum += sample * sample
         }
 
         val rms = kotlin.math.sqrt(sum / audioData.size)
@@ -124,14 +123,13 @@ class AudioRecorder {
      * Applies sensitivity multiplier to audio data.
      */
     private fun applySensitivity(
-        audioData: ShortArray,
+        audioData: FloatArray,
         multiplier: Float,
-    ): ShortArray {
+    ): FloatArray {
         if (multiplier == 1.0f) return audioData
 
-        return ShortArray(audioData.size) { i ->
-            val adjusted = (audioData[i] * multiplier).toInt()
-            adjusted.coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+        return FloatArray(audioData.size) { i ->
+            (audioData[i] * multiplier).coerceIn(-1f, 1f)
         }
     }
 

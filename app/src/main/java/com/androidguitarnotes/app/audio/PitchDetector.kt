@@ -14,31 +14,25 @@ class PitchDetector(
     /**
      * Detects the fundamental frequency from audio samples.
      *
-     * @param audioData Array of audio samples (PCM 16-bit)
+     * @param audioData Array of audio samples (PCM float, normalized -1.0 to 1.0)
      * @return Detected frequency in Hz, or null if no clear pitch detected
      */
-    fun detectPitch(audioData: ShortArray): Double? {
+    fun detectPitch(audioData: FloatArray): Double? {
         if (audioData.isEmpty()) return null
-
-        // Convert to float and normalize
-        val normalized =
-            FloatArray(audioData.size) { i ->
-                audioData[i].toFloat() / Short.MAX_VALUE
-            }
 
         // Calculate autocorrelation
         val minLag = (sampleRate / MAX_FREQUENCY).toInt()
         val maxLag = (sampleRate / MIN_FREQUENCY).toInt()
 
-        if (maxLag >= normalized.size) return null
+        if (maxLag >= audioData.size) return null
 
         var bestLag = 0
         var bestCorrelation = 0f
 
         for (lag in minLag..maxLag) {
             var correlation = 0f
-            for (i in 0 until (normalized.size - lag)) {
-                correlation += normalized[i] * normalized[i + lag]
+            for (i in 0 until (audioData.size - lag)) {
+                correlation += audioData[i] * audioData[i + lag]
             }
 
             if (correlation > bestCorrelation) {

@@ -10,17 +10,17 @@ import org.junit.Test
 class AudioRecorderTest {
     @Test
     fun `AudioDataWithLevel contains audio data and level`() {
-        val audioData = shortArrayOf(100, 200, 300)
+        val audioData = floatArrayOf(0.1f, 0.2f, 0.3f)
         val level = 0.5f
         val result = AudioRecorder.AudioDataWithLevel(audioData, level)
 
-        assertArrayEquals(audioData, result.audioData)
+        assertArrayEquals(audioData, result.audioData, 0.001f)
         assertEquals(0.5f, result.level, 0.001f)
     }
 
     @Test
     fun `AudioDataWithLevel level is within valid range`() {
-        val audioData = shortArrayOf(100, 200, 300)
+        val audioData = floatArrayOf(0.1f, 0.2f, 0.3f)
         val level = 0.5f
         val result = AudioRecorder.AudioDataWithLevel(audioData, level)
 
