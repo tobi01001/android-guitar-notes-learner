@@ -79,6 +79,7 @@ private fun FretNumbers(
     Column(
         modifier =
             modifier
+                // Padding aligns fret numbers with the fret markers below, accounting for the string label area.
                 .padding(top = 40.dp),
         verticalArrangement = Arrangement.SpaceEvenly,
     ) {
