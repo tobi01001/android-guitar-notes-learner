@@ -37,6 +37,9 @@ class RandomNoteGenerator(
             6 to 4, // E (String 6)
         )
 
+    // Track the last generated note to avoid repeats
+    private var lastNote: PracticeNote? = null
+
     /**
      * Cached list of valid (string, fret) positions based on the configuration.
      * Computed once at initialization for better performance.
@@ -63,15 +66,36 @@ class RandomNoteGenerator(
 
     /**
      * Generates a random note based on the configuration.
+     * Avoids repeating the same note consecutively if there are multiple positions available.
      */
     fun generateNote(): PracticeNote {
-        // Select a random valid position from cached list
-        val (stringNumber, fret) = validPositions.random()
+        // If there's only one valid position, we have to return it
+        if (validPositions.size == 1) {
+            val (stringNumber, fret) = validPositions.first()
+            val noteName = calculateNoteName(stringNumber, fret)
+            val note = PracticeNote(stringNumber, fret, noteName)
+            lastNote = note
+            return note
+        }
 
-        // Calculate note name
-        val noteName = calculateNoteName(stringNumber, fret)
+        // Generate a new note that's different from the last one
+        var (stringNumber, fret) = validPositions.random()
+        var noteName = calculateNoteName(stringNumber, fret)
+        var newNote = PracticeNote(stringNumber, fret, noteName)
 
-        return PracticeNote(stringNumber, fret, noteName)
+        // If the new note is the same as the last one, keep trying (max 10 attempts)
+        var attempts = 0
+        while (lastNote != null && newNote == lastNote && attempts < 10) {
+            val position = validPositions.random()
+            stringNumber = position.first
+            fret = position.second
+            noteName = calculateNoteName(stringNumber, fret)
+            newNote = PracticeNote(stringNumber, fret, noteName)
+            attempts++
+        }
+
+        lastNote = newNote
+        return newNote
     }
 
     /**

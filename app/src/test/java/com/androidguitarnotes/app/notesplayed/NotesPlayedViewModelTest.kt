@@ -27,9 +27,11 @@ class NotesPlayedViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         audioManager = mockk(relaxed = true)
-        settingsViewModel =
-            com.androidguitarnotes.app.settings
-                .SettingsViewModel()
+        val settingsRepository =
+            mockk<com.androidguitarnotes.app.settings.SettingsRepository>(relaxed = true)
+        every { settingsRepository.audioSource } returns
+            flowOf(com.androidguitarnotes.app.settings.AudioSource.AUTO)
+        settingsViewModel = com.androidguitarnotes.app.settings.SettingsViewModel(settingsRepository)
         viewModel = NotesPlayedViewModel(audioManager, settingsViewModel)
     }
 

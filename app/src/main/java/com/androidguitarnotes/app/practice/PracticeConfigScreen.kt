@@ -19,7 +19,13 @@ import com.androidguitarnotes.app.R
 fun PracticeConfigScreen(
     onBack: () -> Unit,
     onStartPractice: (PracticeConfig) -> Unit,
-    viewModel: PracticeConfigViewModel = viewModel(),
+    viewModel: PracticeConfigViewModel =
+        viewModel(
+            factory =
+                PracticeConfigViewModelFactory(
+                    androidx.compose.ui.platform.LocalContext.current.applicationContext,
+                ),
+        ),
 ) {
     val config by viewModel.config.collectAsStateWithLifecycle()
 
@@ -104,22 +110,59 @@ private fun StringSelectionSection(
     selectedStrings: Set<Int>,
     onToggleString: (Int) -> Unit,
 ) {
+    // Map string numbers to their open note names
+    val stringNotes = mapOf(
+        6 to "E",
+        5 to "A",
+        4 to "D",
+        3 to "G",
+        2 to "B",
+        1 to "E",
+    )
+
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = stringResource(R.string.select_strings),
             style = MaterialTheme.typography.titleMedium,
         )
 
+        // Header
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            for (stringNum in 1..6) {
+            for (stringNum in 6 downTo 1) {
+                Text(
+                    text = stringNotes[stringNum] ?: "",
+                    modifier = Modifier.weight(1f),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
+        // String selection chips
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            for (stringNum in 6 downTo 1) {
+                val noteName = stringNotes[stringNum] ?: ""
                 FilterChip(
                     selected = selectedStrings.contains(stringNum),
                     onClick = { onToggleString(stringNum) },
-                    label = { Text(stringResource(R.string.string_number, stringNum)) },
+                    label = { Text(stringNum.toString()) },
                     modifier = Modifier.weight(1f),
+                    colors =
+                        if (selectedStrings.contains(stringNum)) {
+                            FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = com.androidguitarnotes.app.ui.NoteColors.getLightColorForNote(noteName),
+                                selectedLabelColor = com.androidguitarnotes.app.ui.NoteColors.getDarkColorForNote(noteName),
+                            )
+                        } else {
+                            FilterChipDefaults.filterChipColors()
+                        },
                 )
             }
         }
@@ -279,8 +322,8 @@ private fun DurationSection(
                     onValueChange = {
                         minutesText = it
                         it.toIntOrNull()?.let { minutes ->
-                            val MAX_MINUTES = 480
-                            if (minutes > 0 && minutes <= MAX_MINUTES) {
+                            val maxMinutes = 480
+                            if (minutes > 0 && minutes <= maxMinutes) {
                                 onDurationMinutesChange(minutes)
                             }
                         }
