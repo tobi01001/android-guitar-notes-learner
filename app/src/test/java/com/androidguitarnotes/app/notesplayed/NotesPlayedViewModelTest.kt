@@ -79,6 +79,8 @@ class NotesPlayedViewModelTest {
                     frequency = 440.0,
                     cents = 0.0,
                     audioLevel = 0.5f,
+                    octave = 4,
+                    noteNameWithOctave = "A4",
                 )
             every { audioManager.startListening(any(), any()) } returns flowOf(noteResult)
 
@@ -101,6 +103,8 @@ class NotesPlayedViewModelTest {
                     frequency = 440.0,
                     cents = 0.0,
                     audioLevel = 0.5f,
+                    octave = 4,
+                    noteNameWithOctave = "A4",
                 )
             val noNoteResult = AudioManager.AudioAnalysisResult.NoNoteDetected(audioLevel = 0.1f)
 

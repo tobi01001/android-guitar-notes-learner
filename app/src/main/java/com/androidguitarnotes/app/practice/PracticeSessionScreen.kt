@@ -17,6 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.androidguitarnotes.app.R
 import com.androidguitarnotes.app.permissions.PermissionRationaleScreen
+import com.androidguitarnotes.app.ui.NoteColors
 
 /**
  * Practice session screen showing the current note and session progress.
@@ -211,7 +212,7 @@ private fun ActiveSessionScreen(
                 modifier = Modifier.fillMaxWidth(0.8f),
                 colors =
                     CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        containerColor = NoteColors.getLightColorForNote(state.currentNote.noteName),
                     ),
             ) {
                 Column(
@@ -225,7 +226,7 @@ private fun ActiveSessionScreen(
                         text = state.currentNote.noteName,
                         style = MaterialTheme.typography.displayLarge,
                         fontSize = 96.sp,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        color = NoteColors.getDarkColorForNote(state.currentNote.noteName),
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))

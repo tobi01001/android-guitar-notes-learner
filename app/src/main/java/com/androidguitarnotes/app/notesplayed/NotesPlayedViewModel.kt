@@ -47,6 +47,8 @@ class NotesPlayedViewModel(
                                                 noteName = result.noteName,
                                                 frequency = result.frequency,
                                                 cents = result.cents,
+                                                octave = result.octave,
+                                                noteNameWithOctave = result.noteNameWithOctave,
                                             ),
                                     )
                             }

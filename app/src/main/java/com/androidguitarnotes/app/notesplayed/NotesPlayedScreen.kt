@@ -1,8 +1,5 @@
 package com.androidguitarnotes.app.notesplayed
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.androidguitarnotes.app.R
+import com.androidguitarnotes.app.ui.NoteColors
 
 /**
  * Notes Played screen composable.
@@ -112,17 +110,13 @@ private fun NoteDisplayArea(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         if (isListening) {
-            if (detectedNote != null) {
-                NoteCard(detectedNote = detectedNote)
-                FretboardView(
-                    detectedNote = detectedNote.noteName,
-                    maxFret = 12,
-                )
-            } else {
-                EmptyStateMessage(
-                    message = stringResource(R.string.play_a_note),
-                )
-            }
+            // Always show card and fretboard when listening
+            NoteCard(detectedNote = detectedNote)
+            FretboardView(
+                detectedNote = detectedNote?.noteName,
+                detectedNoteWithOctave = detectedNote?.noteNameWithOctave,
+                maxFret = 12,
+            )
         } else {
             EmptyStateMessage(
                 message = stringResource(R.string.no_note_detected),
@@ -136,42 +130,49 @@ private fun NoteDisplayArea(
  */
 @Composable
 private fun NoteCard(
-    detectedNote: DetectedNoteInfo,
+    detectedNote: DetectedNoteInfo?,
     modifier: Modifier = Modifier,
 ) {
-    AnimatedVisibility(
-        visible = true,
-        enter = fadeIn(),
-        exit = fadeOut(),
+    Card(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    if (detectedNote != null) {
+                        NoteColors.getLightColorForNote(detectedNote.noteName)
+                    } else {
+                        MaterialTheme.colorScheme.primaryContainer
+                    },
+            ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
-        Card(
+        Row(
             modifier =
-                modifier
+                Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-            colors =
-                CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
-            Row(
+            // Large note name display
+            Box(
                 modifier =
                     Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                        .size(120.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(
+                            if (detectedNote != null) {
+                                NoteColors.getColorForNote(detectedNote.noteName)
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant
+                            },
+                        ),
+                contentAlignment = Alignment.Center,
             ) {
-                // Large note name display
-                Box(
-                    modifier =
-                        Modifier
-                            .size(120.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.primary),
-                    contentAlignment = Alignment.Center,
-                ) {
+                if (detectedNote != null) {
                     Text(
                         text = detectedNote.noteName,
                         style = MaterialTheme.typography.displayLarge,
@@ -179,19 +180,29 @@ private fun NoteCard(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimary,
                     )
-                }
-
-                // Note details
-                Column(
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
+                } else {
                     Text(
-                        text = stringResource(R.string.current_note),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        text = "?",
+                        style = MaterialTheme.typography.displayLarge,
+                        fontSize = 72.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
+            }
 
+            // Note details
+            Column(
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.current_note),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+
+                if (detectedNote != null) {
                     Text(
                         text = stringResource(R.string.note_frequency, detectedNote.frequency),
                         style = MaterialTheme.typography.bodyMedium,
@@ -201,6 +212,12 @@ private fun NoteCard(
                     Text(
                         text = stringResource(R.string.note_cents, detectedNote.cents),
                         style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                } else {
+                    Text(
+                        text = stringResource(R.string.play_a_note),
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
                 }
