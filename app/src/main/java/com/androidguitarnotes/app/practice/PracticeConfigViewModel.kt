@@ -1,17 +1,30 @@
 package com.androidguitarnotes.app.practice
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 /**
  * ViewModel for managing practice session configuration state.
  */
-class PracticeConfigViewModel : ViewModel() {
+class PracticeConfigViewModel(
+    private val repository: PracticeSettingsRepository,
+) : ViewModel() {
     private val _config = MutableStateFlow(PracticeConfig())
     val config: StateFlow<PracticeConfig> = _config.asStateFlow()
+
+    init {
+        // Load saved configuration
+        viewModelScope.launch {
+            repository.practiceConfig.collect { savedConfig ->
+                _config.value = savedConfig
+            }
+        }
+    }
 
     fun toggleString(stringNumber: Int) {
         // Validate string number is in valid range (1-6)
@@ -29,7 +42,9 @@ class PracticeConfigViewModel : ViewModel() {
                 } else {
                     currentStrings + stringNumber
                 }
-            currentConfig.copy(selectedStrings = newStrings)
+            val newConfig = currentConfig.copy(selectedStrings = newStrings)
+            saveConfig(newConfig)
+            newConfig
         }
     }
 
@@ -37,35 +52,73 @@ class PracticeConfigViewModel : ViewModel() {
         from: Int,
         to: Int,
     ) {
-        _config.update { it.copy(fretFrom = from, fretTo = to) }
+        _config.update {
+            val newConfig = it.copy(fretFrom = from, fretTo = to)
+            saveConfig(newConfig)
+            newConfig
+        }
     }
 
     fun setNoteMode(mode: NoteMode) {
-        _config.update { it.copy(noteMode = mode) }
+        _config.update {
+            val newConfig = it.copy(noteMode = mode)
+            saveConfig(newConfig)
+            newConfig
+        }
     }
 
     fun setSelectedScale(scale: Scale) {
-        _config.update { it.copy(selectedScale = scale) }
+        _config.update {
+            val newConfig = it.copy(selectedScale = scale)
+            saveConfig(newConfig)
+            newConfig
+        }
     }
 
     fun setDurationType(type: DurationType) {
-        _config.update { it.copy(durationType = type) }
+        _config.update {
+            val newConfig = it.copy(durationType = type)
+            saveConfig(newConfig)
+            newConfig
+        }
     }
 
     fun setDurationMinutes(minutes: Int) {
-        _config.update { it.copy(durationMinutes = minutes) }
+        _config.update {
+            val newConfig = it.copy(durationMinutes = minutes)
+            saveConfig(newConfig)
+            newConfig
+        }
     }
 
     fun setNoteCount(count: Int) {
-        _config.update { it.copy(noteCount = count) }
+        _config.update {
+            val newConfig = it.copy(noteCount = count)
+            saveConfig(newConfig)
+            newConfig
+        }
     }
 
     fun setProgressionMode(mode: ProgressionMode) {
-        _config.update { it.copy(progressionMode = mode) }
+        _config.update {
+            val newConfig = it.copy(progressionMode = mode)
+            saveConfig(newConfig)
+            newConfig
+        }
     }
 
     fun setAutoIntervalSeconds(seconds: Float) {
-        _config.update { it.copy(autoIntervalSeconds = seconds) }
+        _config.update {
+            val newConfig = it.copy(autoIntervalSeconds = seconds)
+            saveConfig(newConfig)
+            newConfig
+        }
+    }
+
+    private fun saveConfig(config: PracticeConfig) {
+        viewModelScope.launch {
+            repository.savePracticeConfig(config)
+        }
     }
 
     fun isConfigValid(): Boolean {

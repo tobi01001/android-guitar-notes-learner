@@ -26,7 +26,10 @@ import com.androidguitarnotes.app.ui.NoteColors
 fun NotesPlayedScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    settingsViewModel: com.androidguitarnotes.app.settings.SettingsViewModel = viewModel(),
+    settingsViewModel: com.androidguitarnotes.app.settings.SettingsViewModel =
+        viewModel(
+            factory = com.androidguitarnotes.app.settings.SettingsViewModelFactory(androidx.compose.ui.platform.LocalContext.current.applicationContext),
+        ),
 ) {
     val viewModel: NotesPlayedViewModel =
         viewModel(

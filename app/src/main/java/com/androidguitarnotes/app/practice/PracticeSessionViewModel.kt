@@ -125,7 +125,6 @@ class PracticeSessionViewModel(
             )
 
         startTimer()
-        // Audio listening will be started after permission is granted (for AUDIO_VERIFICATION mode)
         // Auto-interval timer started if AUTO_INTERVAL mode
         if (config.progressionMode == ProgressionMode.AUTO_INTERVAL) {
             startAutoIntervalTimer()
@@ -280,10 +279,8 @@ class PracticeSessionViewModel(
                 )
 
             startTimer()
-            // Only start audio if permission is granted and in AUDIO_VERIFICATION mode
-            if (config.progressionMode == ProgressionMode.AUDIO_VERIFICATION &&
-                permissionManager.isRecordAudioPermissionGranted()
-            ) {
+            // Start audio listening if permission is granted (for all modes to show detected notes)
+            if (permissionManager.isRecordAudioPermissionGranted()) {
                 startAudioListening()
             }
             // Restart auto-interval timer if in AUTO_INTERVAL mode

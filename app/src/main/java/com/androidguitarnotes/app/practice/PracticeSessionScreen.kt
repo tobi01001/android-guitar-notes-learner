@@ -26,7 +26,10 @@ import com.androidguitarnotes.app.ui.NoteColors
 fun PracticeSessionScreen(
     config: PracticeConfig,
     onBack: () -> Unit,
-    settingsViewModel: com.androidguitarnotes.app.settings.SettingsViewModel = viewModel(),
+    settingsViewModel: com.androidguitarnotes.app.settings.SettingsViewModel =
+        viewModel(
+            factory = com.androidguitarnotes.app.settings.SettingsViewModelFactory(LocalContext.current.applicationContext),
+        ),
     viewModel: PracticeSessionViewModel =
         viewModel(
             factory = PracticeSessionViewModelFactory(config, LocalContext.current.applicationContext, settingsViewModel),
@@ -80,8 +83,12 @@ fun PracticeSessionScreen(
                     ReadyScreen(
                         onStart = {
                             viewModel.startSession()
-                            // Only request audio permission for AUDIO_VERIFICATION mode
+                            // Request audio permission for AUDIO_VERIFICATION mode (required)
+                            // or for other modes to enable note detection display (optional)
                             if (config.progressionMode == ProgressionMode.AUDIO_VERIFICATION) {
+                                viewModel.checkAndRequestAudioPermission()
+                            } else {
+                                // For Manual/Timer modes, try to start audio if permission is already granted
                                 viewModel.checkAndRequestAudioPermission()
                             }
                         },
@@ -244,7 +251,7 @@ private fun ActiveSessionScreen(
                 }
             }
 
-            // Note feedback display
+            // Note feedback display - always show for all modes
             Spacer(modifier = Modifier.height(16.dp))
 
             NoteFeedbackDisplay(feedback = state.noteFeedback)
@@ -483,51 +490,60 @@ private fun ProgressIndicator(
 
 @Composable
 private fun NoteFeedbackDisplay(feedback: PracticeSessionState.NoteFeedback) {
-    when (feedback) {
-        is PracticeSessionState.NoteFeedback.None -> {
-            // Show listening indicator
-            Text(
-                text = stringResource(R.string.listening),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        is PracticeSessionState.NoteFeedback.Correct -> {
-            Card(
-                colors =
-                    CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    ),
-            ) {
+    // Reserve consistent height to prevent UI jumping
+    Box(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 72.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        when (feedback) {
+            is PracticeSessionState.NoteFeedback.None -> {
+                // Show listening indicator
                 Text(
-                    text = stringResource(R.string.correct_note),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.padding(16.dp),
+                    text = stringResource(R.string.listening),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-        }
-        is PracticeSessionState.NoteFeedback.Detected -> {
-            Card(
-                colors =
-                    CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                    ),
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+            is PracticeSessionState.NoteFeedback.Correct -> {
+                Card(
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        ),
                 ) {
                     Text(
-                        text = stringResource(R.string.detected_note, feedback.noteName),
+                        text = stringResource(R.string.correct_note),
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.padding(16.dp),
                     )
-                    Text(
-                        text = stringResource(R.string.try_again),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                    )
+                }
+            }
+            is PracticeSessionState.NoteFeedback.Detected -> {
+                Card(
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                        ),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.detected_note, feedback.noteName),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                        )
+                        Text(
+                            text = stringResource(R.string.try_again),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                        )
+                    }
                 }
             }
         }

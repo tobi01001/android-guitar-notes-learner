@@ -42,7 +42,10 @@ import com.androidguitarnotes.app.audio.AudioManager
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
-    viewModel: SettingsViewModel = viewModel(),
+    viewModel: SettingsViewModel =
+        viewModel(
+            factory = SettingsViewModelFactory(androidx.compose.ui.platform.LocalContext.current.applicationContext),
+        ),
 ) {
     val audioFeedbackEnabled by viewModel.audioFeedbackEnabled.collectAsStateWithLifecycle()
     val defaultTuning by viewModel.defaultTuning.collectAsStateWithLifecycle()

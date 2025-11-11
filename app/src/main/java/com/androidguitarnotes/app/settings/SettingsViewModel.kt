@@ -2,9 +2,11 @@ package com.androidguitarnotes.app.settings
 
 import android.media.MediaRecorder
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * Audio source options for recording.
@@ -27,7 +29,9 @@ enum class AudioSource(
 /**
  * ViewModel for managing settings state.
  */
-class SettingsViewModel : ViewModel() {
+class SettingsViewModel(
+    private val repository: SettingsRepository,
+) : ViewModel() {
     private val _audioFeedbackEnabled = MutableStateFlow(true)
     val audioFeedbackEnabled: StateFlow<Boolean> = _audioFeedbackEnabled.asStateFlow()
 
@@ -42,6 +46,15 @@ class SettingsViewModel : ViewModel() {
 
     private val _audioSource = MutableStateFlow(AudioSource.AUTO)
     val audioSource: StateFlow<AudioSource> = _audioSource.asStateFlow()
+
+    init {
+        // Load saved audio source
+        viewModelScope.launch {
+            repository.audioSource.collect { savedSource ->
+                _audioSource.value = savedSource
+            }
+        }
+    }
 
     /**
      * Toggles audio feedback setting.
@@ -76,5 +89,8 @@ class SettingsViewModel : ViewModel() {
      */
     fun setAudioSource(audioSource: AudioSource) {
         _audioSource.value = audioSource
+        viewModelScope.launch {
+            repository.saveAudioSource(audioSource)
+        }
     }
 }
