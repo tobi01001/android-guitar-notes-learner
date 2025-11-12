@@ -52,6 +52,7 @@ fun SettingsScreen(
     val microphoneSensitivity by viewModel.microphoneSensitivity.collectAsStateWithLifecycle()
     val autoAdjustSensitivity by viewModel.autoAdjustSensitivity.collectAsStateWithLifecycle()
     val audioSource by viewModel.audioSource.collectAsStateWithLifecycle()
+    val noiseGateThreshold by viewModel.noiseGateThreshold.collectAsStateWithLifecycle()
 
     var showAudioSourceDialog by remember { mutableStateOf(false) }
 
@@ -61,27 +62,43 @@ fun SettingsScreen(
             AudioManager()
         }
     var currentAudioLevel by remember { mutableFloatStateOf(0f) }
+    var isGated by remember { mutableStateOf(false) }
 
     // Single effect to handle audio listening based on all relevant parameters
-    LaunchedEffect(microphoneSensitivity, audioFeedbackEnabled, audioSource) {
+    LaunchedEffect(microphoneSensitivity, audioFeedbackEnabled, audioSource, noiseGateThreshold, autoAdjustSensitivity) {
         // Stop any previous listening session before starting a new one
         audioManager.stopListening()
 
         if (audioFeedbackEnabled) {
             try {
                 val audioSourceValue = if (audioSource.value == -1) null else audioSource.value
-                audioManager.startListening(microphoneSensitivity, audioSourceValue).collect { result ->
-                    currentAudioLevel =
-                        when (result) {
-                            is AudioManager.AudioAnalysisResult.NoteDetected -> result.audioLevel
-                            is AudioManager.AudioAnalysisResult.NoNoteDetected -> result.audioLevel
+                audioManager.startListening(
+                    sensitivityMultiplier = microphoneSensitivity,
+                    audioSource = audioSourceValue,
+                    noiseGateThreshold = noiseGateThreshold,
+                    autoAdjustEnabled = autoAdjustSensitivity,
+                ).collect { result ->
+                    when (result) {
+                        is AudioManager.AudioAnalysisResult.NoteDetected -> {
+                            currentAudioLevel = result.audioLevel
+                            isGated = false
                         }
+                        is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
+                            currentAudioLevel = result.audioLevel
+                            isGated = false
+                        }
+                        is AudioManager.AudioAnalysisResult.Gated -> {
+                            currentAudioLevel = result.audioLevel
+                            isGated = true
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 // Ignore permission errors in settings
             }
         } else {
             currentAudioLevel = 0f
+            isGated = false
         }
     }
 
@@ -163,6 +180,28 @@ fun SettingsScreen(
                 AudioLevelBar(
                     title = stringResource(R.string.audio_input_level),
                     level = currentAudioLevel,
+                    isGated = isGated,
+                )
+
+                Divider()
+
+                // Noise Gate Threshold
+                val gateLabel =
+                    when {
+                        noiseGateThreshold <= 0.005f -> stringResource(R.string.noise_gate_very_low)
+                        noiseGateThreshold <= 0.015f -> stringResource(R.string.noise_gate_low)
+                        noiseGateThreshold <= 0.035f -> stringResource(R.string.noise_gate_medium)
+                        else -> stringResource(R.string.noise_gate_high)
+                    }
+
+                SettingsSliderItem(
+                    title = stringResource(R.string.noise_gate_threshold),
+                    description = stringResource(R.string.noise_gate_description),
+                    value = noiseGateThreshold,
+                    onValueChange = { viewModel.setNoiseGateThreshold(it) },
+                    valueRange = 0.001f..0.1f,
+                    steps = 0,
+                    valueLabel = gateLabel,
                 )
 
                 Divider()
@@ -336,6 +375,7 @@ private fun SettingsSliderItem(
 private fun AudioLevelBar(
     title: String,
     level: Float,
+    isGated: Boolean = false,
 ) {
     Column(
         modifier =
@@ -343,11 +383,23 @@ private fun AudioLevelBar(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(bottom = 8.dp),
-        )
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            if (isGated) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.noise_gate_idle),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
         LinearProgressIndicator(
             progress = level,
             modifier =
