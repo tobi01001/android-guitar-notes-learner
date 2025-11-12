@@ -65,7 +65,7 @@ fun SettingsScreen(
     var isGated by remember { mutableStateOf(false) }
 
     // Single effect to handle audio listening based on all relevant parameters
-    LaunchedEffect(microphoneSensitivity, audioFeedbackEnabled, audioSource, noiseGateThreshold) {
+    LaunchedEffect(microphoneSensitivity, audioFeedbackEnabled, audioSource, noiseGateThreshold, autoAdjustSensitivity) {
         // Stop any previous listening session before starting a new one
         audioManager.stopListening()
 
@@ -76,6 +76,7 @@ fun SettingsScreen(
                     sensitivityMultiplier = microphoneSensitivity,
                     audioSource = audioSourceValue,
                     noiseGateThreshold = noiseGateThreshold,
+                    autoAdjustEnabled = autoAdjustSensitivity,
                 ).collect { result ->
                     when (result) {
                         is AudioManager.AudioAnalysisResult.NoteDetected -> {

@@ -36,18 +36,20 @@ class AudioManager {
     /**
      * Starts listening for audio and analyzing pitch.
      *
-     * @param sensitivityMultiplier Multiplier for audio sensitivity (0.5 to 2.0, default 1.0)
+     * @param sensitivityMultiplier Base multiplier for audio sensitivity (0.5 to 2.0, default 1.0)
      * @param audioSource Audio source to use, or null to auto-select
      * @param noiseGateThreshold RMS threshold below which signal is gated (default 0.01f)
+     * @param autoAdjustEnabled Whether to enable auto-adjust sensitivity feature
      * @return Flow of AudioAnalysisResult
      */
     fun startListening(
         sensitivityMultiplier: Float = 1.0f,
         audioSource: Int? = null,
-        noiseGateThreshold: Float = 0.01f,
+        noiseGateThreshold: Float = 0.01f,  
+        autoAdjustEnabled: Boolean = false,
     ): Flow<AudioAnalysisResult> =
         audioRecorder
-            .startRecording(sensitivityMultiplier, audioSource, noiseGateThreshold)
+            .startRecording(sensitivityMultiplier, audioSource, autoAdjustEnabled, noiseGateThreshold)
             .map { audioDataWithLevel ->
                 // If signal is gated (below threshold), skip pitch detection
                 if (audioDataWithLevel.isGated) {

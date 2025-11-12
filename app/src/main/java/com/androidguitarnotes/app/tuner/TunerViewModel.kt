@@ -45,11 +45,13 @@ class TunerViewModel(
                 val audioSource = settingsViewModel.audioSource.value
                 val audioSourceValue = if (audioSource.value == -1) null else audioSource.value
                 val sensitivity = settingsViewModel.microphoneSensitivity.value
+                val autoAdjust = settingsViewModel.autoAdjustSensitivity.value
                 val noiseGateThreshold = settingsViewModel.noiseGateThreshold.value
 
                 audioManager.startListening(
                     sensitivityMultiplier = sensitivity,
                     audioSource = audioSourceValue,
+                    autoAdjustEnabled = autoAdjust,
                     noiseGateThreshold = noiseGateThreshold,
                 ).collect { result ->
                     when (result) {
