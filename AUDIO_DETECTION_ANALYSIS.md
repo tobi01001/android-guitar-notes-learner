@@ -10,6 +10,7 @@ This document provides a comprehensive analysis of the audio recording and note/
 4. **Provides feedback** through a reactive flow-based architecture
 
 The implementation is optimized for guitar note detection (60 Hz - 1500 Hz range) and includes configurable sensitivity controls.
+Suggestions for improvement and future features are summarised in Section 11.4
 
 ---
 
