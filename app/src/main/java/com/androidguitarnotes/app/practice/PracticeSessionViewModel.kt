@@ -149,10 +149,12 @@ class PracticeSessionViewModel(
                     val audioSource = settingsViewModel.audioSource.value
                     val audioSourceValue = if (audioSource.value == -1) null else audioSource.value
                     val sensitivity = settingsViewModel.microphoneSensitivity.value
+                    val noiseGateThreshold = settingsViewModel.noiseGateThreshold.value
 
                     audioManager.startListening(
                         sensitivityMultiplier = sensitivity,
                         audioSource = audioSourceValue,
+                        noiseGateThreshold = noiseGateThreshold,
                     ).collect { result ->
                         val currentState = _state.value
                         if (currentState is PracticeSessionState.Active) {
@@ -183,6 +185,12 @@ class PracticeSessionViewModel(
                                     }
                                 }
                                 is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
+                                    _state.value =
+                                        currentState.copy(
+                                            noteFeedback = PracticeSessionState.NoteFeedback.None,
+                                        )
+                                }
+                                is AudioManager.AudioAnalysisResult.Gated -> {
                                     _state.value =
                                         currentState.copy(
                                             noteFeedback = PracticeSessionState.NoteFeedback.None,
