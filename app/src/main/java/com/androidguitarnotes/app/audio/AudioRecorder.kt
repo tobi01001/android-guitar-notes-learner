@@ -318,11 +318,12 @@ class AudioRecorder {
         }
 
         // Calculate average RMS over window
-        val avgRms = if (rmsHistory.isNotEmpty()) {
-            rmsHistory.average().toFloat()
-        } else {
-            rawRms
-        }
+        val avgRms =
+            if (rmsHistory.isNotEmpty()) {
+                rmsHistory.average().toFloat()
+            } else {
+                rawRms
+            }
 
         // Avoid division by zero and very small values
         if (avgRms < 0.001f) {
@@ -330,27 +331,29 @@ class AudioRecorder {
             val targetFactor = AUTO_ADJUST_MAX_FACTOR
             currentAutoAdjustFactor =
                 currentAutoAdjustFactor * (1 - AUTO_ADJUST_SMOOTHING) +
-                    targetFactor * AUTO_ADJUST_SMOOTHING
+                targetFactor * AUTO_ADJUST_SMOOTHING
         } else {
             // Calculate desired adjustment factor to reach target RMS
             // If avgRms is below target, increase gain (factor > 1.0)
             // If avgRms is above target, decrease gain (factor < 1.0)
-            val targetFactor = (AUTO_ADJUST_TARGET_RMS / avgRms).coerceIn(
-                AUTO_ADJUST_MIN_FACTOR,
-                AUTO_ADJUST_MAX_FACTOR,
-            )
+            val targetFactor =
+                (AUTO_ADJUST_TARGET_RMS / avgRms).coerceIn(
+                    AUTO_ADJUST_MIN_FACTOR,
+                    AUTO_ADJUST_MAX_FACTOR,
+                )
 
             // Apply exponential moving average for smooth transitions
             currentAutoAdjustFactor =
                 currentAutoAdjustFactor * (1 - AUTO_ADJUST_SMOOTHING) +
-                    targetFactor * AUTO_ADJUST_SMOOTHING
+                targetFactor * AUTO_ADJUST_SMOOTHING
         }
 
         // Ensure factor stays within bounds
-        currentAutoAdjustFactor = currentAutoAdjustFactor.coerceIn(
-            AUTO_ADJUST_MIN_FACTOR,
-            AUTO_ADJUST_MAX_FACTOR,
-        )
+        currentAutoAdjustFactor =
+            currentAutoAdjustFactor.coerceIn(
+                AUTO_ADJUST_MIN_FACTOR,
+                AUTO_ADJUST_MAX_FACTOR,
+            )
     }
 
     /**
