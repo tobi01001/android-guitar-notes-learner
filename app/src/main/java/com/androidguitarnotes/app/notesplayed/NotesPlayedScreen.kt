@@ -214,7 +214,8 @@ private fun NoteCard(
                             } else {
                                 MaterialTheme.colorScheme.surfaceVariant
                             },
-                        ).alpha(noteAlpha),
+                        )
+                        .alpha(noteAlpha),
                 contentAlignment = Alignment.Center,
             ) {
                 if (detectedNote != null) {
