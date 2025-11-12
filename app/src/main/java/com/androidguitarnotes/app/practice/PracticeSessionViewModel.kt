@@ -149,10 +149,12 @@ class PracticeSessionViewModel(
                     val audioSource = settingsViewModel.audioSource.value
                     val audioSourceValue = if (audioSource.value == -1) null else audioSource.value
                     val sensitivity = settingsViewModel.microphoneSensitivity.value
+                    val autoAdjust = settingsViewModel.autoAdjustSensitivity.value
 
                     audioManager.startListening(
                         sensitivityMultiplier = sensitivity,
                         audioSource = audioSourceValue,
+                        autoAdjustEnabled = autoAdjust,
                     ).collect { result ->
                         val currentState = _state.value
                         if (currentState is PracticeSessionState.Active) {

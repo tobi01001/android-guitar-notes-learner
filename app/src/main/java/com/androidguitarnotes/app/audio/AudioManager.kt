@@ -32,16 +32,18 @@ class AudioManager {
     /**
      * Starts listening for audio and analyzing pitch.
      *
-     * @param sensitivityMultiplier Multiplier for audio sensitivity (0.5 to 2.0, default 1.0)
+     * @param sensitivityMultiplier Base multiplier for audio sensitivity (0.5 to 2.0, default 1.0)
      * @param audioSource Audio source to use, or null to auto-select
+     * @param autoAdjustEnabled Whether to enable auto-adjust sensitivity feature
      * @return Flow of AudioAnalysisResult
      */
     fun startListening(
         sensitivityMultiplier: Float = 1.0f,
         audioSource: Int? = null,
+        autoAdjustEnabled: Boolean = false,
     ): Flow<AudioAnalysisResult> =
         audioRecorder
-            .startRecording(sensitivityMultiplier, audioSource)
+            .startRecording(sensitivityMultiplier, audioSource, autoAdjustEnabled)
             .map { audioDataWithLevel ->
                 val frequency = pitchDetector.detectPitch(audioDataWithLevel.audioData)
 

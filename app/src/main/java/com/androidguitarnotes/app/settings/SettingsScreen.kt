@@ -63,14 +63,18 @@ fun SettingsScreen(
     var currentAudioLevel by remember { mutableFloatStateOf(0f) }
 
     // Single effect to handle audio listening based on all relevant parameters
-    LaunchedEffect(microphoneSensitivity, audioFeedbackEnabled, audioSource) {
+    LaunchedEffect(microphoneSensitivity, audioFeedbackEnabled, audioSource, autoAdjustSensitivity) {
         // Stop any previous listening session before starting a new one
         audioManager.stopListening()
 
         if (audioFeedbackEnabled) {
             try {
                 val audioSourceValue = if (audioSource.value == -1) null else audioSource.value
-                audioManager.startListening(microphoneSensitivity, audioSourceValue).collect { result ->
+                audioManager.startListening(
+                    microphoneSensitivity,
+                    audioSourceValue,
+                    autoAdjustSensitivity,
+                ).collect { result ->
                     currentAudioLevel =
                         when (result) {
                             is AudioManager.AudioAnalysisResult.NoteDetected -> result.audioLevel
