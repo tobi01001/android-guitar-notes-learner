@@ -71,8 +71,37 @@ Microphone → AudioRecord → FloatArray Buffer → Sensitivity Adjustment → 
 1. Audio samples are read into a `FloatArray` buffer (typically 4096-8192 samples)
 2. Sensitivity multiplier is applied: `adjustedSample = sample × multiplier`
 3. Samples are clamped to valid range: `[-1.0, 1.0]`
-4. RMS level is calculated for visual feedback
+4. RMS level is calculated from the clamped samples for visual feedback
 5. Data is emitted through a Kotlin Flow for reactive processing
+
+**⚠️ Clipping Consideration:**
+
+The current implementation clamps samples *before* RMS calculation, which can introduce signal distortion when sensitivity > 1.0 and the original signal is strong:
+
+```kotlin
+// Current implementation
+val adjustedSample = (sample * multiplier).coerceIn(-1f, 1f)  // Clamps here
+rms = sqrt(Σ(adjustedSample²) / n)  // RMS of clamped values
+```
+
+**Impact of clipping:**
+- When `sample × multiplier > 1.0`, the value is clipped to 1.0
+- This creates a "flat top" in the waveform (hard clipping)
+- RMS calculation becomes inaccurate (appears lower than actual signal level)
+- Pitch detection may be affected by harmonic distortion from clipping
+- Visual level indicator shows incorrect (lower) level
+
+**Example scenario:**
+- Original sample: 0.8
+- Sensitivity multiplier: 1.5
+- Result: 0.8 × 1.5 = 1.2 → clamped to 1.0
+- The RMS calculation now uses 1.0 instead of 1.2, underestimating the true signal level
+
+**Recommended solutions** (see Section 7.2.3 for details):
+1. Calculate RMS from raw samples before applying sensitivity
+2. Apply sensitivity only for pitch detection, keep raw samples for RMS
+3. Use soft clipping (compression/limiting) instead of hard clipping
+4. Track and warn users when clipping occurs
 
 **Buffer Size:**
 - Minimum buffer size × 2 for stability
@@ -376,6 +405,16 @@ normalizedLevel = (db + 60) / 60  // Map -60dB to 0dB → 0.0 to 1.0
 - Makes quiet sounds more visible in UI
 - Typical guitar signal ranges from -60 dB to 0 dB
 - Better visual feedback for users
+
+**⚠️ Current Implementation Caveat:**
+
+The RMS is currently calculated from sensitivity-adjusted samples **after** clamping to [-1.0, 1.0]. This means:
+- When sensitivity > 1.0 and signal is strong, samples get clipped
+- RMS calculation is based on clipped values (artificially lowered)
+- Level meter shows inaccurate reading (lower than actual)
+- Example: Raw sample 0.8 × sensitivity 1.5 = 1.2 → clamped to 1.0 → RMS uses 1.0
+
+This is a known issue documented in Section 1.4 and addressed in improvement recommendations (Section 10.1, Priority #1).
 
 ### 5.3 Auto-Adjust Sensitivity
 
@@ -682,7 +721,132 @@ if (isSignalPresent(rms)) {
 - Cleaner UI feedback (no spurious detections)
 - Battery savings
 
-**3. High-Pass Filter**
+**3. Fix Clipping Issue in Sensitivity + RMS Calculation**
+
+**Problem:** Current implementation clamps samples before RMS calculation, causing signal distortion and inaccurate level readings when sensitivity multiplier causes values to exceed [-1.0, 1.0].
+
+**Solution Option A - Calculate RMS from Raw Samples:**
+```kotlin
+fun startRecording(sensitivityMultiplier: Float = 1.0f): Flow<AudioDataWithLevel> =
+    flow {
+        // ... read audio into buffer ...
+        
+        val audioData = buffer.copyOf(readResult)
+        
+        // Calculate RMS from RAW samples (before sensitivity adjustment)
+        val level = calculateAudioLevel(audioData)
+        
+        // Apply sensitivity for pitch detection only
+        val adjustedData = applySensitivity(audioData, sensitivityMultiplier)
+        
+        emit(AudioDataWithLevel(adjustedData, level))
+    }
+```
+
+**Benefits:**
+- Accurate RMS level regardless of sensitivity setting
+- No clipping distortion in level meter
+- Users get true signal strength feedback
+
+**Tradeoff:**
+- Level meter doesn't reflect sensitivity adjustment
+- May be confusing if user expects level to increase with sensitivity
+
+**Solution Option B - Calculate RMS with Sensitivity, Warn on Clipping:**
+```kotlin
+private fun applySensitivity(
+    audioData: FloatArray,
+    multiplier: Float,
+): FloatArray {
+    if (multiplier == 1.0f) return audioData
+    
+    var clippedSamples = 0
+    val result = FloatArray(audioData.size) { i ->
+        val amplified = audioData[i] * multiplier
+        if (amplified > 1f || amplified < -1f) clippedSamples++
+        amplified.coerceIn(-1f, 1f)
+    }
+    
+    if (clippedSamples > audioData.size * 0.01) {
+        Log.w("AudioRecorder", "Clipping detected: $clippedSamples/${audioData.size} samples")
+    }
+    
+    return result
+}
+```
+
+**Benefits:**
+- Detects when clipping occurs
+- Can notify user to reduce sensitivity
+- Helps users find optimal settings
+
+**Solution Option C - Soft Clipping (Compression/Limiting):**
+```kotlin
+private fun applySensitivity(
+    audioData: FloatArray,
+    multiplier: Float,
+): FloatArray {
+    if (multiplier == 1.0f) return audioData
+    
+    return FloatArray(audioData.size) { i ->
+        val amplified = audioData[i] * multiplier
+        // Soft clipping using tanh (smooth compression)
+        if (abs(amplified) > 0.8f) {
+            tanh(amplified)  // Gradually approaches ±1.0
+        } else {
+            amplified  // No distortion for normal levels
+        }
+    }
+}
+```
+
+**Benefits:**
+- Reduces harmonic distortion vs hard clipping
+- More natural-sounding for audio processing
+- Graceful handling of loud signals
+
+**Tradeoff:**
+- Slightly more CPU usage
+- Still introduces some nonlinearity
+
+**Solution Option D - Dynamic Range Scaling (Recommended):**
+```kotlin
+private fun applySensitivityWithRMS(
+    audioData: FloatArray,
+    multiplier: Float,
+): Pair<FloatArray, Float> {
+    // Calculate RMS from original signal
+    val rawRMS = calculateRawRMS(audioData)
+    
+    // Find peak to avoid clipping
+    val peak = audioData.maxOfOrNull { abs(it) } ?: 0f
+    val headroom = if (peak * multiplier > 1.0f) {
+        1.0f / (peak * multiplier)  // Scale down to prevent clipping
+    } else {
+        1.0f
+    }
+    
+    // Apply sensitivity with headroom protection
+    val adjustedData = FloatArray(audioData.size) { i ->
+        (audioData[i] * multiplier * headroom).coerceIn(-1f, 1f)
+    }
+    
+    return Pair(adjustedData, rawRMS)
+}
+```
+
+**Benefits:**
+- Prevents clipping entirely through automatic scaling
+- Preserves waveform shape (no distortion)
+- Accurate RMS from original signal
+- Best of both worlds
+
+**Recommended Implementation:**
+Use **Solution Option D** (Dynamic Range Scaling) for production quality, or **Solution Option A** (Raw RMS) for simplest fix that addresses the core issue.
+
+**Priority:** HIGH - Affects accuracy of both pitch detection and user feedback
+
+**4. High-Pass Filter**
 
 Remove low-frequency rumble and handling noise:
 
@@ -825,22 +989,30 @@ For a professional tuner, would prioritize:
 
 ### 10.1 Short-term Improvements (Low Effort, High Impact)
 
-1. **Implement Noise Gate**
+1. **Fix Clipping in Sensitivity + RMS Calculation** ⚠️ **HIGH PRIORITY**
+   - Effort: Low (2-3 hours)
+   - Impact: High (accurate level feedback, prevents distortion)
+   - Current issue: RMS calculated from clamped samples causes inaccurate readings
+   - Recommended: Calculate RMS from raw samples before applying sensitivity (Solution Option A)
+   - Or: Implement dynamic range scaling to prevent clipping (Solution Option D)
+   - See Section 7.2.3 for detailed solutions
+
+2. **Implement Noise Gate**
    - Effort: Low (1-2 hours)
    - Impact: High (cleaner detection, better UX)
    - Add `MIN_RMS_THRESHOLD = 0.01f` check before processing
 
-2. **Add High-Pass Filter**
+3. **Add High-Pass Filter**
    - Effort: Low (2-3 hours)
    - Impact: Medium-High (removes handling noise)
    - Simple IIR filter at 50-60 Hz
 
-3. **Make Correlation Threshold Configurable**
+4. **Make Correlation Threshold Configurable**
    - Effort: Very Low (< 1 hour)
    - Impact: Medium (power users can fine-tune)
    - Add to settings: "Detection Sensitivity" (0.05 to 0.2 range)
 
-4. **Implement Auto-Adjust Sensitivity**
+5. **Implement Auto-Adjust Sensitivity**
    - Effort: Medium (4-6 hours)
    - Impact: High (better out-of-box experience)
    - As documented in code comments
