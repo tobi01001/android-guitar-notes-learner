@@ -45,7 +45,7 @@ class AudioManager {
     fun startListening(
         sensitivityMultiplier: Float = 1.0f,
         audioSource: Int? = null,
-        noiseGateThreshold: Float = 0.01f,  
+        noiseGateThreshold: Float = 0.01f,
         autoAdjustEnabled: Boolean = false,
     ): Flow<AudioAnalysisResult> =
         audioRecorder

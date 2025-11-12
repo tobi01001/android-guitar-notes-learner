@@ -28,6 +28,7 @@ private const val GUITAR_STRINGS = 6
  *                               If provided, only positions matching the octave will be highlighted.
  * @param maxFret The maximum fret number to display (default is 12).
  * @param highlightAlpha The alpha (opacity) value for highlighted notes (0.0 to 1.0).
+ * @param isPersisted Whether the note is persisted (no longer actively detected).
  * @param modifier Modifier to be applied to the fretboard container.
  */
 @Composable
@@ -36,6 +37,7 @@ fun FretboardView(
     detectedNoteWithOctave: String? = null,
     maxFret: Int = 12,
     highlightAlpha: Float = 1.0f,
+    isPersisted: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val highlightedPositions =
@@ -79,6 +81,7 @@ fun FretboardView(
                     highlightedPositions = highlightedPositions,
                     detectedNote = detectedNote,
                     highlightAlpha = highlightAlpha,
+                    isPersisted = isPersisted,
                 )
             }
         }
@@ -187,6 +190,7 @@ private fun StringColumn(
     highlightedPositions: List<FretboardHelper.FretPosition>,
     detectedNote: String?,
     highlightAlpha: Float = 1.0f,
+    isPersisted: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -224,6 +228,7 @@ private fun StringColumn(
                     isHighlighted = isHighlighted,
                     noteName = detectedNote,
                     highlightAlpha = highlightAlpha,
+                    isPersisted = isPersisted,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -239,6 +244,7 @@ private fun FretMarker(
     isHighlighted: Boolean,
     noteName: String?,
     highlightAlpha: Float = 1.0f,
+    isPersisted: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -249,7 +255,18 @@ private fun FretMarker(
         contentAlignment = Alignment.Center,
     ) {
         if (isHighlighted && noteName != null) {
-            val noteColor = NoteColors.getColorForNote(noteName)
+            val baseColor = NoteColors.getColorForNote(noteName)
+            // Apply greyscale effect when persisted
+            val noteColor =
+                if (isPersisted) {
+                    baseColor.copy(
+                        red = 0.5f,
+                        green = 0.5f,
+                        blue = 0.5f,
+                    )
+                } else {
+                    baseColor
+                }
             Box(
                 modifier =
                     Modifier

@@ -9,7 +9,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
@@ -80,6 +79,7 @@ fun NotesPlayedScreen(
             // Note display area
             NoteDisplayArea(
                 detectedNote = state.detectedNote,
+                lastDetectedNote = state.lastDetectedNote,
                 isListening = state.isListening,
                 modifier = Modifier.weight(1f),
             )
@@ -113,9 +113,14 @@ fun NotesPlayedScreen(
 @Composable
 private fun NoteDisplayArea(
     detectedNote: DetectedNoteInfo?,
+    lastDetectedNote: DetectedNoteInfo?,
     isListening: Boolean,
     modifier: Modifier = Modifier,
 ) {
+    // Use current detected note, or fall back to last detected note for persistence
+    val displayNote = detectedNote ?: lastDetectedNote
+    val isPersisted = detectedNote == null && lastDetectedNote != null
+
     Column(
         modifier =
             modifier
@@ -125,24 +130,28 @@ private fun NoteDisplayArea(
     ) {
         if (isListening) {
             // Always show card when listening
-            NoteCard(detectedNote = detectedNote)
+            NoteCard(
+                detectedNote = displayNote,
+                isPersisted = isPersisted,
+            )
 
             // Animate only the highlighted notes on the fretboard, not the entire fretboard
             val highlightAlpha by animateFloatAsState(
-                targetValue = if (detectedNote != null) 1.0f else 0.0f,
+                targetValue = if (detectedNote != null) 1.0f else 0.3f,
                 animationSpec =
                     tween(
-                        durationMillis = if (detectedNote != null) 50 else 200,
+                        durationMillis = if (detectedNote != null) 200 else 600,
                     ),
                 label = "highlightAlpha",
             )
 
             // Always show fretboard, only fade the highlighted notes
             FretboardView(
-                detectedNote = detectedNote?.noteName,
-                detectedNoteWithOctave = detectedNote?.noteNameWithOctave,
+                detectedNote = displayNote?.noteName,
+                detectedNoteWithOctave = displayNote?.noteNameWithOctave,
                 maxFret = 12,
                 highlightAlpha = highlightAlpha,
+                isPersisted = isPersisted,
             )
         } else {
             EmptyStateMessage(
@@ -158,23 +167,31 @@ private fun NoteDisplayArea(
 @Composable
 private fun NoteCard(
     detectedNote: DetectedNoteInfo?,
+    isPersisted: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     // Animate note letter size based on detection (subtle pulse effect)
     val noteScale by animateFloatAsState(
-        targetValue = if (detectedNote != null) 1.0f else 0.95f,
-        animationSpec = tween(durationMillis = 100),
+        targetValue = if (!isPersisted && detectedNote != null) 1.0f else 0.95f,
+        animationSpec = tween(durationMillis = 200),
         label = "noteScale",
     )
 
     // Animate alpha for fade in/out effect
     val noteAlpha by animateFloatAsState(
-        targetValue = if (detectedNote != null) 1.0f else 0.5f,
+        targetValue = if (!isPersisted && detectedNote != null) 1.0f else 0.4f,
         animationSpec =
             tween(
-                durationMillis = if (detectedNote != null) 50 else 200,
+                durationMillis = if (!isPersisted && detectedNote != null) 200 else 600,
             ),
         label = "noteAlpha",
+    )
+
+    // Animate saturation for greyscale effect on persisted notes
+    val saturation by animateFloatAsState(
+        targetValue = if (isPersisted) 0.0f else 1.0f,
+        animationSpec = tween(durationMillis = 600),
+        label = "saturation",
     )
 
     Card(
@@ -206,16 +223,28 @@ private fun NoteCard(
                 modifier =
                     Modifier
                         .size(120.dp)
-                        .graphicsLayer(scaleX = noteScale, scaleY = noteScale)
-                        .clip(RoundedCornerShape(12.dp))
+                        .graphicsLayer(
+                            scaleX = noteScale,
+                            scaleY = noteScale,
+                            alpha = noteAlpha,
+                        ).clip(RoundedCornerShape(12.dp))
                         .background(
                             if (detectedNote != null) {
-                                NoteColors.getColorForNote(detectedNote.noteName)
+                                // Reduce saturation when persisted by mixing with gray
+                                val baseColor = NoteColors.getColorForNote(detectedNote.noteName)
+                                if (isPersisted) {
+                                    baseColor.copy(
+                                        red = baseColor.red * saturation + 0.5f * (1f - saturation),
+                                        green = baseColor.green * saturation + 0.5f * (1f - saturation),
+                                        blue = baseColor.blue * saturation + 0.5f * (1f - saturation),
+                                    )
+                                } else {
+                                    baseColor
+                                }
                             } else {
                                 MaterialTheme.colorScheme.surfaceVariant
                             },
-                        )
-                        .alpha(noteAlpha),
+                        ),
                 contentAlignment = Alignment.Center,
             ) {
                 if (detectedNote != null) {

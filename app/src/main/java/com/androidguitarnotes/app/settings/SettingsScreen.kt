@@ -72,27 +72,28 @@ fun SettingsScreen(
         if (audioFeedbackEnabled) {
             try {
                 val audioSourceValue = if (audioSource.value == -1) null else audioSource.value
-                audioManager.startListening(
-                    sensitivityMultiplier = microphoneSensitivity,
-                    audioSource = audioSourceValue,
-                    noiseGateThreshold = noiseGateThreshold,
-                    autoAdjustEnabled = autoAdjustSensitivity,
-                ).collect { result ->
-                    when (result) {
-                        is AudioManager.AudioAnalysisResult.NoteDetected -> {
-                            currentAudioLevel = result.audioLevel
-                            isGated = false
-                        }
-                        is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
-                            currentAudioLevel = result.audioLevel
-                            isGated = false
-                        }
-                        is AudioManager.AudioAnalysisResult.Gated -> {
-                            currentAudioLevel = result.audioLevel
-                            isGated = true
+                audioManager
+                    .startListening(
+                        sensitivityMultiplier = microphoneSensitivity,
+                        audioSource = audioSourceValue,
+                        noiseGateThreshold = noiseGateThreshold,
+                        autoAdjustEnabled = autoAdjustSensitivity,
+                    ).collect { result ->
+                        when (result) {
+                            is AudioManager.AudioAnalysisResult.NoteDetected -> {
+                                currentAudioLevel = result.audioLevel
+                                isGated = false
+                            }
+                            is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
+                                currentAudioLevel = result.audioLevel
+                                isGated = false
+                            }
+                            is AudioManager.AudioAnalysisResult.Gated -> {
+                                currentAudioLevel = result.audioLevel
+                                isGated = true
+                            }
                         }
                     }
-                }
             } catch (e: Exception) {
                 // Ignore permission errors in settings
             }
