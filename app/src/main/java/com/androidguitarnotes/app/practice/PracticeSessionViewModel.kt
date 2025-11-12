@@ -149,49 +149,56 @@ class PracticeSessionViewModel(
                     val audioSource = settingsViewModel.audioSource.value
                     val audioSourceValue = if (audioSource.value == -1) null else audioSource.value
                     val sensitivity = settingsViewModel.microphoneSensitivity.value
+                    val noiseGateThreshold = settingsViewModel.noiseGateThreshold.value
 
-                    audioManager
-                        .startListening(
-                            sensitivityMultiplier = sensitivity,
-                            audioSource = audioSourceValue,
-                        ).collect { result ->
-                            val currentState = _state.value
-                            if (currentState is PracticeSessionState.Active) {
-                                when (result) {
-                                    is AudioManager.AudioAnalysisResult.NoteDetected -> {
-                                        val expectedNote = currentState.currentNote.noteName
-                                        val expectedOctave = currentState.currentNote.octave
-                                        // Check both note name and octave for accurate position verification
-                                        val isCorrect = result.noteName == expectedNote && result.octave == expectedOctave
+                    audioManager.startListening(
+                        sensitivityMultiplier = sensitivity,
+                        audioSource = audioSourceValue,
+                        noiseGateThreshold = noiseGateThreshold,
+                    ).collect { result ->
+                        val currentState = _state.value
+                        if (currentState is PracticeSessionState.Active) {
+                            when (result) {
+                                is AudioManager.AudioAnalysisResult.NoteDetected -> {
+                                    val expectedNote = currentState.currentNote.noteName
+                                    val expectedOctave = currentState.currentNote.octave
+                                    // Check both note name and octave for accurate position verification
+                                    val isCorrect = result.noteName == expectedNote && result.octave == expectedOctave
 
-                                        val feedback =
-                                            if (isCorrect) {
-                                                PracticeSessionState.NoteFeedback.Correct
-                                            } else {
-                                                PracticeSessionState.NoteFeedback.Detected(
-                                                    result.noteName,
-                                                    result.cents,
-                                                )
-                                            }
-
-                                        _state.value = currentState.copy(noteFeedback = feedback)
-
-                                        // Auto-advance if in AUDIO_VERIFICATION mode and note is correct
-                                        if (config.progressionMode == ProgressionMode.AUDIO_VERIFICATION && isCorrect) {
-                                            // Small delay before advancing to show the "Correct!" feedback
-                                            delay(800)
-                                            nextNote()
-                                        }
-                                    }
-                                    is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
-                                        _state.value =
-                                            currentState.copy(
-                                                noteFeedback = PracticeSessionState.NoteFeedback.None,
+                                    val feedback =
+                                        if (isCorrect) {
+                                            PracticeSessionState.NoteFeedback.Correct
+                                        } else {
+                                            PracticeSessionState.NoteFeedback.Detected(
+                                                result.noteName,
+                                                result.cents,
                                             )
+                                        }
+
+                                    _state.value = currentState.copy(noteFeedback = feedback)
+
+                                    // Auto-advance if in AUDIO_VERIFICATION mode and note is correct
+                                    if (config.progressionMode == ProgressionMode.AUDIO_VERIFICATION && isCorrect) {
+                                        // Small delay before advancing to show the "Correct!" feedback
+                                        delay(800)
+                                        nextNote()
                                     }
+                                }
+                                is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
+                                    _state.value =
+                                        currentState.copy(
+                                            noteFeedback = PracticeSessionState.NoteFeedback.None,
+                                        )
+                                }
+                                is AudioManager.AudioAnalysisResult.Gated -> {
+                                    _state.value =
+                                        currentState.copy(
+                                            noteFeedback = PracticeSessionState.NoteFeedback.None,
+                                        )
                                 }
                             }
                         }
+                    }
                 } catch (e: SecurityException) {
                     // Permission was revoked during recording
                     Log.e("PracticeSessionViewModel", "Permission revoked during recording", e)
