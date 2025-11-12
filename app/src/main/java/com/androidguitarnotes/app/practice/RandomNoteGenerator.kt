@@ -110,7 +110,7 @@ class RandomNoteGenerator(
      * Extracts the octave number from a note name with octave (e.g., "E4" -> 4).
      */
     private fun extractOctave(noteNameWithOctave: String): Int {
-        return noteNameWithOctave.filter { it.isDigit() }.toIntOrNull() ?: 0
+        return noteNameWithOctave.takeLastWhile { it.isDigit() }.toIntOrNull() ?: 0
     }
 
     /**
