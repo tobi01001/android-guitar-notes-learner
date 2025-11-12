@@ -23,7 +23,7 @@ The app includes real-time pitch detection for guitar notes with advanced audio 
 - **Auto-Adjust Sensitivity**: Automatically adapts the sensitivity multiplier based on incoming signal levels
   - Analyzes RMS (Root Mean Square) level over a rolling window (~1 second)
   - Dynamically adjusts gain to maintain optimal signal levels for pitch detection (range: 0.5x to 2.0x)
-  - Uses exponential moving average for smooth transitions without abrupt jumps
+  - Uses rolling average for smooth transitions without abrupt jumps
   - Works in conjunction with manual sensitivity: `finalSensitivity = baseSensitivity × autoAdjustFactor`
 - **Audio Source Selection**: Choose between Auto, Unprocessed, Voice Recognition, or Microphone input sources
 - **Real-time Audio Level Visualization**: See your input levels in the settings screen
