@@ -111,14 +111,15 @@ private fun StringSelectionSection(
     onToggleString: (Int) -> Unit,
 ) {
     // Map string numbers to their open note names
-    val stringNotes = mapOf(
-        6 to "E",
-        5 to "A",
-        4 to "D",
-        3 to "G",
-        2 to "B",
-        1 to "E",
-    )
+    val stringNotes =
+        mapOf(
+            6 to "E",
+            5 to "A",
+            4 to "D",
+            3 to "G",
+            2 to "B",
+            1 to "E",
+        )
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
@@ -157,8 +158,12 @@ private fun StringSelectionSection(
                     colors =
                         if (selectedStrings.contains(stringNum)) {
                             FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = com.androidguitarnotes.app.ui.NoteColors.getLightColorForNote(noteName),
-                                selectedLabelColor = com.androidguitarnotes.app.ui.NoteColors.getDarkColorForNote(noteName),
+                                selectedContainerColor =
+                                    com.androidguitarnotes.app.ui.NoteColors
+                                        .getLightColorForNote(noteName),
+                                selectedLabelColor =
+                                    com.androidguitarnotes.app.ui.NoteColors
+                                        .getDarkColorForNote(noteName),
                             )
                         } else {
                             FilterChipDefaults.filterChipColors()

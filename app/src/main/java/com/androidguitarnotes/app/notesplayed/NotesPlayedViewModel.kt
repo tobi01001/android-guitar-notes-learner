@@ -38,32 +38,33 @@ class NotesPlayedViewModel(
                     val audioSourceValue = if (audioSource.value == -1) null else audioSource.value
                     val sensitivity = settingsViewModel.microphoneSensitivity.value
 
-                    audioManager.startListening(
-                        sensitivityMultiplier = sensitivity,
-                        audioSource = audioSourceValue,
-                    ).collect { result ->
-                        when (result) {
-                            is AudioManager.AudioAnalysisResult.NoteDetected -> {
-                                _state.value =
-                                    _state.value.copy(
-                                        detectedNote =
-                                            DetectedNoteInfo(
-                                                noteName = result.noteName,
-                                                frequency = result.frequency,
-                                                cents = result.cents,
-                                                octave = result.octave,
-                                                noteNameWithOctave = result.noteNameWithOctave,
-                                            ),
-                                    )
-                            }
-                            is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
-                                _state.value =
-                                    _state.value.copy(
-                                        detectedNote = null,
-                                    )
+                    audioManager
+                        .startListening(
+                            sensitivityMultiplier = sensitivity,
+                            audioSource = audioSourceValue,
+                        ).collect { result ->
+                            when (result) {
+                                is AudioManager.AudioAnalysisResult.NoteDetected -> {
+                                    _state.value =
+                                        _state.value.copy(
+                                            detectedNote =
+                                                DetectedNoteInfo(
+                                                    noteName = result.noteName,
+                                                    frequency = result.frequency,
+                                                    cents = result.cents,
+                                                    octave = result.octave,
+                                                    noteNameWithOctave = result.noteNameWithOctave,
+                                                ),
+                                        )
+                                }
+                                is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
+                                    _state.value =
+                                        _state.value.copy(
+                                            detectedNote = null,
+                                        )
+                                }
                             }
                         }
-                    }
                 } catch (e: Exception) {
                     _state.value = _state.value.copy(isListening = false, detectedNote = null)
                 }

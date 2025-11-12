@@ -15,6 +15,26 @@ import kotlin.coroutines.coroutineContext
 /**
  * Records audio from microphone and provides audio samples for pitch detection.
  *
+ * ## Audio Processing Pipeline
+ *
+ * The audio processing pipeline applies the following operations in order:
+ * 1. **Raw audio capture** from microphone (44.1 kHz, mono, PCM float)
+ * 2. **Sensitivity adjustment** - Applies user-configured gain multiplier
+ * 3. **High-pass filtering** - Removes low-frequency rumble and noise (< 60 Hz)
+ * 4. **RMS level calculation** - Computes audio level for visual feedback
+ * 5. **Emit to flow** - Sends processed audio for pitch detection
+ *
+ * ## High-Pass Filter
+ *
+ * A one-pole IIR high-pass filter with 60 Hz cutoff is automatically applied to all audio.
+ * This removes:
+ * - Low-frequency handling noise (bumps, taps)
+ * - Environmental rumble (traffic, wind, HVAC)
+ * - DC offset and subsonic content
+ *
+ * The filter does not affect guitar notes (lowest E2 is 82 Hz) and improves pitch detection
+ * accuracy by reducing spurious low-frequency triggers.
+ *
  * ## Microphone Sensitivity
  *
  * ### Manual Sensitivity Control
@@ -189,6 +209,10 @@ class AudioRecorder {
 
                 audioRecord?.startRecording()
 
+                // Create high-pass filter to remove low-frequency rumble
+                // Cutoff at 60 Hz (below lowest guitar note E2 at ~82 Hz)
+                val highPassFilter = HighPassFilter(sampleRate = SAMPLE_RATE, cutoffFrequency = 60.0)
+
                 val buffer = FloatArray(bufferSize / 4)
 
                 while (coroutineContext.isActive) {
@@ -201,7 +225,11 @@ class AudioRecorder {
                         // Apply sensitivity multiplier
                         val adjustedData = applySensitivity(audioData, sensitivityMultiplier)
 
-                        // Calculate audio level (RMS) after sensitivity adjustment
+                        // Apply high-pass filter to remove low-frequency noise
+                        // This happens after sensitivity but before RMS and pitch detection
+                        highPassFilter.process(adjustedData)
+
+                        // Calculate audio level (RMS) after filtering
                         val level = calculateAudioLevel(adjustedData)
 
                         emit(AudioDataWithLevel(adjustedData, level))
