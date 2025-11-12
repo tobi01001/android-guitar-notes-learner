@@ -61,21 +61,20 @@ class TunerViewModel(
                                     selectedString.frequency,
                                 )
 
-                                _state.value =
-                                    _state.value.copy(
-                                        tuningStatus =
-                                            TuningStatus.Detecting(
-                                                detectedFrequency = result.frequency,
-                                                cents = cents,
-                                            ),
-                                    )
-                            }
-                            is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
-                                _state.value =
-                                    _state.value.copy(
-                                        tuningStatus = TuningStatus.NotDetected,
-                                    )
-                            }
+                            _state.value =
+                                _state.value.copy(
+                                    tuningStatus =
+                                        TuningStatus.Detecting(
+                                            detectedFrequency = result.frequency,
+                                            cents = cents,
+                                        ),
+                                )
+                        }
+                        is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
+                            _state.value =
+                                _state.value.copy(
+                                    tuningStatus = TuningStatus.NotDetected,
+                                )
                         }
                         is AudioManager.AudioAnalysisResult.Gated -> {
                             _state.value =
@@ -84,6 +83,7 @@ class TunerViewModel(
                                 )
                         }
                     }
+                }
             }
     }
 
