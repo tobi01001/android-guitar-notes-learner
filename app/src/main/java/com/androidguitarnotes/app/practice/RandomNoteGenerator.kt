@@ -1,5 +1,7 @@
 package com.androidguitarnotes.app.practice
 
+import com.androidguitarnotes.app.notesplayed.FretboardHelper
+
 /**
  * Generates random notes based on practice configuration.
  */
@@ -73,7 +75,9 @@ class RandomNoteGenerator(
         if (validPositions.size == 1) {
             val (stringNumber, fret) = validPositions.first()
             val noteName = calculateNoteName(stringNumber, fret)
-            val note = PracticeNote(stringNumber, fret, noteName)
+            val noteNameWithOctave = FretboardHelper.getNoteAtPositionWithOctave(stringNumber, fret)
+            val octave = extractOctave(noteNameWithOctave)
+            val note = PracticeNote(stringNumber, fret, noteName, octave, noteNameWithOctave)
             lastNote = note
             return note
         }
@@ -81,7 +85,9 @@ class RandomNoteGenerator(
         // Generate a new note that's different from the last one
         var (stringNumber, fret) = validPositions.random()
         var noteName = calculateNoteName(stringNumber, fret)
-        var newNote = PracticeNote(stringNumber, fret, noteName)
+        var noteNameWithOctave = FretboardHelper.getNoteAtPositionWithOctave(stringNumber, fret)
+        var octave = extractOctave(noteNameWithOctave)
+        var newNote = PracticeNote(stringNumber, fret, noteName, octave, noteNameWithOctave)
 
         // If the new note is the same as the last one, keep trying (max 10 attempts)
         var attempts = 0
@@ -90,12 +96,21 @@ class RandomNoteGenerator(
             stringNumber = position.first
             fret = position.second
             noteName = calculateNoteName(stringNumber, fret)
-            newNote = PracticeNote(stringNumber, fret, noteName)
+            noteNameWithOctave = FretboardHelper.getNoteAtPositionWithOctave(stringNumber, fret)
+            octave = extractOctave(noteNameWithOctave)
+            newNote = PracticeNote(stringNumber, fret, noteName, octave, noteNameWithOctave)
             attempts++
         }
 
         lastNote = newNote
         return newNote
+    }
+
+    /**
+     * Extracts the octave number from a note name with octave (e.g., "E4" -> 4).
+     */
+    private fun extractOctave(noteNameWithOctave: String): Int {
+        return noteNameWithOctave.filter { it.isDigit() }.toIntOrNull() ?: 0
     }
 
     /**

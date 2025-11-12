@@ -79,6 +79,10 @@ class SettingsViewModel(
 
     /**
      * Toggles auto-adjust sensitivity setting.
+     *
+     * NOTE: This setting is currently not implemented in the audio processing pipeline.
+     * It exists as a placeholder for future implementation. See AudioRecorder class
+     * documentation for details on planned implementation.
      */
     fun toggleAutoAdjustSensitivity(enabled: Boolean) {
         _autoAdjustSensitivity.value = enabled

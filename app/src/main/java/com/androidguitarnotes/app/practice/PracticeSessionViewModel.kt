@@ -148,14 +148,20 @@ class PracticeSessionViewModel(
                 try {
                     val audioSource = settingsViewModel.audioSource.value
                     val audioSourceValue = if (audioSource.value == -1) null else audioSource.value
+                    val sensitivity = settingsViewModel.microphoneSensitivity.value
 
-                    audioManager.startListening(audioSource = audioSourceValue).collect { result ->
+                    audioManager.startListening(
+                        sensitivityMultiplier = sensitivity,
+                        audioSource = audioSourceValue,
+                    ).collect { result ->
                         val currentState = _state.value
                         if (currentState is PracticeSessionState.Active) {
                             when (result) {
                                 is AudioManager.AudioAnalysisResult.NoteDetected -> {
                                     val expectedNote = currentState.currentNote.noteName
-                                    val isCorrect = result.noteName == expectedNote
+                                    val expectedOctave = currentState.currentNote.octave
+                                    // Check both note name and octave for accurate position verification
+                                    val isCorrect = result.noteName == expectedNote && result.octave == expectedOctave
 
                                     val feedback =
                                         if (isCorrect) {

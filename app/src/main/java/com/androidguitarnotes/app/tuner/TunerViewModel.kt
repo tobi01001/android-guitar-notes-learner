@@ -44,8 +44,12 @@ class TunerViewModel(
             viewModelScope.launch {
                 val audioSource = settingsViewModel.audioSource.value
                 val audioSourceValue = if (audioSource.value == -1) null else audioSource.value
+                val sensitivity = settingsViewModel.microphoneSensitivity.value
 
-                audioManager.startListening(audioSource = audioSourceValue).collect { result ->
+                audioManager.startListening(
+                    sensitivityMultiplier = sensitivity,
+                    audioSource = audioSourceValue,
+                ).collect { result ->
                     when (result) {
                         is AudioManager.AudioAnalysisResult.NoteDetected -> {
                             val selectedString = _state.value.selectedString

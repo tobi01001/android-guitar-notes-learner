@@ -19,7 +19,7 @@ class PracticeSessionStateTest {
 
     @Test
     fun `Active state contains current note and progress`() {
-        val note = PracticeNote(1, 5, "A")
+        val note = PracticeNote(1, 5, "A", 4, "A4")
         val state =
             PracticeSessionState.Active(
                 currentNote = note,
@@ -39,7 +39,7 @@ class PracticeSessionStateTest {
 
     @Test
     fun `Active state supports time-based session`() {
-        val note = PracticeNote(2, 3, "E")
+        val note = PracticeNote(2, 3, "E", 3, "E3")
         val state =
             PracticeSessionState.Active(
                 currentNote = note,
@@ -56,7 +56,7 @@ class PracticeSessionStateTest {
 
     @Test
     fun `Active state supports count-based session`() {
-        val note = PracticeNote(3, 7, "C")
+        val note = PracticeNote(3, 7, "C", 3, "C3")
         val state =
             PracticeSessionState.Active(
                 currentNote = note,
@@ -73,7 +73,7 @@ class PracticeSessionStateTest {
 
     @Test
     fun `Paused state retains session information`() {
-        val note = PracticeNote(4, 2, "F#")
+        val note = PracticeNote(4, 2, "F#", 3, "F#3")
         val state =
             PracticeSessionState.Paused(
                 currentNote = note,
@@ -101,8 +101,8 @@ class PracticeSessionStateTest {
 
     @Test
     fun `Active state can be copied with updated progress`() {
-        val note1 = PracticeNote(1, 0, "E")
-        val note2 = PracticeNote(2, 3, "D")
+        val note1 = PracticeNote(1, 0, "E", 4, "E4")
+        val note2 = PracticeNote(2, 3, "D", 3, "D3")
 
         val state1 =
             PracticeSessionState.Active(
