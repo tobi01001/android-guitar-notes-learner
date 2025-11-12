@@ -45,10 +45,14 @@ class TunerViewModel(
                 val audioSource = settingsViewModel.audioSource.value
                 val audioSourceValue = if (audioSource.value == -1) null else audioSource.value
                 val sensitivity = settingsViewModel.microphoneSensitivity.value
+                val autoAdjust = settingsViewModel.autoAdjustSensitivity.value
+                val noiseGateThreshold = settingsViewModel.noiseGateThreshold.value
 
                 audioManager.startListening(
                     sensitivityMultiplier = sensitivity,
                     audioSource = audioSourceValue,
+                    autoAdjustEnabled = autoAdjust,
+                    noiseGateThreshold = noiseGateThreshold,
                 ).collect { result ->
                     when (result) {
                         is AudioManager.AudioAnalysisResult.NoteDetected -> {
@@ -69,6 +73,12 @@ class TunerViewModel(
                                 )
                         }
                         is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
+                            _state.value =
+                                _state.value.copy(
+                                    tuningStatus = TuningStatus.NotDetected,
+                                )
+                        }
+                        is AudioManager.AudioAnalysisResult.Gated -> {
                             _state.value =
                                 _state.value.copy(
                                     tuningStatus = TuningStatus.NotDetected,

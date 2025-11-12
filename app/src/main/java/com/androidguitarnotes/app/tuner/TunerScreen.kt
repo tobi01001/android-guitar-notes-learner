@@ -309,14 +309,15 @@ private fun TuningGauge(
             targetValue = if (isDetecting) 1.0f else 0.3f,
             label = "statusAlpha",
         )
-        
-        val statusText = when {
-            isInTune -> stringResource(R.string.in_tune)
-            isTooFlat -> stringResource(R.string.tune_up)
-            isTooSharp -> stringResource(R.string.tune_down)
-            else -> stringResource(R.string.tune_up) // Default placeholder
-        }
-        
+
+        val statusText =
+            when {
+                isInTune -> stringResource(R.string.in_tune)
+                isTooFlat -> stringResource(R.string.tune_up)
+                isTooSharp -> stringResource(R.string.tune_down)
+                else -> stringResource(R.string.tune_up) // Default placeholder
+            }
+
         Box(
             modifier =
                 Modifier
@@ -343,7 +344,7 @@ private fun TuningGauge(
             targetValue = if (isDetecting) 1.0f else 0.3f,
             label = "numericAlpha",
         )
-        
+
         Box(
             modifier =
                 Modifier
@@ -354,16 +355,16 @@ private fun TuningGauge(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     stringResource(
-                        R.string.detected_frequency, 
-                        detectedFrequency ?: 0.0
+                        R.string.detected_frequency,
+                        detectedFrequency ?: 0.0,
                     ),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = numericAlpha),
                 )
                 Text(
                     stringResource(
-                        R.string.cents_deviation, 
-                        cents ?: 0.0
+                        R.string.cents_deviation,
+                        cents ?: 0.0,
                     ),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,

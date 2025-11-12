@@ -15,6 +15,26 @@ import kotlin.coroutines.coroutineContext
 /**
  * Records audio from microphone and provides audio samples for pitch detection.
  *
+ * ## Audio Processing Pipeline
+ *
+ * The audio processing pipeline applies the following operations in order:
+ * 1. **Raw audio capture** from microphone (44.1 kHz, mono, PCM float)
+ * 2. **Sensitivity adjustment** - Applies user-configured gain multiplier
+ * 3. **High-pass filtering** - Removes low-frequency rumble and noise (< 60 Hz)
+ * 4. **RMS level calculation** - Computes audio level for visual feedback
+ * 5. **Emit to flow** - Sends processed audio for pitch detection
+ *
+ * ## High-Pass Filter
+ *
+ * A one-pole IIR high-pass filter with 60 Hz cutoff is automatically applied to all audio.
+ * This removes:
+ * - Low-frequency handling noise (bumps, taps)
+ * - Environmental rumble (traffic, wind, HVAC)
+ * - DC offset and subsonic content
+ *
+ * The filter does not affect guitar notes (lowest E2 is 82 Hz) and improves pitch detection
+ * accuracy by reducing spurious low-frequency triggers.
+ *
  * ## Microphone Sensitivity
  *
  * ### Manual Sensitivity Control
@@ -26,17 +46,21 @@ import kotlin.coroutines.coroutineContext
  * - Values > 1.0: Increase sensitivity (useful for quiet guitars or low-quality microphones)
  *
  * ### Auto-Adjust Sensitivity
- * The "Auto-Adjust Sensitivity" setting in the app is currently **not implemented** in the audio
- * processing pipeline. When enabled in settings, it has no effect on the actual audio processing.
- * The setting exists as a placeholder for future implementation.
- *
- * **Future Implementation Plan:**
- * Auto-adjust sensitivity would analyze the incoming audio level over time and automatically
- * adjust the sensitivity multiplier to maintain optimal signal levels for pitch detection.
- * This would work in conjunction with (not replace) the manual sensitivity slider, where:
+ * When enabled, auto-adjust sensitivity dynamically adjusts the sensitivity multiplier based on
+ * the incoming audio signal level (RMS) to maintain optimal levels for pitch detection.
+ * This works in conjunction with (not replace) the manual sensitivity slider, where:
  * - The manual slider sets a base multiplier
- * - Auto-adjust applies dynamic adjustments on top of the base multiplier
- * - The combined effect would be: `finalSensitivity = baseSensitivity * autoAdjustFactor`
+ * - Auto-adjust applies dynamic fine-tuning on top of the base multiplier
+ * - The combined effect is: `finalSensitivity = baseSensitivity * autoAdjustFactor`
+ *
+ * **Implementation (per AUDIO_DETECTION_ANALYSIS.md Section 7.2.3):**
+ * - Tracks RMS level over a rolling window (approximately 1 second)
+ * - Calculates proportional error: `error = targetRMS / (actualRMS + epsilon)`
+ * - Applies smooth per-step adjustment limited to 0.9x-1.1x per iteration
+ * - Multiplies current gain by adjustment: `gain *= adjustment`
+ * - Clamps final gain to safe bounds (0.5x to 2.0x)
+ * - Weak signals (RMS < target): gradually increase gain toward 2.0x
+ * - Strong signals (RMS > target): gradually reduce gain toward 0.5x
  *
  * ### Base Sensitivity and Microphone Input
  * The base sensitivity is determined by:
@@ -60,6 +84,12 @@ class AudioRecorder {
         private const val CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO
         private const val AUDIO_FORMAT = AudioFormat.ENCODING_PCM_FLOAT
         private const val BUFFER_SIZE_MULTIPLIER = 2
+
+        // Auto-adjust sensitivity constants (per AUDIO_DETECTION_ANALYSIS.md Section 7.2.3)
+        private const val AUTO_ADJUST_MIN_FACTOR = 0.5f
+        private const val AUTO_ADJUST_MAX_FACTOR = 2.0f
+        private const val AUTO_ADJUST_TARGET_RMS = 0.1f // Target RMS level for optimal detection
+        private const val RMS_WINDOW_SIZE = 44 // Number of buffers for RMS window (~1 second)
 
         /**
          * Selects the best audio source for pitch detection.
@@ -127,24 +157,32 @@ class AudioRecorder {
             AUDIO_FORMAT,
         ) * BUFFER_SIZE_MULTIPLIER
 
+    // Auto-adjust sensitivity state
+    @Volatile
+    private var currentAutoAdjustFactor = 1.0f
+    private val rmsHistory = ArrayDeque<Float>(RMS_WINDOW_SIZE)
+
     /**
-     * Represents audio data with its level.
+     * Represents audio data with its level and gate status.
      */
     data class AudioDataWithLevel(
         val audioData: FloatArray,
         val level: Float,
+        val isGated: Boolean = false,
     ) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other !is AudioDataWithLevel) return false
             if (!audioData.contentEquals(other.audioData)) return false
             if (level != other.level) return false
+            if (isGated != other.isGated) return false
             return true
         }
 
         override fun hashCode(): Int {
             var result = audioData.contentHashCode()
             result = 31 * result + level.hashCode()
+            result = 31 * result + isGated.hashCode()
             return result
         }
     }
@@ -155,8 +193,10 @@ class AudioRecorder {
      * Note: RECORD_AUDIO permission must be granted before calling this method.
      * Permission handling is managed by the calling ViewModel/UI layer.
      *
-     * @param sensitivityMultiplier Multiplier for audio sensitivity (0.5 to 2.0, default 1.0)
+     * @param sensitivityMultiplier Base multiplier for audio sensitivity (0.5 to 2.0, default 1.0)
      * @param preferredAudioSource Preferred audio source to use, or null to auto-select
+     * @param autoAdjustEnabled Whether to enable auto-adjust sensitivity feature
+     * @param noiseGateThreshold RMS threshold below which signal is gated (default 0.01f)
      * @return Flow of AudioDataWithLevel containing audio samples and level
      * @throws SecurityException if RECORD_AUDIO permission is not granted
      * @throws IllegalStateException if AudioRecord initialization fails
@@ -166,6 +206,8 @@ class AudioRecorder {
     fun startRecording(
         sensitivityMultiplier: Float = 1.0f,
         preferredAudioSource: Int? = null,
+        autoAdjustEnabled: Boolean = false,
+        noiseGateThreshold: Float = 0.01f,
     ): Flow<AudioDataWithLevel> =
         flow {
             require(sensitivityMultiplier in 0.5f..2.0f) {
@@ -173,6 +215,10 @@ class AudioRecorder {
             }
 
             try {
+                // Reset auto-adjust state when starting new recording session
+                currentAutoAdjustFactor = 1.0f
+                rmsHistory.clear()
+
                 val audioSource = preferredAudioSource ?: selectBestAudioSource()
                 audioRecord =
                     AudioRecord(
@@ -189,6 +235,10 @@ class AudioRecorder {
 
                 audioRecord?.startRecording()
 
+                // Create high-pass filter to remove low-frequency rumble
+                // Cutoff at 60 Hz (below lowest guitar note E2 at ~82 Hz)
+                val highPassFilter = HighPassFilter(sampleRate = SAMPLE_RATE, cutoffFrequency = 60.0)
+
                 val buffer = FloatArray(bufferSize / 4)
 
                 while (coroutineContext.isActive) {
@@ -198,13 +248,34 @@ class AudioRecorder {
                         // Create a copy to avoid reusing the same buffer
                         val audioData = buffer.copyOf(readResult)
 
+                      
+                        // Calculate combined sensitivity multiplier
+                        val combinedMultiplier =
+                            if (autoAdjustEnabled) {
+                                // Calculate raw RMS before any adjustment for auto-adjust algorithm
+                                val rawRms = calculateRawRms(audioData)
+                                updateAutoAdjustFactor(rawRms)
+                                sensitivityMultiplier * currentAutoAdjustFactor
+                            } else {
+                                sensitivityMultiplier
+                            }
                         // Apply sensitivity multiplier
-                        val adjustedData = applySensitivity(audioData, sensitivityMultiplier)
+                        val adjustedData = applySensitivity(audioData, combinedMultiplier)
+                        
+                        // Apply high-pass filter to remove low-frequency noise
+                        // This happens after sensitivity but before RMS and pitch detection
+                        highPassFilter.process(adjustedData)
+                        
+                        // Calculate raw RMS for noise gate check
+                        val rawRms = calculateRawRms(adjustedData)
 
-                        // Calculate audio level (RMS) after sensitivity adjustment
+                        // Check if signal passes the noise gate
+                        val isGated = rawRms < noiseGateThreshold
+
+                        // Calculate audio level (RMS) after filtering
                         val level = calculateAudioLevel(adjustedData)
 
-                        emit(AudioDataWithLevel(adjustedData, level))
+                        emit(AudioDataWithLevel(adjustedData, level, isGated))
                     } else if (readResult < 0) {
                         // Error reading audio data
                         Log.e("AudioRecorder", "Error reading audio: $readResult")
@@ -223,6 +294,20 @@ class AudioRecorder {
         }.flowOn(Dispatchers.IO)
 
     /**
+     * Calculates the raw RMS (Root Mean Square) value from audio samples.
+     * Returns the unscaled RMS value.
+     */
+    private fun calculateRawRms(audioData: FloatArray): Float {
+        if (audioData.isEmpty()) return 0f
+
+        var sum = 0.0
+        for (sample in audioData) {
+            sum += sample * sample
+        }
+        return kotlin.math.sqrt(sum / audioData.size).toFloat()
+    }
+
+    /**
      * Calculates the audio level (RMS) from audio samples.
      * Returns a value between 0.0 and 1.0.
      *
@@ -230,26 +315,65 @@ class AudioRecorder {
      * and make the level meter more responsive to typical audio input ranges.
      */
     private fun calculateAudioLevel(audioData: FloatArray): Float {
-        if (audioData.isEmpty()) return 0f
-
-        // Calculate RMS
-        var sum = 0.0
-        for (sample in audioData) {
-            sum += sample * sample
-        }
-        val rms = kotlin.math.sqrt(sum / audioData.size).toFloat()
+        val rms = calculateRawRms(audioData)
+        if (rms < 0.001f) return 0f // Below threshold
 
         // Apply logarithmic scaling for better visualization
         // This helps make low audio levels more visible
         // Using dB-like scaling: 20 * log10(rms) normalized to 0-1 range
         // Assuming typical guitar input ranges from -60dB to 0dB
-        if (rms < 0.001f) return 0f // Below threshold
-
         val db = 20f * kotlin.math.log10(rms.toDouble()).toFloat()
         // Map -60dB to 0.0 and 0dB to 1.0
         val normalizedLevel = ((db + 60f) / 60f).coerceIn(0f, 1f)
 
         return normalizedLevel
+    }
+
+    /**
+     * Updates the auto-adjust sensitivity factor based on rolling window RMS.
+     *
+     * This implements the auto-adjust sensitivity algorithm as documented in
+     * AUDIO_DETECTION_ANALYSIS.md Section 7.2.3:
+     * 1. Maintains a rolling window of RMS values (approximately 1 second)
+     * 2. Calculates average RMS over the window
+     * 3. Computes proportional error relative to target RMS
+     * 4. Applies smooth per-step adjustment (0.9x-1.1x per iteration)
+     * 5. Clamps final gain to safe bounds (0.5x to 2.0x)
+     *
+     * @param rawRms Current raw RMS value from audio buffer
+     */
+    private fun updateAutoAdjustFactor(rawRms: Float) {
+        // Add to rolling window
+        rmsHistory.addLast(rawRms)
+        if (rmsHistory.size > RMS_WINDOW_SIZE) {
+            rmsHistory.removeFirst()
+        }
+
+        // Calculate average RMS over window
+        val avgRms =
+            if (rmsHistory.isNotEmpty()) {
+                rmsHistory.average().toFloat()
+            } else {
+                rawRms
+            }
+
+        // Calculate proportional error to reach target RMS
+        // Add small epsilon to avoid division by zero
+        val error = AUTO_ADJUST_TARGET_RMS / (avgRms + 0.001f)
+
+        // Smooth adjustment with per-step limits (0.9x to 1.1x)
+        // This prevents abrupt jumps and provides gradual convergence
+        val adjustment = error.coerceIn(0.9f, 1.1f)
+
+        // Apply adjustment to current gain
+        currentAutoAdjustFactor *= adjustment
+
+        // Ensure factor stays within safe bounds
+        currentAutoAdjustFactor =
+            currentAutoAdjustFactor.coerceIn(
+                AUTO_ADJUST_MIN_FACTOR,
+                AUTO_ADJUST_MAX_FACTOR,
+            )
     }
 
     /**

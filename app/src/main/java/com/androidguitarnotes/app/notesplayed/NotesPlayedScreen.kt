@@ -1,10 +1,7 @@
 package com.androidguitarnotes.app.notesplayed
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -129,16 +126,17 @@ private fun NoteDisplayArea(
         if (isListening) {
             // Always show card when listening
             NoteCard(detectedNote = detectedNote)
-            
+
             // Animate only the highlighted notes on the fretboard, not the entire fretboard
             val highlightAlpha by animateFloatAsState(
                 targetValue = if (detectedNote != null) 1.0f else 0.0f,
-                animationSpec = tween(
-                    durationMillis = if (detectedNote != null) 50 else 200,
-                ),
+                animationSpec =
+                    tween(
+                        durationMillis = if (detectedNote != null) 50 else 200,
+                    ),
                 label = "highlightAlpha",
             )
-            
+
             // Always show fretboard, only fade the highlighted notes
             FretboardView(
                 detectedNote = detectedNote?.noteName,
@@ -172,9 +170,10 @@ private fun NoteCard(
     // Animate alpha for fade in/out effect
     val noteAlpha by animateFloatAsState(
         targetValue = if (detectedNote != null) 1.0f else 0.5f,
-        animationSpec = tween(
-            durationMillis = if (detectedNote != null) 50 else 200,
-        ),
+        animationSpec =
+            tween(
+                durationMillis = if (detectedNote != null) 50 else 200,
+            ),
         label = "noteAlpha",
     )
 
