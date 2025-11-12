@@ -128,23 +128,26 @@ class AudioRecorder {
         ) * BUFFER_SIZE_MULTIPLIER
 
     /**
-     * Represents audio data with its level.
+     * Represents audio data with its level and gate status.
      */
     data class AudioDataWithLevel(
         val audioData: FloatArray,
         val level: Float,
+        val isGated: Boolean = false,
     ) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other !is AudioDataWithLevel) return false
             if (!audioData.contentEquals(other.audioData)) return false
             if (level != other.level) return false
+            if (isGated != other.isGated) return false
             return true
         }
 
         override fun hashCode(): Int {
             var result = audioData.contentHashCode()
             result = 31 * result + level.hashCode()
+            result = 31 * result + isGated.hashCode()
             return result
         }
     }
@@ -157,6 +160,7 @@ class AudioRecorder {
      *
      * @param sensitivityMultiplier Multiplier for audio sensitivity (0.5 to 2.0, default 1.0)
      * @param preferredAudioSource Preferred audio source to use, or null to auto-select
+     * @param noiseGateThreshold RMS threshold below which signal is gated (default 0.01f)
      * @return Flow of AudioDataWithLevel containing audio samples and level
      * @throws SecurityException if RECORD_AUDIO permission is not granted
      * @throws IllegalStateException if AudioRecord initialization fails
@@ -166,6 +170,7 @@ class AudioRecorder {
     fun startRecording(
         sensitivityMultiplier: Float = 1.0f,
         preferredAudioSource: Int? = null,
+        noiseGateThreshold: Float = 0.01f,
     ): Flow<AudioDataWithLevel> =
         flow {
             require(sensitivityMultiplier in 0.5f..2.0f) {
@@ -201,10 +206,16 @@ class AudioRecorder {
                         // Apply sensitivity multiplier
                         val adjustedData = applySensitivity(audioData, sensitivityMultiplier)
 
-                        // Calculate audio level (RMS) after sensitivity adjustment
+                        // Calculate raw RMS for noise gate check
+                        val rawRms = calculateRawRms(adjustedData)
+
+                        // Check if signal passes the noise gate
+                        val isGated = rawRms < noiseGateThreshold
+
+                        // Calculate audio level (normalized) for display
                         val level = calculateAudioLevel(adjustedData)
 
-                        emit(AudioDataWithLevel(adjustedData, level))
+                        emit(AudioDataWithLevel(adjustedData, level, isGated))
                     } else if (readResult < 0) {
                         // Error reading audio data
                         Log.e("AudioRecorder", "Error reading audio: $readResult")
@@ -221,6 +232,20 @@ class AudioRecorder {
                 stopRecording()
             }
         }.flowOn(Dispatchers.IO)
+
+    /**
+     * Calculates the raw RMS (Root Mean Square) value from audio samples.
+     * Returns the unscaled RMS value for noise gate comparison.
+     */
+    private fun calculateRawRms(audioData: FloatArray): Float {
+        if (audioData.isEmpty()) return 0f
+
+        var sum = 0.0
+        for (sample in audioData) {
+            sum += sample * sample
+        }
+        return kotlin.math.sqrt(sum / audioData.size).toFloat()
+    }
 
     /**
      * Calculates the audio level (RMS) from audio samples.

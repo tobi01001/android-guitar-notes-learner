@@ -27,6 +27,10 @@ class AudioManager {
         data class NoNoteDetected(
             val audioLevel: Float,
         ) : AudioAnalysisResult()
+
+        data class Gated(
+            val audioLevel: Float,
+        ) : AudioAnalysisResult()
     }
 
     /**
@@ -34,31 +38,40 @@ class AudioManager {
      *
      * @param sensitivityMultiplier Multiplier for audio sensitivity (0.5 to 2.0, default 1.0)
      * @param audioSource Audio source to use, or null to auto-select
+     * @param noiseGateThreshold RMS threshold below which signal is gated (default 0.01f)
      * @return Flow of AudioAnalysisResult
      */
     fun startListening(
         sensitivityMultiplier: Float = 1.0f,
         audioSource: Int? = null,
+        noiseGateThreshold: Float = 0.01f,
     ): Flow<AudioAnalysisResult> =
         audioRecorder
-            .startRecording(sensitivityMultiplier, audioSource)
+            .startRecording(sensitivityMultiplier, audioSource, noiseGateThreshold)
             .map { audioDataWithLevel ->
-                val frequency = pitchDetector.detectPitch(audioDataWithLevel.audioData)
-
-                if (frequency != null) {
-                    val recognizedNote = noteRecognizer.recognizeNote(frequency)
-                    AudioAnalysisResult.NoteDetected(
-                        noteName = recognizedNote.noteName,
-                        frequency = recognizedNote.frequency,
-                        cents = recognizedNote.cents,
+                // If signal is gated (below threshold), skip pitch detection
+                if (audioDataWithLevel.isGated) {
+                    AudioAnalysisResult.Gated(
                         audioLevel = audioDataWithLevel.level,
-                        octave = recognizedNote.octave,
-                        noteNameWithOctave = recognizedNote.noteNameWithOctave,
                     )
                 } else {
-                    AudioAnalysisResult.NoNoteDetected(
-                        audioLevel = audioDataWithLevel.level,
-                    )
+                    val frequency = pitchDetector.detectPitch(audioDataWithLevel.audioData)
+
+                    if (frequency != null) {
+                        val recognizedNote = noteRecognizer.recognizeNote(frequency)
+                        AudioAnalysisResult.NoteDetected(
+                            noteName = recognizedNote.noteName,
+                            frequency = recognizedNote.frequency,
+                            cents = recognizedNote.cents,
+                            audioLevel = audioDataWithLevel.level,
+                            octave = recognizedNote.octave,
+                            noteNameWithOctave = recognizedNote.noteNameWithOctave,
+                        )
+                    } else {
+                        AudioAnalysisResult.NoNoteDetected(
+                            audioLevel = audioDataWithLevel.level,
+                        )
+                    }
                 }
             }
 
