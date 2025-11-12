@@ -109,7 +109,10 @@ class RandomNoteGenerator(
     /**
      * Extracts the octave number from a note name with octave (e.g., "E4" -> 4).
      */
-    private fun extractOctave(noteNameWithOctave: String): Int = noteNameWithOctave.takeLastWhile { it.isDigit() }.toIntOrNull() ?: 0
+    private fun extractOctave(noteNameWithOctave: String): Int {
+        val octaveStr = noteNameWithOctave.takeLastWhile { it.isDigit() }
+        return octaveStr.toIntOrNull() ?: 0
+    }
 
     /**
      * Checks if a note is allowed based on the current note mode.
