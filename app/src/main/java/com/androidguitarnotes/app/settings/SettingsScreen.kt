@@ -76,7 +76,7 @@ fun SettingsScreen(
                     sensitivityMultiplier = microphoneSensitivity,
                     audioSource = audioSourceValue,
                     noiseGateThreshold = noiseGateThreshold,
-                    autoAdjustSensitivity = autoAdjustSensitivity,
+                    autoAdjustEnabled = autoAdjustSensitivity,
                 ).collect { result ->
                     when (result) {
                         is AudioManager.AudioAnalysisResult.NoteDetected -> {

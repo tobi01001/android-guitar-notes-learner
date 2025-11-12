@@ -49,7 +49,7 @@ class AudioManager {
         autoAdjustEnabled: Boolean = false,
     ): Flow<AudioAnalysisResult> =
         audioRecorder
-            .startRecording(sensitivityMultiplier, audioSource, noiseGateThreshold, autoAdjustEnabled)
+            .startRecording(sensitivityMultiplier, audioSource, autoAdjustEnabled, noiseGateThreshold)
             .map { audioDataWithLevel ->
                 // If signal is gated (below threshold), skip pitch detection
                 if (audioDataWithLevel.isGated) {

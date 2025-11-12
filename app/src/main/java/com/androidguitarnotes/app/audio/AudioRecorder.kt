@@ -330,20 +330,6 @@ class AudioRecorder {
     }
 
     /**
-     * Calculates raw RMS value without any scaling.
-     * Used for auto-adjust sensitivity algorithm.
-     */
-    private fun calculateRawRms(audioData: FloatArray): Float {
-        if (audioData.isEmpty()) return 0f
-
-        var sum = 0.0
-        for (sample in audioData) {
-            sum += sample * sample
-        }
-        return kotlin.math.sqrt(sum / audioData.size).toFloat()
-    }
-
-    /**
      * Updates the auto-adjust sensitivity factor based on rolling window RMS.
      *
      * This implements the auto-adjust sensitivity algorithm as documented in
