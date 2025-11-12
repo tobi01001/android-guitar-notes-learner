@@ -33,13 +33,14 @@ import kotlin.coroutines.coroutineContext
  * - Auto-adjust applies dynamic fine-tuning on top of the base multiplier
  * - The combined effect is: `finalSensitivity = baseSensitivity * autoAdjustFactor`
  *
- * **Implementation:**
+ * **Implementation (per AUDIO_DETECTION_ANALYSIS.md Section 7.2.3):**
  * - Tracks RMS level over a rolling window (approximately 1 second)
- * - Calculates adjustment factor based on signal strength (range 0.5x to 2.0x)
- * - Uses exponential moving average for smooth transitions (no abrupt jumps)
- * - Target RMS is 0.1 (normalized), adjusts gain to maintain optimal signal level
- * - Weak signals (RMS < target): increase gain up to 2.0x
- * - Strong signals (RMS > target): reduce gain down to 0.5x
+ * - Calculates proportional error: `error = targetRMS / (actualRMS + epsilon)`
+ * - Applies smooth per-step adjustment limited to 0.9x-1.1x per iteration
+ * - Multiplies current gain by adjustment: `gain *= adjustment`
+ * - Clamps final gain to safe bounds (0.5x to 2.0x)
+ * - Weak signals (RMS < target): gradually increase gain toward 2.0x
+ * - Strong signals (RMS > target): gradually reduce gain toward 0.5x
  *
  * ### Base Sensitivity and Microphone Input
  * The base sensitivity is determined by:
@@ -64,11 +65,10 @@ class AudioRecorder {
         private const val AUDIO_FORMAT = AudioFormat.ENCODING_PCM_FLOAT
         private const val BUFFER_SIZE_MULTIPLIER = 2
 
-        // Auto-adjust sensitivity constants
+        // Auto-adjust sensitivity constants (per AUDIO_DETECTION_ANALYSIS.md Section 7.2.3)
         private const val AUTO_ADJUST_MIN_FACTOR = 0.5f
         private const val AUTO_ADJUST_MAX_FACTOR = 2.0f
         private const val AUTO_ADJUST_TARGET_RMS = 0.1f // Target RMS level for optimal detection
-        private const val AUTO_ADJUST_SMOOTHING = 0.1f // Exponential moving average factor (0-1)
         private const val RMS_WINDOW_SIZE = 44 // Number of buffers for RMS window (~1 second)
 
         /**
@@ -301,12 +301,13 @@ class AudioRecorder {
     /**
      * Updates the auto-adjust sensitivity factor based on rolling window RMS.
      *
-     * This implements the auto-adjust sensitivity algorithm:
+     * This implements the auto-adjust sensitivity algorithm as documented in
+     * AUDIO_DETECTION_ANALYSIS.md Section 7.2.3:
      * 1. Maintains a rolling window of RMS values (approximately 1 second)
      * 2. Calculates average RMS over the window
-     * 3. Computes adjustment factor to bring signal toward target RMS
-     * 4. Applies exponential moving average for smooth transitions
-     * 5. Clamps factor to safe bounds (0.5x to 2.0x)
+     * 3. Computes proportional error relative to target RMS
+     * 4. Applies smooth per-step adjustment (0.9x-1.1x per iteration)
+     * 5. Clamps final gain to safe bounds (0.5x to 2.0x)
      *
      * @param rawRms Current raw RMS value from audio buffer
      */
@@ -325,30 +326,18 @@ class AudioRecorder {
                 rawRms
             }
 
-        // Avoid division by zero and very small values
-        if (avgRms < 0.001f) {
-            // Signal too weak, increase gain
-            val targetFactor = AUTO_ADJUST_MAX_FACTOR
-            currentAutoAdjustFactor =
-                currentAutoAdjustFactor * (1 - AUTO_ADJUST_SMOOTHING) +
-                targetFactor * AUTO_ADJUST_SMOOTHING
-        } else {
-            // Calculate desired adjustment factor to reach target RMS
-            // If avgRms is below target, increase gain (factor > 1.0)
-            // If avgRms is above target, decrease gain (factor < 1.0)
-            val targetFactor =
-                (AUTO_ADJUST_TARGET_RMS / avgRms).coerceIn(
-                    AUTO_ADJUST_MIN_FACTOR,
-                    AUTO_ADJUST_MAX_FACTOR,
-                )
+        // Calculate proportional error to reach target RMS
+        // Add small epsilon to avoid division by zero
+        val error = AUTO_ADJUST_TARGET_RMS / (avgRms + 0.001f)
 
-            // Apply exponential moving average for smooth transitions
-            currentAutoAdjustFactor =
-                currentAutoAdjustFactor * (1 - AUTO_ADJUST_SMOOTHING) +
-                targetFactor * AUTO_ADJUST_SMOOTHING
-        }
+        // Smooth adjustment with per-step limits (0.9x to 1.1x)
+        // This prevents abrupt jumps and provides gradual convergence
+        val adjustment = error.coerceIn(0.9f, 1.1f)
 
-        // Ensure factor stays within bounds
+        // Apply adjustment to current gain
+        currentAutoAdjustFactor *= adjustment
+
+        // Ensure factor stays within safe bounds
         currentAutoAdjustFactor =
             currentAutoAdjustFactor.coerceIn(
                 AUTO_ADJUST_MIN_FACTOR,
