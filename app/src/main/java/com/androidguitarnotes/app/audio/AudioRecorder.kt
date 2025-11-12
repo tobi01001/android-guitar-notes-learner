@@ -235,7 +235,7 @@ class AudioRecorder {
 
     /**
      * Calculates the raw RMS (Root Mean Square) value from audio samples.
-     * Returns the unscaled RMS value for noise gate comparison.
+     * Returns the unscaled RMS value.
      */
     private fun calculateRawRms(audioData: FloatArray): Float {
         if (audioData.isEmpty()) return 0f
@@ -255,21 +255,13 @@ class AudioRecorder {
      * and make the level meter more responsive to typical audio input ranges.
      */
     private fun calculateAudioLevel(audioData: FloatArray): Float {
-        if (audioData.isEmpty()) return 0f
-
-        // Calculate RMS
-        var sum = 0.0
-        for (sample in audioData) {
-            sum += sample * sample
-        }
-        val rms = kotlin.math.sqrt(sum / audioData.size).toFloat()
+        val rms = calculateRawRms(audioData)
+        if (rms < 0.001f) return 0f // Below threshold
 
         // Apply logarithmic scaling for better visualization
         // This helps make low audio levels more visible
         // Using dB-like scaling: 20 * log10(rms) normalized to 0-1 range
         // Assuming typical guitar input ranges from -60dB to 0dB
-        if (rms < 0.001f) return 0f // Below threshold
-
         val db = 20f * kotlin.math.log10(rms.toDouble()).toFloat()
         // Map -60dB to 0.0 and 0dB to 1.0
         val normalizedLevel = ((db + 60f) / 60f).coerceIn(0f, 1f)
