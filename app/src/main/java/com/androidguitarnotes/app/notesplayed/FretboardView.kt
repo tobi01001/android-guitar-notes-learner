@@ -260,9 +260,9 @@ private fun FretMarker(
             val noteColor =
                 if (isPersisted) {
                     baseColor.copy(
-                        red = baseColor.red * 0f + 0.5f * 1f,
-                        green = baseColor.green * 0f + 0.5f * 1f,
-                        blue = baseColor.blue * 0f + 0.5f * 1f,
+                        red = 0.5f,
+                        green = 0.5f,
+                        blue = 0.5f,
                     )
                 } else {
                     baseColor
