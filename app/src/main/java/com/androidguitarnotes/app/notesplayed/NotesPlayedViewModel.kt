@@ -48,16 +48,19 @@ class NotesPlayedViewModel(
                     ).collect { result ->
                         when (result) {
                             is AudioManager.AudioAnalysisResult.NoteDetected -> {
+                                val noteInfo =
+                                    DetectedNoteInfo(
+                                        noteName = result.noteName,
+                                        frequency = result.frequency,
+                                        cents = result.cents,
+                                        octave = result.octave,
+                                        noteNameWithOctave = result.noteNameWithOctave,
+                                    )
                                 _state.value =
                                     _state.value.copy(
-                                        detectedNote =
-                                            DetectedNoteInfo(
-                                                noteName = result.noteName,
-                                                frequency = result.frequency,
-                                                cents = result.cents,
-                                                octave = result.octave,
-                                                noteNameWithOctave = result.noteNameWithOctave,
-                                            ),
+                                        detectedNote = noteInfo,
+                                        lastDetectedNote = noteInfo,
+                                        lastDetectionTimestamp = System.currentTimeMillis(),
                                     )
                             }
                             is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
@@ -91,6 +94,8 @@ class NotesPlayedViewModel(
             _state.value.copy(
                 isListening = false,
                 detectedNote = null,
+                lastDetectedNote = null,
+                lastDetectionTimestamp = 0L,
             )
     }
 

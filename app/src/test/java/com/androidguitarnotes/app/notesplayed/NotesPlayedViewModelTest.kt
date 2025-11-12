@@ -47,6 +47,8 @@ class NotesPlayedViewModelTest {
         val state = viewModel.state.value
         assertFalse(state.isListening)
         assertNull(state.detectedNote)
+        assertNull(state.lastDetectedNote)
+        assertEquals(0L, state.lastDetectionTimestamp)
     }
 
     @Test
@@ -61,7 +63,7 @@ class NotesPlayedViewModelTest {
         }
 
     @Test
-    fun `stopListening should update isListening to false and clear detected note`() =
+    fun `stopListening should update isListening to false and clear detected note and last detected note`() =
         runTest {
             every { audioManager.startListening(any(), any()) } returns flowOf()
             viewModel.startListening()
@@ -71,6 +73,8 @@ class NotesPlayedViewModelTest {
             val state = viewModel.state.value
             assertFalse(state.isListening)
             assertNull(state.detectedNote)
+            assertNull(state.lastDetectedNote)
+            assertEquals(0L, state.lastDetectionTimestamp)
             verify { audioManager.stopListening() }
         }
 
@@ -99,7 +103,7 @@ class NotesPlayedViewModelTest {
         }
 
     @Test
-    fun `should clear detected note when no note is detected`() =
+    fun `should clear detected note when no note is detected but persist last detected note`() =
         runTest {
             val noteResult =
                 AudioManager.AudioAnalysisResult.NoteDetected(
@@ -119,6 +123,9 @@ class NotesPlayedViewModelTest {
             val state = viewModel.state.value
             assertTrue(state.isListening)
             assertNull(state.detectedNote)
+            assertNotNull(state.lastDetectedNote)
+            assertEquals("A", state.lastDetectedNote?.noteName)
+            assertTrue(state.lastDetectionTimestamp > 0L)
         }
 
     @Test
@@ -131,5 +138,40 @@ class NotesPlayedViewModelTest {
             viewModel.stopListening()
 
             verify { audioManager.stopListening() }
+        }
+
+    @Test
+    fun `should persist last detected note when a new note is detected`() =
+        runTest {
+            val noteResult1 =
+                AudioManager.AudioAnalysisResult.NoteDetected(
+                    noteName = "A",
+                    frequency = 440.0,
+                    cents = 0.0,
+                    audioLevel = 0.5f,
+                    octave = 4,
+                    noteNameWithOctave = "A4",
+                )
+            val noteResult2 =
+                AudioManager.AudioAnalysisResult.NoteDetected(
+                    noteName = "C",
+                    frequency = 261.63,
+                    cents = 0.0,
+                    audioLevel = 0.5f,
+                    octave = 4,
+                    noteNameWithOctave = "C4",
+                )
+
+            every { audioManager.startListening(any(), any()) } returns flowOf(noteResult1, noteResult2)
+
+            viewModel.startListening()
+
+            val state = viewModel.state.value
+            assertTrue(state.isListening)
+            assertNotNull(state.detectedNote)
+            assertEquals("C", state.detectedNote?.noteName)
+            assertNotNull(state.lastDetectedNote)
+            assertEquals("C", state.lastDetectedNote?.noteName)
+            assertTrue(state.lastDetectionTimestamp > 0L)
         }
 }

@@ -6,6 +6,8 @@ package com.androidguitarnotes.app.notesplayed
 data class NotesPlayedState(
     val isListening: Boolean = false,
     val detectedNote: DetectedNoteInfo? = null,
+    val lastDetectedNote: DetectedNoteInfo? = null,
+    val lastDetectionTimestamp: Long = 0L,
 )
 
 /**
