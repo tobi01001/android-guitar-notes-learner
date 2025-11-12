@@ -10,9 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ColorMatrix
-import androidx.compose.ui.graphics.ColorMatrixColorFilter
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -258,23 +255,22 @@ private fun FretMarker(
         contentAlignment = Alignment.Center,
     ) {
         if (isHighlighted && noteName != null) {
-            val noteColor = NoteColors.getColorForNote(noteName)
+            val baseColor = NoteColors.getColorForNote(noteName)
+            // Apply greyscale effect when persisted
+            val noteColor =
+                if (isPersisted) {
+                    baseColor.copy(
+                        red = baseColor.red * 0f + 0.5f * 1f,
+                        green = baseColor.green * 0f + 0.5f * 1f,
+                        blue = baseColor.blue * 0f + 0.5f * 1f,
+                    )
+                } else {
+                    baseColor
+                }
             Box(
                 modifier =
                     Modifier
                         .fillMaxSize()
-                        .graphicsLayer(
-                            colorFilter =
-                                if (isPersisted) {
-                                    ColorMatrixColorFilter(
-                                        ColorMatrix().apply {
-                                            setToSaturation(0.0f)
-                                        },
-                                    )
-                                } else {
-                                    null
-                                },
-                        )
                         .clip(CircleShape)
                         .background(noteColor.copy(alpha = highlightAlpha))
                         .border(2.dp, NoteColors.getDarkColorForNote(noteName).copy(alpha = highlightAlpha), CircleShape),

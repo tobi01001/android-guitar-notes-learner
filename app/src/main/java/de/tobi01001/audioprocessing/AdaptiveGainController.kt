@@ -10,7 +10,7 @@ class AdaptiveGainController(
     private val targetRms: Float = 0.1f,
     private val minGain: Float = 0.5f,
     private val maxGain: Float = 2.0f,
-    private val smoothing: Float = 0.9f
+    private val smoothing: Float = 0.9f,
 ) {
     private var currentGain: Float = 1.0f
 
@@ -31,6 +31,9 @@ class AdaptiveGainController(
         return currentGain
     }
 
-    fun reset() { currentGain = 1.0f }
+    fun reset() {
+        currentGain = 1.0f
+    }
+
     fun getGain(): Float = currentGain
 }

@@ -9,10 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ColorMatrix
-import androidx.compose.ui.graphics.ColorMatrixColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -229,26 +226,25 @@ private fun NoteCard(
                         .graphicsLayer(
                             scaleX = noteScale,
                             scaleY = noteScale,
-                            colorFilter =
-                                if (isPersisted) {
-                                    ColorMatrixColorFilter(
-                                        ColorMatrix().apply {
-                                            setToSaturation(saturation)
-                                        },
-                                    )
-                                } else {
-                                    null
-                                },
-                        )
-                        .clip(RoundedCornerShape(12.dp))
+                            alpha = noteAlpha,
+                        ).clip(RoundedCornerShape(12.dp))
                         .background(
                             if (detectedNote != null) {
-                                NoteColors.getColorForNote(detectedNote.noteName)
+                                // Reduce saturation when persisted by mixing with gray
+                                val baseColor = NoteColors.getColorForNote(detectedNote.noteName)
+                                if (isPersisted) {
+                                    baseColor.copy(
+                                        red = baseColor.red * saturation + 0.5f * (1f - saturation),
+                                        green = baseColor.green * saturation + 0.5f * (1f - saturation),
+                                        blue = baseColor.blue * saturation + 0.5f * (1f - saturation),
+                                    )
+                                } else {
+                                    baseColor
+                                }
                             } else {
                                 MaterialTheme.colorScheme.surfaceVariant
                             },
-                        )
-                        .alpha(noteAlpha),
+                        ),
                 contentAlignment = Alignment.Center,
             ) {
                 if (detectedNote != null) {

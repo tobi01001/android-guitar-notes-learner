@@ -248,7 +248,6 @@ class AudioRecorder {
                         // Create a copy to avoid reusing the same buffer
                         val audioData = buffer.copyOf(readResult)
 
-                      
                         // Calculate combined sensitivity multiplier
                         val combinedMultiplier =
                             if (autoAdjustEnabled) {
@@ -261,11 +260,11 @@ class AudioRecorder {
                             }
                         // Apply sensitivity multiplier
                         val adjustedData = applySensitivity(audioData, combinedMultiplier)
-                        
+
                         // Apply high-pass filter to remove low-frequency noise
                         // This happens after sensitivity but before RMS and pitch detection
                         highPassFilter.process(adjustedData)
-                        
+
                         // Calculate raw RMS for noise gate check
                         val rawRms = calculateRawRms(adjustedData)
 

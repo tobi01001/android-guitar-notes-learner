@@ -6,7 +6,10 @@ import kotlin.math.PI
  * One-pole high-pass filter (IIR) using the simple RC approximation.
  * process(sample) -> filtered sample
  */
-class HighPassFilter(private val sampleRate: Int = 44100, cutoffHz: Float = 50f) {
+class HighPassFilter(
+    private val sampleRate: Int = 44100,
+    cutoffHz: Float = 50f,
+) {
     private var prevInput = 0f
     private var prevOutput = 0f
     private var alpha: Float
