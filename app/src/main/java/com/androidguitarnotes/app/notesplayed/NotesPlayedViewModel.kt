@@ -71,7 +71,6 @@ class NotesPlayedViewModel(
                                     )
                             }
                         }
-                    }
                 } catch (e: Exception) {
                     _state.value = _state.value.copy(isListening = false, detectedNote = null)
                 }

@@ -173,22 +173,22 @@ class PracticeSessionViewModel(
                                                 result.noteName,
                                                 result.cents,
                                             )
+
+                                        _state.value = currentState.copy(noteFeedback = feedback)
+
+                                        // Auto-advance if in AUDIO_VERIFICATION mode and note is correct
+                                        if (config.progressionMode == ProgressionMode.AUDIO_VERIFICATION && isCorrect) {
+                                            // Small delay before advancing to show the "Correct!" feedback
+                                            delay(800)
+                                            nextNote()
                                         }
-
-                                    _state.value = currentState.copy(noteFeedback = feedback)
-
-                                    // Auto-advance if in AUDIO_VERIFICATION mode and note is correct
-                                    if (config.progressionMode == ProgressionMode.AUDIO_VERIFICATION && isCorrect) {
-                                        // Small delay before advancing to show the "Correct!" feedback
-                                        delay(800)
-                                        nextNote()
                                     }
-                                }
-                                is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
-                                    _state.value =
-                                        currentState.copy(
-                                            noteFeedback = PracticeSessionState.NoteFeedback.None,
-                                        )
+                                    is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
+                                        _state.value =
+                                            currentState.copy(
+                                                noteFeedback = PracticeSessionState.NoteFeedback.None,
+                                            )
+                                    }
                                 }
                                 is AudioManager.AudioAnalysisResult.Gated -> {
                                     _state.value =
@@ -198,7 +198,6 @@ class PracticeSessionViewModel(
                                 }
                             }
                         }
-                    }
                 } catch (e: SecurityException) {
                     // Permission was revoked during recording
                     Log.e("PracticeSessionViewModel", "Permission revoked during recording", e)
