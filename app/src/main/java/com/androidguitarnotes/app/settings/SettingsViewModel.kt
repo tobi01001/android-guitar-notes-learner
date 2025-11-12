@@ -47,11 +47,21 @@ class SettingsViewModel(
     private val _audioSource = MutableStateFlow(AudioSource.AUTO)
     val audioSource: StateFlow<AudioSource> = _audioSource.asStateFlow()
 
+    private val _noiseGateThreshold = MutableStateFlow(0.01f)
+    val noiseGateThreshold: StateFlow<Float> = _noiseGateThreshold.asStateFlow()
+
     init {
         // Load saved audio source
         viewModelScope.launch {
             repository.audioSource.collect { savedSource ->
                 _audioSource.value = savedSource
+            }
+        }
+
+        // Load saved noise gate threshold
+        viewModelScope.launch {
+            repository.noiseGateThreshold.collect { savedThreshold ->
+                _noiseGateThreshold.value = savedThreshold
             }
         }
     }
@@ -96,6 +106,16 @@ class SettingsViewModel(
         _audioSource.value = audioSource
         viewModelScope.launch {
             repository.saveAudioSource(audioSource)
+        }
+    }
+
+    /**
+     * Sets the noise gate threshold (0.001 to 0.1).
+     */
+    fun setNoiseGateThreshold(threshold: Float) {
+        _noiseGateThreshold.value = threshold.coerceIn(0.001f, 0.1f)
+        viewModelScope.launch {
+            repository.saveNoiseGateThreshold(_noiseGateThreshold.value)
         }
     }
 }

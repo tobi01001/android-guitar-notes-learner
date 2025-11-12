@@ -15,6 +15,26 @@ import kotlin.coroutines.coroutineContext
 /**
  * Records audio from microphone and provides audio samples for pitch detection.
  *
+ * ## Audio Processing Pipeline
+ *
+ * The audio processing pipeline applies the following operations in order:
+ * 1. **Raw audio capture** from microphone (44.1 kHz, mono, PCM float)
+ * 2. **Sensitivity adjustment** - Applies user-configured gain multiplier
+ * 3. **High-pass filtering** - Removes low-frequency rumble and noise (< 60 Hz)
+ * 4. **RMS level calculation** - Computes audio level for visual feedback
+ * 5. **Emit to flow** - Sends processed audio for pitch detection
+ *
+ * ## High-Pass Filter
+ *
+ * A one-pole IIR high-pass filter with 60 Hz cutoff is automatically applied to all audio.
+ * This removes:
+ * - Low-frequency handling noise (bumps, taps)
+ * - Environmental rumble (traffic, wind, HVAC)
+ * - DC offset and subsonic content
+ *
+ * The filter does not affect guitar notes (lowest E2 is 82 Hz) and improves pitch detection
+ * accuracy by reducing spurious low-frequency triggers.
+ *
  * ## Microphone Sensitivity
  *
  * ### Manual Sensitivity Control
@@ -143,23 +163,26 @@ class AudioRecorder {
     private val rmsHistory = ArrayDeque<Float>(RMS_WINDOW_SIZE)
 
     /**
-     * Represents audio data with its level.
+     * Represents audio data with its level and gate status.
      */
     data class AudioDataWithLevel(
         val audioData: FloatArray,
         val level: Float,
+        val isGated: Boolean = false,
     ) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other !is AudioDataWithLevel) return false
             if (!audioData.contentEquals(other.audioData)) return false
             if (level != other.level) return false
+            if (isGated != other.isGated) return false
             return true
         }
 
         override fun hashCode(): Int {
             var result = audioData.contentHashCode()
             result = 31 * result + level.hashCode()
+            result = 31 * result + isGated.hashCode()
             return result
         }
     }
@@ -173,6 +196,7 @@ class AudioRecorder {
      * @param sensitivityMultiplier Base multiplier for audio sensitivity (0.5 to 2.0, default 1.0)
      * @param preferredAudioSource Preferred audio source to use, or null to auto-select
      * @param autoAdjustEnabled Whether to enable auto-adjust sensitivity feature
+     * @param noiseGateThreshold RMS threshold below which signal is gated (default 0.01f)
      * @return Flow of AudioDataWithLevel containing audio samples and level
      * @throws SecurityException if RECORD_AUDIO permission is not granted
      * @throws IllegalStateException if AudioRecord initialization fails
@@ -183,6 +207,7 @@ class AudioRecorder {
         sensitivityMultiplier: Float = 1.0f,
         preferredAudioSource: Int? = null,
         autoAdjustEnabled: Boolean = false,
+        noiseGateThreshold: Float = 0.01f,
     ): Flow<AudioDataWithLevel> =
         flow {
             require(sensitivityMultiplier in 0.5f..2.0f) {
@@ -210,6 +235,10 @@ class AudioRecorder {
 
                 audioRecord?.startRecording()
 
+                // Create high-pass filter to remove low-frequency rumble
+                // Cutoff at 60 Hz (below lowest guitar note E2 at ~82 Hz)
+                val highPassFilter = HighPassFilter(sampleRate = SAMPLE_RATE, cutoffFrequency = 60.0)
+
                 val buffer = FloatArray(bufferSize / 4)
 
                 while (coroutineContext.isActive) {
@@ -219,6 +248,7 @@ class AudioRecorder {
                         // Create a copy to avoid reusing the same buffer
                         val audioData = buffer.copyOf(readResult)
 
+                      
                         // Calculate combined sensitivity multiplier
                         val combinedMultiplier =
                             if (autoAdjustEnabled) {
@@ -229,14 +259,23 @@ class AudioRecorder {
                             } else {
                                 sensitivityMultiplier
                             }
-
-                        // Apply combined sensitivity multiplier
+                        // Apply sensitivity multiplier
                         val adjustedData = applySensitivity(audioData, combinedMultiplier)
+                        
+                        // Apply high-pass filter to remove low-frequency noise
+                        // This happens after sensitivity but before RMS and pitch detection
+                        highPassFilter.process(adjustedData)
+                        
+                        // Calculate raw RMS for noise gate check
+                        val rawRms = calculateRawRms(adjustedData)
 
-                        // Calculate audio level (RMS) after sensitivity adjustment
+                        // Check if signal passes the noise gate
+                        val isGated = rawRms < noiseGateThreshold
+
+                        // Calculate audio level (RMS) after filtering
                         val level = calculateAudioLevel(adjustedData)
 
-                        emit(AudioDataWithLevel(adjustedData, level))
+                        emit(AudioDataWithLevel(adjustedData, level, isGated))
                     } else if (readResult < 0) {
                         // Error reading audio data
                         Log.e("AudioRecorder", "Error reading audio: $readResult")
@@ -255,6 +294,20 @@ class AudioRecorder {
         }.flowOn(Dispatchers.IO)
 
     /**
+     * Calculates the raw RMS (Root Mean Square) value from audio samples.
+     * Returns the unscaled RMS value.
+     */
+    private fun calculateRawRms(audioData: FloatArray): Float {
+        if (audioData.isEmpty()) return 0f
+
+        var sum = 0.0
+        for (sample in audioData) {
+            sum += sample * sample
+        }
+        return kotlin.math.sqrt(sum / audioData.size).toFloat()
+    }
+
+    /**
      * Calculates the audio level (RMS) from audio samples.
      * Returns a value between 0.0 and 1.0.
      *
@@ -262,21 +315,13 @@ class AudioRecorder {
      * and make the level meter more responsive to typical audio input ranges.
      */
     private fun calculateAudioLevel(audioData: FloatArray): Float {
-        if (audioData.isEmpty()) return 0f
-
-        // Calculate RMS
-        var sum = 0.0
-        for (sample in audioData) {
-            sum += sample * sample
-        }
-        val rms = kotlin.math.sqrt(sum / audioData.size).toFloat()
+        val rms = calculateRawRms(audioData)
+        if (rms < 0.001f) return 0f // Below threshold
 
         // Apply logarithmic scaling for better visualization
         // This helps make low audio levels more visible
         // Using dB-like scaling: 20 * log10(rms) normalized to 0-1 range
         // Assuming typical guitar input ranges from -60dB to 0dB
-        if (rms < 0.001f) return 0f // Below threshold
-
         val db = 20f * kotlin.math.log10(rms.toDouble()).toFloat()
         // Map -60dB to 0.0 and 0dB to 1.0
         val normalizedLevel = ((db + 60f) / 60f).coerceIn(0f, 1f)
