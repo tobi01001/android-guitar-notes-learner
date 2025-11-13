@@ -3,8 +3,8 @@
 Generate test WAV files for audio testing purposes.
 
 This script generates 16 WAV files, each representing a different volume level.
-Each file contains a sweep through 16 chromatic notes (40 Hz to ~95 Hz),
-with each note lasting approximately 1 second.
+Each file contains a continuous frequency sweep from a starting frequency
+through a specified number of chromatic notes, with seamless transitions.
 
 Requirements:
 - numpy
@@ -19,41 +19,51 @@ from scipy.io import wavfile
 import os
 
 
-def generate_frequency_sweep(sample_rate=44100, note_duration=1.0, num_notes=16):
+def generate_frequency_sweep(sample_rate=44100, start_freq=40.0, interval=1, num_notes=16):
     """
-    Generate a frequency sweep through chromatic notes.
+    Generate a continuous frequency sweep from min to max frequency.
     
     Args:
         sample_rate: Sample rate in Hz (default: 44100)
-        note_duration: Duration of each note in seconds (default: 1.0)
-        num_notes: Number of chromatic notes to generate (default: 16)
+        start_freq: Starting frequency in Hz (default: 40.0)
+        interval: Chromatic note difference per step (default: 1 = semitone)
+        num_notes: Number of chromatic notes to cover (default: 16)
     
     Returns:
         numpy array containing the frequency sweep
     """
-    # Starting frequency (40 Hz)
-    start_freq = 40.0
+    # Calculate min and max frequencies based on interval
+    # Each step is interval semitones, so frequency multiplier is 2^(interval/12)
+    min_freq = start_freq
+    max_freq = start_freq * (2 ** ((num_notes - 1) * interval / 12))
     
-    # Calculate frequencies for each chromatic note
-    # Each semitone is 2^(1/12) times the previous frequency
-    frequencies = [start_freq * (2 ** (i / 12)) for i in range(num_notes)]
+    # Calculate total time: approximately 1 second per chromatic note at the interval
+    # Total chromatic notes covered = (num_notes - 1) * interval
+    total_chromatic_notes = (num_notes - 1) * interval
+    total_time = total_chromatic_notes * 1.0  # 1 second per chromatic note
     
-    # Generate samples for each note
-    samples_per_note = int(sample_rate * note_duration)
-    t = np.linspace(0, note_duration, samples_per_note, endpoint=False)
+    # Generate time array for the entire sweep
+    total_samples = int(sample_rate * total_time)
+    t = np.linspace(0, total_time, total_samples, endpoint=False)
     
-    # Concatenate all notes
-    audio_data = []
-    for freq in frequencies:
-        # Generate sine wave for this note
-        note_samples = np.sin(2 * np.pi * freq * t)
-        audio_data.append(note_samples)
+    # Generate seamless frequency sweep from min to max
+    # Use logarithmic frequency sweep for equal chromatic spacing perception
+    # Instantaneous frequency: f(t) = min_freq * (max_freq/min_freq)^(t/total_time)
+    # Phase: integral of 2*pi*f(t) dt
+    frequency_ratio = max_freq / min_freq
+    instantaneous_freq = min_freq * (frequency_ratio ** (t / total_time))
     
-    # Concatenate all notes into a single array
-    return np.concatenate(audio_data)
+    # Calculate phase by integrating the instantaneous frequency
+    # Phase(t) = 2*pi * integral(f(t) dt) = 2*pi * min_freq * total_time / ln(frequency_ratio) * (frequency_ratio^(t/total_time) - 1)
+    phase = 2 * np.pi * min_freq * total_time / np.log(frequency_ratio) * (frequency_ratio ** (t / total_time) - 1)
+    
+    # Generate sine wave with varying frequency
+    audio_data = np.sin(phase)
+    
+    return audio_data
 
 
-def generate_wav_files(output_dir=".", num_files=16, sample_rate=44100):
+def generate_wav_files(output_dir=".", num_files=16, sample_rate=44100, start_freq=40.0, interval=1, num_notes=16):
     """
     Generate WAV files with different volume levels.
     
@@ -61,12 +71,21 @@ def generate_wav_files(output_dir=".", num_files=16, sample_rate=44100):
         output_dir: Directory to save WAV files (default: current directory)
         num_files: Number of files to generate (default: 16)
         sample_rate: Sample rate in Hz (default: 44100)
+        start_freq: Starting frequency in Hz (default: 40.0)
+        interval: Chromatic note difference per step (default: 1 = semitone)
+        num_notes: Number of chromatic notes to cover (default: 16)
     """
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
     
+    # Calculate frequency range
+    min_freq = start_freq
+    max_freq = start_freq * (2 ** ((num_notes - 1) * interval / 12))
+    total_time = (num_notes - 1) * interval * 1.0
+    
     # Generate the base frequency sweep (normalized to -1.0 to 1.0)
-    base_sweep = generate_frequency_sweep(sample_rate=sample_rate)
+    base_sweep = generate_frequency_sweep(sample_rate=sample_rate, start_freq=start_freq, 
+                                          interval=interval, num_notes=num_notes)
     
     # Generate amplitude levels from very low to very high
     # Using logarithmic scale for more perceptually uniform volume steps
@@ -81,9 +100,10 @@ def generate_wav_files(output_dir=".", num_files=16, sample_rate=44100):
     
     print(f"Generating {num_files} WAV files...")
     print(f"Sample rate: {sample_rate} Hz")
-    print(f"Frequency range: 40.00 Hz to {40.0 * (2 ** (15 / 12)):.2f} Hz")
-    print(f"Notes per file: 16 (each ~1 second)")
-    print(f"Total duration per file: ~16 seconds")
+    print(f"Frequency range: {min_freq:.2f} Hz to {max_freq:.2f} Hz")
+    print(f"Interval: {interval} semitone(s) per step")
+    print(f"Chromatic notes covered: {(num_notes - 1) * interval}")
+    print(f"Total duration per file: ~{total_time:.1f} seconds")
     print()
     
     for i, amplitude in enumerate(amplitudes, start=1):

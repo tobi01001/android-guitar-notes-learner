@@ -5,9 +5,9 @@ This directory contains tools and generated audio files for testing the Android 
 ## Purpose
 
 The test WAV files provide a controlled set of audio samples with:
-- **Known frequencies**: 16 chromatic notes from 40 Hz to ~95 Hz
+- **Known frequencies**: Continuous sweep from 40 Hz to ~95 Hz covering 15 chromatic notes
 - **Varying volume levels**: 16 different amplitude levels from very quiet to very loud
-- **Consistent duration**: Each note lasts approximately 1 second
+- **Seamless transitions**: Frequency changes continuously rather than in discrete steps
 - **Simple waveforms**: Pure sine waves for predictable testing
 
 These files are useful for:
@@ -21,7 +21,7 @@ These files are useful for:
 
 - **generate_test_wavs.py**: Python script to generate test WAV files
 - **test_volume_01.wav to test_volume_16.wav**: Generated test files (16 total)
-  - Each file contains 16 one-second notes sweeping through chromatic frequencies
+  - Each file contains a continuous frequency sweep through chromatic notes
   - Volume increases progressively from file 01 (quietest) to file 16 (loudest)
 
 ## Requirements
@@ -52,9 +52,10 @@ The script will generate 16 WAV files in the current directory:
 - `test_volume_16.wav` (highest volume, 100% amplitude)
 
 Each file contains:
-- 16 chromatic notes (40.00 Hz, 42.38 Hz, 44.90 Hz, ..., up to ~95.14 Hz)
-- Each note lasts 1 second
-- Total duration: ~16 seconds per file
+- Continuous frequency sweep from 40.00 Hz to ~95.14 Hz
+- Covers 15 chromatic notes with seamless transitions
+- Approximately 1 second per chromatic note interval
+- Total duration: ~15 seconds per file
 - Sample rate: 44100 Hz
 - Format: 16-bit PCM WAV
 
@@ -128,9 +129,11 @@ For automated testing scenarios:
 ## Technical Details
 
 ### Frequency Generation
-- Starting frequency: 40 Hz
-- Semitone calculation: `f(n) = f0 × 2^(n/12)` where f0 = 40 Hz
-- 16 semitones span approximately 2.5 octaves
+- Starting frequency: 40 Hz (configurable via `start_freq` parameter)
+- Continuous logarithmic sweep for seamless frequency transitions
+- Interval: 1 semitone per step (configurable via `interval` parameter)
+- Sweep calculation: `f(t) = f_min × (f_max/f_min)^(t/total_time)`
+- 15 chromatic notes covered (configurable via `num_notes` parameter)
 
 ### Amplitude Levels
 - Logarithmic spacing for perceptually uniform volume steps
