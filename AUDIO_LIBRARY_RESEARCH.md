@@ -65,7 +65,7 @@ new Thread(dispatcher, "Audio Dispatcher").start();
 - **Buffer Size**: 1024-2048 samples recommended
 - **Latency**: 50-100ms typical
 - **CPU Usage**: Low to moderate (pure Java optimization)
-- **Accuracy**: ±2-5 Hz with YIN, ±0.5 Hz with parabolic interpolation
+- **Accuracy**: ±1-2 Hz with YIN, ±0.1 Hz with parabolic interpolation
 
 ### Pros
 ✅ **Pure Java**: No native code, simplifies Android integration  
