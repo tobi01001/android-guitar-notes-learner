@@ -112,16 +112,4 @@ class PitchDetector(
             null
         }
     }
-
-    /**
-     * Detects the fundamental frequency from audio samples.
-     * 
-     * Legacy method for backward compatibility. Use detectPitchWithConfidence() for better results.
-     *
-     * @param audioData Array of audio samples (PCM float)
-     * @return Detected frequency in Hz, or null if no clear pitch detected
-     */
-    fun detectPitch(audioData: FloatArray): Double? {
-        return detectPitchWithConfidence(audioData)?.frequency
-    }
 }

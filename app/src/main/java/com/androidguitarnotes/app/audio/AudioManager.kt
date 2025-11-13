@@ -49,30 +49,6 @@ class AudioManager {
     )
 
     /**
-     * Represents the result of audio analysis.
-     * 
-     * @deprecated Use DetectedNote directly. This sealed class is maintained for backward compatibility.
-     */
-    sealed class AudioAnalysisResult {
-        data class NoteDetected(
-            val noteName: String,
-            val frequency: Double,
-            val cents: Double,
-            val audioLevel: Float,
-            val octave: Int,
-            val noteNameWithOctave: String,
-        ) : AudioAnalysisResult()
-
-        data class NoNoteDetected(
-            val audioLevel: Float,
-        ) : AudioAnalysisResult()
-
-        data class Gated(
-            val audioLevel: Float,
-        ) : AudioAnalysisResult()
-    }
-
-    /**
      * Starts listening for audio and analyzing pitch with canonical DetectedNote model.
      *
      * @param sensitivityMultiplier Base multiplier for audio sensitivity (0.5 to 2.0, default 1.0)
@@ -130,52 +106,6 @@ class AudioManager {
                             octave = -1,
                             noteNameWithOctave = "?",
                             isGated = false,
-                        )
-                    }
-                }
-            }
-
-    /**
-     * Starts listening for audio and analyzing pitch.
-     * 
-     * @deprecated Use startListeningWithDetectedNote() for better consistency. This method is maintained for backward compatibility.
-     *
-     * @param sensitivityMultiplier Base multiplier for audio sensitivity (0.5 to 2.0, default 1.0)
-     * @param audioSource Audio source to use, or null to auto-select
-     * @param noiseGateThreshold RMS threshold below which signal is gated (default 0.01f)
-     * @param autoAdjustEnabled Whether to enable auto-adjust sensitivity feature
-     * @return Flow of AudioAnalysisResult
-     */
-    fun startListening(
-        sensitivityMultiplier: Float = 1.0f,
-        audioSource: Int? = null,
-        noiseGateThreshold: Float = 0.01f,
-        autoAdjustEnabled: Boolean = false,
-    ): Flow<AudioAnalysisResult> =
-        audioRecorder
-            .startRecording(sensitivityMultiplier, audioSource, autoAdjustEnabled, noiseGateThreshold)
-            .map { audioDataWithLevel ->
-                // If signal is gated (below threshold), skip pitch detection
-                if (audioDataWithLevel.isGated) {
-                    AudioAnalysisResult.Gated(
-                        audioLevel = audioDataWithLevel.level,
-                    )
-                } else {
-                    val frequency = pitchDetector.detectPitch(audioDataWithLevel.audioData)
-
-                    if (frequency != null) {
-                        val recognizedNote = noteRecognizer.recognizeNote(frequency)
-                        AudioAnalysisResult.NoteDetected(
-                            noteName = recognizedNote.noteName,
-                            frequency = recognizedNote.frequency,
-                            cents = recognizedNote.cents,
-                            audioLevel = audioDataWithLevel.level,
-                            octave = recognizedNote.octave,
-                            noteNameWithOctave = recognizedNote.noteNameWithOctave,
-                        )
-                    } else {
-                        AudioAnalysisResult.NoNoteDetected(
-                            audioLevel = audioDataWithLevel.level,
                         )
                     }
                 }
