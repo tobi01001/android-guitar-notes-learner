@@ -313,8 +313,9 @@ Google provides SPICE (another pitch detection model) via TensorFlow Hub, which 
 
 ### Integration
 ```gradle
-implementation 'org.tensorflow:tensorflow-lite:2.14.0'
-implementation 'org.tensorflow:tensorflow-lite-task-audio:0.4.4'
+// NOTE: Check for the latest stable versions of TensorFlow Lite and Task Audio at implementation time.
+implementation 'org.tensorflow:tensorflow-lite:2.14.0' // Update to latest stable version
+implementation 'org.tensorflow:tensorflow-lite-task-audio:0.4.4' // Update to latest stable version
 ```
 
 **Workflow:**
