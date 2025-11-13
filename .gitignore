@@ -12,3 +12,6 @@
 /captures
 .externalNativeBuild
 /.cxx
+
+# Test assets - generated WAV files
+/test-assets/*.wav
