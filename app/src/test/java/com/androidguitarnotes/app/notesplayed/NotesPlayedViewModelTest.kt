@@ -54,7 +54,7 @@ class NotesPlayedViewModelTest {
     @Test
     fun `startListening should update isListening to true`() =
         runTest {
-            every { audioManager.startListening(any(), any()) } returns flowOf()
+            every { audioManager.startListeningWithDetectedNote(any(), any(), any(), any()) } returns flowOf()
 
             viewModel.startListening()
 
@@ -65,7 +65,7 @@ class NotesPlayedViewModelTest {
     @Test
     fun `stopListening should update isListening to false and clear detected note and last detected note`() =
         runTest {
-            every { audioManager.startListening(any(), any()) } returns flowOf()
+            every { audioManager.startListeningWithDetectedNote(any(), any(), any(), any()) } returns flowOf()
             viewModel.startListening()
 
             viewModel.stopListening()
@@ -81,16 +81,19 @@ class NotesPlayedViewModelTest {
     @Test
     fun `should update detected note when note is detected`() =
         runTest {
-            val noteResult =
-                AudioManager.AudioAnalysisResult.NoteDetected(
+            val detectedNote =
+                AudioManager.DetectedNote(
+                    isDetected = true,
                     noteName = "A",
                     frequency = 440.0,
                     cents = 0.0,
+                    confidence = 0.9f,
                     audioLevel = 0.5f,
                     octave = 4,
                     noteNameWithOctave = "A4",
+                    isGated = false,
                 )
-            every { audioManager.startListening(any(), any()) } returns flowOf(noteResult)
+            every { audioManager.startListeningWithDetectedNote(any(), any(), any(), any()) } returns flowOf(detectedNote)
 
             viewModel.startListening()
 
@@ -105,18 +108,32 @@ class NotesPlayedViewModelTest {
     @Test
     fun `should clear detected note when no note is detected but persist last detected note`() =
         runTest {
-            val noteResult =
-                AudioManager.AudioAnalysisResult.NoteDetected(
+            val detectedNote =
+                AudioManager.DetectedNote(
+                    isDetected = true,
                     noteName = "A",
                     frequency = 440.0,
                     cents = 0.0,
+                    confidence = 0.9f,
                     audioLevel = 0.5f,
                     octave = 4,
                     noteNameWithOctave = "A4",
+                    isGated = false,
                 )
-            val noNoteResult = AudioManager.AudioAnalysisResult.NoNoteDetected(audioLevel = 0.1f)
+            val noNote =
+                AudioManager.DetectedNote(
+                    isDetected = false,
+                    noteName = "?",
+                    frequency = null,
+                    cents = 0.0,
+                    confidence = 0f,
+                    audioLevel = 0.1f,
+                    octave = -1,
+                    noteNameWithOctave = "?",
+                    isGated = false,
+                )
 
-            every { audioManager.startListening(any(), any()) } returns flowOf(noteResult, noNoteResult)
+            every { audioManager.startListeningWithDetectedNote(any(), any(), any(), any()) } returns flowOf(detectedNote, noNote)
 
             viewModel.startListening()
 
@@ -131,7 +148,7 @@ class NotesPlayedViewModelTest {
     @Test
     fun `stopListening should be called when viewModel is cleared`() =
         runTest {
-            every { audioManager.startListening(any(), any()) } returns flowOf()
+            every { audioManager.startListeningWithDetectedNote(any(), any(), any(), any()) } returns flowOf()
             viewModel.startListening()
 
             // Simulate clearing by stopping listening
@@ -143,26 +160,32 @@ class NotesPlayedViewModelTest {
     @Test
     fun `should persist last detected note when a new note is detected`() =
         runTest {
-            val noteResult1 =
-                AudioManager.AudioAnalysisResult.NoteDetected(
+            val detectedNote1 =
+                AudioManager.DetectedNote(
+                    isDetected = true,
                     noteName = "A",
                     frequency = 440.0,
                     cents = 0.0,
+                    confidence = 0.9f,
                     audioLevel = 0.5f,
                     octave = 4,
                     noteNameWithOctave = "A4",
+                    isGated = false,
                 )
-            val noteResult2 =
-                AudioManager.AudioAnalysisResult.NoteDetected(
+            val detectedNote2 =
+                AudioManager.DetectedNote(
+                    isDetected = true,
                     noteName = "C",
                     frequency = 261.63,
                     cents = 0.0,
+                    confidence = 0.9f,
                     audioLevel = 0.5f,
                     octave = 4,
                     noteNameWithOctave = "C4",
+                    isGated = false,
                 )
 
-            every { audioManager.startListening(any(), any()) } returns flowOf(noteResult1, noteResult2)
+            every { audioManager.startListeningWithDetectedNote(any(), any(), any(), any()) } returns flowOf(detectedNote1, detectedNote2)
 
             viewModel.startListening()
 

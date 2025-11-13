@@ -15,14 +15,33 @@ import kotlin.coroutines.coroutineContext
 /**
  * Records audio from microphone and provides audio samples for pitch detection.
  *
- * ## Audio Processing Pipeline
+ * ## Audio Processing Pipeline (Improved Order)
  *
  * The audio processing pipeline applies the following operations in order:
  * 1. **Raw audio capture** from microphone (44.1 kHz, mono, PCM float)
- * 2. **Sensitivity adjustment** - Applies user-configured gain multiplier
- * 3. **High-pass filtering** - Removes low-frequency rumble and noise (< 60 Hz)
- * 4. **RMS level calculation** - Computes audio level for visual feedback
- * 5. **Emit to flow** - Sends processed audio for pitch detection
+ * 2. **Float conversion** - Samples already in float format from Android AudioRecord
+ * 3. **Pre-processing RMS** - Calculate raw RMS for auto-adjust algorithm (only when auto-adjust is enabled)
+ * 4. **Auto-adjust sensitivity** - Dynamically adjusts gain based on rolling RMS window (if enabled)
+ * 5. **Sensitivity gain application** - Applies combined manual + auto-adjust gain multiplier
+ *    - **CRITICAL:** No hard clamping applied during analysis chain
+ *    - Hard clamping creates irreversible distortion and loss of harmonics
+ *    - Clamping only appropriate before playback/output step (not in analysis)
+ * 6. **High-pass filtering** - Removes low-frequency rumble and noise (60 Hz cutoff, configurable)
+ *    - Applied after gain to avoid amplifying DC offset and low-frequency noise
+ * 7. **Noise gate check** - Compute RMS and check if signal passes threshold
+ * 8. **Post-processing RMS** - Calculate audio level for visual feedback (after filtering)
+ * 9. **Emit to flow** - Sends processed audio for pitch detection (normalized autocorrelation)
+ *
+ * ## Processing Order Rationale
+ *
+ * - **Auto-adjust before gain:** Uses raw RMS to determine appropriate gain adjustment
+ * - **Gain before high-pass:** Allows the auto-adjust algorithm to work on raw signal levels before
+ *   filtering, and applies gain uniformly to all frequencies before selectively attenuating low frequencies.
+ *   Note: This means DC offset and low-frequency noise are amplified by the gain, but the high-pass
+ *   filter removes them immediately afterward.
+ * - **No hard clamping:** Preserves harmonics and signal quality for pitch detection
+ * - **High-pass after gain:** Removes amplified DC offset and rumble from the signal
+ * - **Gate and RMS after filtering:** Accurate level measurement on clean signal
  *
  * ## High-Pass Filter
  *
@@ -34,6 +53,9 @@ import kotlin.coroutines.coroutineContext
  *
  * The filter does not affect guitar notes (lowest E2 is 82 Hz) and improves pitch detection
  * accuracy by reducing spurious low-frequency triggers.
+ * 
+ * **Configurable cutoff:** While default is 60 Hz, the cutoff can be adjusted (40-80 Hz range)
+ * based on environmental noise conditions and guitar tuning.
  *
  * ## Microphone Sensitivity
  *
@@ -377,6 +399,10 @@ class AudioRecorder {
 
     /**
      * Applies sensitivity multiplier to audio data.
+     * 
+     * Note: Per audio pipeline best practices, we do NOT hard-clamp samples during analysis.
+     * Hard clamping creates irreversible distortion and loss of harmonics that hinders
+     * autocorrelation and spectral analysis. Clamping should only occur before playback/output.
      */
     private fun applySensitivity(
         audioData: FloatArray,
@@ -385,7 +411,7 @@ class AudioRecorder {
         if (multiplier == 1.0f) return audioData
 
         return FloatArray(audioData.size) { i ->
-            (audioData[i] * multiplier).coerceIn(-1f, 1f)
+            audioData[i] * multiplier
         }
     }
 

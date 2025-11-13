@@ -41,41 +41,32 @@ class NotesPlayedViewModel(
                     val noiseGateThreshold = settingsViewModel.noiseGateThreshold.value
 
                     audioManager
-                        .startListening(
+                        .startListeningWithDetectedNote(
                             sensitivityMultiplier = sensitivity,
                             audioSource = audioSourceValue,
                             autoAdjustEnabled = autoAdjust,
                             noiseGateThreshold = noiseGateThreshold,
-                        ).collect { result ->
-                            when (result) {
-                                is AudioManager.AudioAnalysisResult.NoteDetected -> {
-                                    val noteInfo =
-                                        DetectedNoteInfo(
-                                            noteName = result.noteName,
-                                            frequency = result.frequency,
-                                            cents = result.cents,
-                                            octave = result.octave,
-                                            noteNameWithOctave = result.noteNameWithOctave,
-                                        )
-                                    _state.value =
-                                        _state.value.copy(
-                                            detectedNote = noteInfo,
-                                            lastDetectedNote = noteInfo,
-                                            lastDetectionTimestamp = System.currentTimeMillis(),
-                                        )
-                                }
-                                is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
-                                    _state.value =
-                                        _state.value.copy(
-                                            detectedNote = null,
-                                        )
-                                }
-                                is AudioManager.AudioAnalysisResult.Gated -> {
-                                    _state.value =
-                                        _state.value.copy(
-                                            detectedNote = null,
-                                        )
-                                }
+                        ).collect { detectedNote ->
+                            if (detectedNote.isDetected) {
+                                val noteInfo =
+                                    DetectedNoteInfo(
+                                        noteName = detectedNote.noteName,
+                                        frequency = detectedNote.frequency!!,
+                                        cents = detectedNote.cents,
+                                        octave = detectedNote.octave,
+                                        noteNameWithOctave = detectedNote.noteNameWithOctave,
+                                    )
+                                _state.value =
+                                    _state.value.copy(
+                                        detectedNote = noteInfo,
+                                        lastDetectedNote = noteInfo,
+                                        lastDetectionTimestamp = System.currentTimeMillis(),
+                                    )
+                            } else {
+                                _state.value =
+                                    _state.value.copy(
+                                        detectedNote = null,
+                                    )
                             }
                         }
                 } catch (e: Exception) {

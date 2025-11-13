@@ -153,52 +153,43 @@ class PracticeSessionViewModel(
                     val noiseGateThreshold = settingsViewModel.noiseGateThreshold.value
 
                     audioManager
-                        .startListening(
+                        .startListeningWithDetectedNote(
                             sensitivityMultiplier = sensitivity,
                             audioSource = audioSourceValue,
                             autoAdjustEnabled = autoAdjust,
                             noiseGateThreshold = noiseGateThreshold,
-                        ).collect { result ->
+                        ).collect { detectedNote ->
                             val currentState = _state.value
                             if (currentState is PracticeSessionState.Active) {
-                                when (result) {
-                                    is AudioManager.AudioAnalysisResult.NoteDetected -> {
-                                        val expectedNote = currentState.currentNote.noteName
-                                        val expectedOctave = currentState.currentNote.octave
-                                        // Check both note name and octave for accurate position verification
-                                        val isCorrect = result.noteName == expectedNote && result.octave == expectedOctave
+                                if (detectedNote.isDetected) {
+                                    val expectedNote = currentState.currentNote.noteName
+                                    val expectedOctave = currentState.currentNote.octave
+                                    // Check both note name and octave for accurate position verification
+                                    val isCorrect = detectedNote.noteName == expectedNote && detectedNote.octave == expectedOctave
 
-                                        val feedback =
-                                            if (isCorrect) {
-                                                PracticeSessionState.NoteFeedback.Correct
-                                            } else {
-                                                PracticeSessionState.NoteFeedback.Detected(
-                                                    result.noteName,
-                                                    result.cents,
-                                                )
-                                            }
-
-                                        _state.value = currentState.copy(noteFeedback = feedback)
-
-                                        // Auto-advance if in AUDIO_VERIFICATION mode and note is correct
-                                        if (config.progressionMode == ProgressionMode.AUDIO_VERIFICATION && isCorrect) {
-                                            // Small delay before advancing to show the "Correct!" feedback
-                                            delay(800)
-                                            nextNote()
+                                    val feedback =
+                                        if (isCorrect) {
+                                            PracticeSessionState.NoteFeedback.Correct
+                                        } else {
+                                            PracticeSessionState.NoteFeedback.Detected(
+                                                detectedNote.noteName,
+                                                detectedNote.cents,
+                                            )
                                         }
+
+                                    _state.value = currentState.copy(noteFeedback = feedback)
+
+                                    // Auto-advance if in AUDIO_VERIFICATION mode and note is correct
+                                    if (config.progressionMode == ProgressionMode.AUDIO_VERIFICATION && isCorrect) {
+                                        // Small delay before advancing to show the "Correct!" feedback
+                                        delay(800)
+                                        nextNote()
                                     }
-                                    is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
-                                        _state.value =
-                                            currentState.copy(
-                                                noteFeedback = PracticeSessionState.NoteFeedback.None,
-                                            )
-                                    }
-                                    is AudioManager.AudioAnalysisResult.Gated -> {
-                                        _state.value =
-                                            currentState.copy(
-                                                noteFeedback = PracticeSessionState.NoteFeedback.None,
-                                            )
-                                    }
+                                } else {
+                                    _state.value =
+                                        currentState.copy(
+                                            noteFeedback = PracticeSessionState.NoteFeedback.None,
+                                        )
                                 }
                             }
                         }
