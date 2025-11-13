@@ -73,26 +73,14 @@ fun SettingsScreen(
             try {
                 val audioSourceValue = if (audioSource.value == -1) null else audioSource.value
                 audioManager
-                    .startListening(
+                    .startListeningWithDetectedNote(
                         sensitivityMultiplier = microphoneSensitivity,
                         audioSource = audioSourceValue,
                         noiseGateThreshold = noiseGateThreshold,
                         autoAdjustEnabled = autoAdjustSensitivity,
-                    ).collect { result ->
-                        when (result) {
-                            is AudioManager.AudioAnalysisResult.NoteDetected -> {
-                                currentAudioLevel = result.audioLevel
-                                isGated = false
-                            }
-                            is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
-                                currentAudioLevel = result.audioLevel
-                                isGated = false
-                            }
-                            is AudioManager.AudioAnalysisResult.Gated -> {
-                                currentAudioLevel = result.audioLevel
-                                isGated = true
-                            }
-                        }
+                    ).collect { detectedNote ->
+                        currentAudioLevel = detectedNote.audioLevel
+                        isGated = detectedNote.isGated
                     }
             } catch (e: Exception) {
                 // Ignore permission errors in settings

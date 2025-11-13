@@ -49,42 +49,33 @@ class TunerViewModel(
                 val noiseGateThreshold = settingsViewModel.noiseGateThreshold.value
 
                 audioManager
-                    .startListening(
+                    .startListeningWithDetectedNote(
                         sensitivityMultiplier = sensitivity,
                         audioSource = audioSourceValue,
                         autoAdjustEnabled = autoAdjust,
                         noiseGateThreshold = noiseGateThreshold,
-                    ).collect { result ->
-                        when (result) {
-                            is AudioManager.AudioAnalysisResult.NoteDetected -> {
-                                val selectedString = _state.value.selectedString
-                                val cents =
-                                    calculateCentsDeviation(
-                                        result.frequency,
-                                        selectedString.frequency,
-                                    )
+                    ).collect { detectedNote ->
+                        if (detectedNote.isDetected) {
+                            val selectedString = _state.value.selectedString
+                            val cents =
+                                calculateCentsDeviation(
+                                    detectedNote.frequency!!,
+                                    selectedString.frequency,
+                                )
 
-                                _state.value =
-                                    _state.value.copy(
-                                        tuningStatus =
-                                            TuningStatus.Detecting(
-                                                detectedFrequency = result.frequency,
-                                                cents = cents,
-                                            ),
-                                    )
-                            }
-                            is AudioManager.AudioAnalysisResult.NoNoteDetected -> {
-                                _state.value =
-                                    _state.value.copy(
-                                        tuningStatus = TuningStatus.NotDetected,
-                                    )
-                            }
-                            is AudioManager.AudioAnalysisResult.Gated -> {
-                                _state.value =
-                                    _state.value.copy(
-                                        tuningStatus = TuningStatus.NotDetected,
-                                    )
-                            }
+                            _state.value =
+                                _state.value.copy(
+                                    tuningStatus =
+                                        TuningStatus.Detecting(
+                                            detectedFrequency = detectedNote.frequency,
+                                            cents = cents,
+                                        ),
+                                )
+                        } else {
+                            _state.value =
+                                _state.value.copy(
+                                    tuningStatus = TuningStatus.NotDetected,
+                                )
                         }
                     }
             }
