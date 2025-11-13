@@ -265,6 +265,12 @@ private fun TuningIndicator(
                     cents = status.cents,
                     detectedFrequency = status.detectedFrequency,
                 )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    stringResource(R.string.sound_detecting),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }

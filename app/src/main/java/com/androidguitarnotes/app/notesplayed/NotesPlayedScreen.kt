@@ -171,11 +171,12 @@ private fun NoteCard(
     modifier: Modifier = Modifier,
 ) {
     // Animate note letter size based on detection (subtle pulse effect)
-    val noteScale by animateFloatAsState(
+    val noteScale = 1.0f  /* by animateFloatAsState(
         targetValue = if (!isPersisted && detectedNote != null) 1.0f else 0.95f,
         animationSpec = tween(durationMillis = 200),
         label = "noteScale",
     )
+    */
 
     // Animate alpha for fade in/out effect
     val noteAlpha by animateFloatAsState(
@@ -234,9 +235,9 @@ private fun NoteCard(
                                 val baseColor = NoteColors.getColorForNote(detectedNote.noteName)
                                 if (isPersisted) {
                                     baseColor.copy(
-                                        red = baseColor.red * saturation + 0.5f * (1f - saturation),
-                                        green = baseColor.green * saturation + 0.5f * (1f - saturation),
-                                        blue = baseColor.blue * saturation + 0.5f * (1f - saturation),
+                                        red = baseColor.red * saturation + 0.2f * (1f - saturation),
+                                        green = baseColor.green * saturation + 0.2f * (1f - saturation),
+                                        blue = baseColor.blue * saturation + 0.2f * (1f - saturation),
                                     )
                                 } else {
                                     baseColor
