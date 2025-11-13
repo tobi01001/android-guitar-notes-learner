@@ -89,6 +89,19 @@ The project includes a GitHub Actions workflow that automatically:
 
 All checks run on push to main and on pull requests.
 
+## Documentation
+
+### Project Documentation
+- **[FUTURE_ENHANCEMENTS.md](FUTURE_ENHANCEMENTS.md)** - Central index for tracking future feature ideas and enhancements
+  - [ENH-001: Multi-Frame Pitch Confirmation](ENHANCEMENT_001_MULTI_FRAME_CONFIRMATION.md) - Optional detection stability improvement
+  - [ENH-002: Harmonic Consistency Checks](ENHANCEMENT_002_HARMONIC_CONSISTENCY.md) - Priority 2 octave disambiguation
+
+### Technical Analysis
+- **[AUDIO_DETECTION_ANALYSIS.md](AUDIO_DETECTION_ANALYSIS.md)** - Comprehensive analysis of audio processing and pitch detection
+- **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** - Summary of implemented features
+- **[ISSUE_62_README.md](ISSUE_62_README.md)** - Investigation of HighPassFilter initialization
+- **[ISSUE_68_REVIEW_README.md](ISSUE_68_REVIEW_README.md)** - Review of audio reception improvements
+
 Planned initial features (M1)
 - App skeleton with Compose navigation (Home / Practice / Settings).
 - Practice configuration UI (string selection, fret range, mode, duration).
