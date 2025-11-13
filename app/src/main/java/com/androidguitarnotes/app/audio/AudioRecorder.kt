@@ -20,7 +20,7 @@ import kotlin.coroutines.coroutineContext
  * The audio processing pipeline applies the following operations in order:
  * 1. **Raw audio capture** from microphone (44.1 kHz, mono, PCM float)
  * 2. **Float conversion** - Samples already in float format from Android AudioRecord
- * 3. **Pre-processing RMS** - Calculate raw RMS for auto-adjust sensitivity algorithm (if enabled)
+ * 3. **Pre-processing RMS** - Calculate raw RMS for auto-adjust algorithm (only when auto-adjust is enabled)
  * 4. **Auto-adjust sensitivity** - Dynamically adjusts gain based on rolling RMS window (if enabled)
  * 5. **Sensitivity gain application** - Applies combined manual + auto-adjust gain multiplier
  *    - **CRITICAL:** No hard clamping applied during analysis chain
@@ -35,9 +35,12 @@ import kotlin.coroutines.coroutineContext
  * ## Processing Order Rationale
  *
  * - **Auto-adjust before gain:** Uses raw RMS to determine appropriate gain adjustment
- * - **Gain before high-pass:** Ensures consistent signal level before filtering
+ * - **Gain before high-pass:** Allows the auto-adjust algorithm to work on raw signal levels before
+ *   filtering, and applies gain uniformly to all frequencies before selectively attenuating low frequencies.
+ *   Note: This means DC offset and low-frequency noise are amplified by the gain, but the high-pass
+ *   filter removes them immediately afterward.
  * - **No hard clamping:** Preserves harmonics and signal quality for pitch detection
- * - **High-pass after gain:** Removes DC offset and rumble from amplified signal
+ * - **High-pass after gain:** Removes amplified DC offset and rumble from the signal
  * - **Gate and RMS after filtering:** Accurate level measurement on clean signal
  *
  * ## High-Pass Filter

@@ -32,7 +32,7 @@ class AudioManager {
      * @param cents Deviation from perfect pitch in cents, or 0.0 if not detected
      * @param confidence Detection confidence (0.0 to 1.0), or 0.0 if not detected
      * @param audioLevel RMS audio level (0.0 to 1.0)
-     * @param octave Octave number, or 0 if not detected
+     * @param octave Octave number, or -1 if not detected
      * @param noteNameWithOctave Note name with octave (e.g., "A4") or "?" if not detected
      * @param isGated True if signal was gated (below noise threshold)
      */
@@ -99,7 +99,7 @@ class AudioManager {
                         cents = 0.0,
                         confidence = 0f,
                         audioLevel = audioDataWithLevel.level,
-                        octave = 0,
+                        octave = -1,
                         noteNameWithOctave = "?",
                         isGated = true,
                     )
@@ -127,7 +127,7 @@ class AudioManager {
                             cents = 0.0,
                             confidence = 0f,
                             audioLevel = audioDataWithLevel.level,
-                            octave = 0,
+                            octave = -1,
                             noteNameWithOctave = "?",
                             isGated = false,
                         )
