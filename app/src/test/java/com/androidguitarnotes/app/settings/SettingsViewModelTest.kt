@@ -37,6 +37,11 @@ class SettingsViewModelTest {
     private fun createMockRepository(): SettingsRepository {
         val repository = mockk<SettingsRepository>(relaxed = true)
         coEvery { repository.audioSource } returns flowOf(AudioSource.AUTO)
+        coEvery { repository.noiseGateThreshold } returns flowOf(0.01f)
+        coEvery { repository.audioFeedbackEnabled } returns flowOf(true)
+        coEvery { repository.defaultTuning } returns flowOf("Standard")
+        coEvery { repository.microphoneSensitivity } returns flowOf(1.0f)
+        coEvery { repository.autoAdjustSensitivity } returns flowOf(false)
         return repository
     }
 
@@ -229,5 +234,129 @@ class SettingsViewModelTest {
             val audioSource = viewModel.audioSource.first()
 
             assertEquals("Audio source should be MIC", AudioSource.MIC, audioSource)
+        }
+
+    @Test
+    fun `toggleAudioFeedback persists to repository`() =
+        runTest {
+            val repository = createMockRepository()
+            val viewModel = SettingsViewModel(repository)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.toggleAudioFeedback(false)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            io.mockk.coVerify { repository.saveAudioFeedbackEnabled(false) }
+        }
+
+    @Test
+    fun `setDefaultTuning persists to repository`() =
+        runTest {
+            val repository = createMockRepository()
+            val viewModel = SettingsViewModel(repository)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.setDefaultTuning("Drop D")
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            io.mockk.coVerify { repository.saveDefaultTuning("Drop D") }
+        }
+
+    @Test
+    fun `setMicrophoneSensitivity persists to repository`() =
+        runTest {
+            val repository = createMockRepository()
+            val viewModel = SettingsViewModel(repository)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.setMicrophoneSensitivity(1.5f)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            io.mockk.coVerify { repository.saveMicrophoneSensitivity(1.5f) }
+        }
+
+    @Test
+    fun `toggleAutoAdjustSensitivity persists to repository`() =
+        runTest {
+            val repository = createMockRepository()
+            val viewModel = SettingsViewModel(repository)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.toggleAutoAdjustSensitivity(true)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            io.mockk.coVerify { repository.saveAutoAdjustSensitivity(true) }
+        }
+
+    @Test
+    fun `audioFeedbackEnabled loads from repository on init`() =
+        runTest {
+            val repository = mockk<SettingsRepository>(relaxed = true)
+            coEvery { repository.audioSource } returns flowOf(AudioSource.AUTO)
+            coEvery { repository.noiseGateThreshold } returns flowOf(0.01f)
+            coEvery { repository.audioFeedbackEnabled } returns flowOf(false)
+            coEvery { repository.defaultTuning } returns flowOf("Standard")
+            coEvery { repository.microphoneSensitivity } returns flowOf(1.0f)
+            coEvery { repository.autoAdjustSensitivity } returns flowOf(false)
+
+            val viewModel = SettingsViewModel(repository)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val audioFeedbackEnabled = viewModel.audioFeedbackEnabled.first()
+            assertFalse("Audio feedback should be loaded as false from repository", audioFeedbackEnabled)
+        }
+
+    @Test
+    fun `microphoneSensitivity loads from repository on init`() =
+        runTest {
+            val repository = mockk<SettingsRepository>(relaxed = true)
+            coEvery { repository.audioSource } returns flowOf(AudioSource.AUTO)
+            coEvery { repository.noiseGateThreshold } returns flowOf(0.01f)
+            coEvery { repository.audioFeedbackEnabled } returns flowOf(true)
+            coEvery { repository.defaultTuning } returns flowOf("Standard")
+            coEvery { repository.microphoneSensitivity } returns flowOf(1.8f)
+            coEvery { repository.autoAdjustSensitivity } returns flowOf(false)
+
+            val viewModel = SettingsViewModel(repository)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val sensitivity = viewModel.microphoneSensitivity.first()
+            assertEquals("Microphone sensitivity should be loaded as 1.8 from repository", 1.8f, sensitivity, 0.001f)
+        }
+
+    @Test
+    fun `autoAdjustSensitivity loads from repository on init`() =
+        runTest {
+            val repository = mockk<SettingsRepository>(relaxed = true)
+            coEvery { repository.audioSource } returns flowOf(AudioSource.AUTO)
+            coEvery { repository.noiseGateThreshold } returns flowOf(0.01f)
+            coEvery { repository.audioFeedbackEnabled } returns flowOf(true)
+            coEvery { repository.defaultTuning } returns flowOf("Standard")
+            coEvery { repository.microphoneSensitivity } returns flowOf(1.0f)
+            coEvery { repository.autoAdjustSensitivity } returns flowOf(true)
+
+            val viewModel = SettingsViewModel(repository)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val autoAdjust = viewModel.autoAdjustSensitivity.first()
+            assertTrue("Auto-adjust sensitivity should be loaded as true from repository", autoAdjust)
+        }
+
+    @Test
+    fun `defaultTuning loads from repository on init`() =
+        runTest {
+            val repository = mockk<SettingsRepository>(relaxed = true)
+            coEvery { repository.audioSource } returns flowOf(AudioSource.AUTO)
+            coEvery { repository.noiseGateThreshold } returns flowOf(0.01f)
+            coEvery { repository.audioFeedbackEnabled } returns flowOf(true)
+            coEvery { repository.defaultTuning } returns flowOf("Drop D")
+            coEvery { repository.microphoneSensitivity } returns flowOf(1.0f)
+            coEvery { repository.autoAdjustSensitivity } returns flowOf(false)
+
+            val viewModel = SettingsViewModel(repository)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val tuning = viewModel.defaultTuning.first()
+            assertEquals("Default tuning should be loaded as 'Drop D' from repository", "Drop D", tuning)
         }
 }

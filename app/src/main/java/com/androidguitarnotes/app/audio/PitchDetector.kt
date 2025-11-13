@@ -4,13 +4,13 @@ import kotlin.math.sqrt
 
 /**
  * Detects the pitch (fundamental frequency) from audio samples using normalized autocorrelation.
- * 
+ *
  * ## Normalized Autocorrelation
- * 
+ *
  * This implementation uses normalized autocorrelation to make pitch detection amplitude-independent.
  * Instead of raw correlation values (which depend on signal strength), we normalize by the
  * geometric mean of the segment energies, producing a confidence value between 0.0 and 1.0.
- * 
+ *
  * Benefits:
  * - Quiet but periodic signals are properly detected
  * - Confidence metric indicates signal periodicity quality
@@ -22,13 +22,13 @@ class PitchDetector(
     companion object {
         private const val MIN_FREQUENCY = 60.0 // Low E2 (~82 Hz), with margin
         private const val MAX_FREQUENCY = 1500.0 // High E4 + harmonics
-        
+
         // Minimum confidence threshold for detection.
         // 0.25 was empirically determined to balance false positives (detecting pitch in noisy/unpitched signals)
         // versus detection sensitivity (missing quiet but periodic signals). This value may need adjustment
         // for different instruments, environments, or application requirements.
         private const val MIN_CONFIDENCE = 0.25f
-        
+
         // Minimum signal energy to avoid numerical instability
         private const val MIN_ENERGY_THRESHOLD = 1e-10
     }
@@ -67,7 +67,7 @@ class PitchDetector(
             var correlation = 0.0
             var segmentEnergy = 0.0
             var lagEnergy = 0.0
-            
+
             // Calculate correlation and energies for the overlapping segment
             for (i in 0 until (audioData.size - lag)) {
                 correlation += audioData[i] * audioData[i + lag]
@@ -76,11 +76,12 @@ class PitchDetector(
             }
 
             // Normalize correlation by geometric mean of segment energies
-            val normalizedCorrelation = if (segmentEnergy > MIN_ENERGY_THRESHOLD && lagEnergy > MIN_ENERGY_THRESHOLD) {
-                (correlation / sqrt(segmentEnergy * lagEnergy)).toFloat()
-            } else {
-                0f
-            }
+            val normalizedCorrelation =
+                if (segmentEnergy > MIN_ENERGY_THRESHOLD && lagEnergy > MIN_ENERGY_THRESHOLD) {
+                    (correlation / sqrt(segmentEnergy * lagEnergy)).toFloat()
+                } else {
+                    0f
+                }
 
             // Apply a small bias factor to favor shorter lags (fundamental over sub-harmonics)
             // The bias decreases as lag increases, giving preference to higher frequencies
