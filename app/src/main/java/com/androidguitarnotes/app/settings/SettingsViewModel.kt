@@ -64,6 +64,34 @@ class SettingsViewModel(
                 _noiseGateThreshold.value = savedThreshold
             }
         }
+
+        // Load saved audio feedback enabled
+        viewModelScope.launch {
+            repository.audioFeedbackEnabled.collect { savedEnabled ->
+                _audioFeedbackEnabled.value = savedEnabled
+            }
+        }
+
+        // Load saved default tuning
+        viewModelScope.launch {
+            repository.defaultTuning.collect { savedTuning ->
+                _defaultTuning.value = savedTuning
+            }
+        }
+
+        // Load saved microphone sensitivity
+        viewModelScope.launch {
+            repository.microphoneSensitivity.collect { savedSensitivity ->
+                _microphoneSensitivity.value = savedSensitivity
+            }
+        }
+
+        // Load saved auto-adjust sensitivity
+        viewModelScope.launch {
+            repository.autoAdjustSensitivity.collect { savedAutoAdjust ->
+                _autoAdjustSensitivity.value = savedAutoAdjust
+            }
+        }
     }
 
     /**
@@ -71,6 +99,9 @@ class SettingsViewModel(
      */
     fun toggleAudioFeedback(enabled: Boolean) {
         _audioFeedbackEnabled.value = enabled
+        viewModelScope.launch {
+            repository.saveAudioFeedbackEnabled(enabled)
+        }
     }
 
     /**
@@ -78,6 +109,9 @@ class SettingsViewModel(
      */
     fun setDefaultTuning(tuning: String) {
         _defaultTuning.value = tuning
+        viewModelScope.launch {
+            repository.saveDefaultTuning(tuning)
+        }
     }
 
     /**
@@ -85,6 +119,9 @@ class SettingsViewModel(
      */
     fun setMicrophoneSensitivity(sensitivity: Float) {
         _microphoneSensitivity.value = sensitivity.coerceIn(0.5f, 2.0f)
+        viewModelScope.launch {
+            repository.saveMicrophoneSensitivity(_microphoneSensitivity.value)
+        }
     }
 
     /**
@@ -97,6 +134,9 @@ class SettingsViewModel(
      */
     fun toggleAutoAdjustSensitivity(enabled: Boolean) {
         _autoAdjustSensitivity.value = enabled
+        viewModelScope.launch {
+            repository.saveAutoAdjustSensitivity(enabled)
+        }
     }
 
     /**

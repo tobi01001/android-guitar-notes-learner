@@ -5,9 +5,9 @@ import kotlinx.coroutines.flow.map
 
 /**
  * Manages audio recording, pitch detection, and note recognition.
- * 
+ *
  * ## Canonical Note Detection Model
- * 
+ *
  * All audio analysis results are modeled using a consistent DetectedNote data structure.
  * This provides:
  * - Predictable, non-null result for every frame
@@ -22,10 +22,10 @@ class AudioManager {
 
     /**
      * Canonical data model for note detection results.
-     * 
+     *
      * This structure is always populated, even when no note is detected.
      * Downstream code can rely on a consistent interface without null checks.
-     * 
+     *
      * @param isDetected True if a clear note was detected, false otherwise
      * @param noteName Note name (e.g., "A", "C#") or "?" if not detected
      * @param frequency Detected frequency in Hz, or null if not detected

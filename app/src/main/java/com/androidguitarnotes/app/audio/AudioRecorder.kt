@@ -53,7 +53,7 @@ import kotlin.coroutines.coroutineContext
  *
  * The filter does not affect guitar notes (lowest E2 is 82 Hz) and improves pitch detection
  * accuracy by reducing spurious low-frequency triggers.
- * 
+ *
  * **Configurable cutoff:** While default is 60 Hz, the cutoff can be adjusted (40-80 Hz range)
  * based on environmental noise conditions and guitar tuning.
  *
@@ -399,7 +399,7 @@ class AudioRecorder {
 
     /**
      * Applies sensitivity multiplier to audio data.
-     * 
+     *
      * Note: Per audio pipeline best practices, we do NOT hard-clamp samples during analysis.
      * Hard clamping creates irreversible distortion and loss of harmonics that hinders
      * autocorrelation and spectral analysis. Clamping should only occur before playback/output.
