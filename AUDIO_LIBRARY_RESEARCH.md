@@ -866,31 +866,69 @@ class YinPitchDetector(
     }
     
     private fun calculateDifference(audioData: FloatArray): FloatArray {
-        // Implement difference function from YIN paper
-        // ...
+        // NOTE: Placeholder implementation. See YIN paper (De Cheveigné & Kawahara, 2002) for details.
+        // Pseudo-code:
+        // val difference = FloatArray(audioData.size)
+        // for (tau in 1 until audioData.size) {
+        //     var sum = 0f
+        //     for (j in 0 until audioData.size - tau) {
+        //         val diff = audioData[j] - audioData[j + tau]
+        //         sum += diff * diff
+        //     }
+        //     difference[tau] = sum
+        // }
+        // return difference
+        throw NotImplementedError("See YIN paper for implementation.")
     }
     
     private fun cumulativeMeanNormalizedDifference(
         difference: FloatArray
     ): FloatArray {
-        // Implement CMND from YIN paper
-        // ...
+        // NOTE: Placeholder implementation. See YIN paper (De Cheveigné & Kawahara, 2002) for details.
+        // Pseudo-code:
+        // val cmnd = FloatArray(difference.size)
+        // cmnd[0] = 1f
+        // var runningSum = 0f
+        // for (tau in 1 until difference.size) {
+        //     runningSum += difference[tau]
+        //     cmnd[tau] = difference[tau] / ((runningSum / tau) + 1e-8f)
+        // }
+        // return cmnd
+        throw NotImplementedError("See YIN paper for implementation.")
     }
     
     private fun absoluteThreshold(
         normalized: FloatArray, 
         threshold: Float
     ): Int? {
-        // Find first value below threshold
-        // ...
+        // NOTE: Placeholder implementation. See YIN paper (De Cheveigné & Kawahara, 2002) for details.
+        // Pseudo-code:
+        // for (tau in 2 until normalized.size) {
+        //     if (normalized[tau] < threshold) {
+        //         return tau
+        //     }
+        // }
+        // return null
+        throw NotImplementedError("See YIN paper for implementation.")
     }
     
     private fun parabolicInterpolation(
         normalized: FloatArray,
         tau: Int
     ): Double {
-        // Parabolic interpolation for sub-sample accuracy
-        // ...
+        // NOTE: Placeholder implementation. See YIN paper (De Cheveigné & Kawahara, 2002) for details.
+        // Pseudo-code:
+        // val x0 = tau - 1
+        // val x1 = tau
+        // val x2 = tau + 1
+        // val y0 = normalized.getOrElse(x0) { 1f }
+        // val y1 = normalized[x1]
+        // val y2 = normalized.getOrElse(x2) { 1f }
+        // val denom = (y2 + y0 - 2 * y1)
+        // if (denom == 0f) return tau.toDouble()
+        // val delta = (y0 - y2) / (2 * denom)
+        // return tau + delta
+        throw NotImplementedError("See YIN paper for implementation.")
     }
 }
 
