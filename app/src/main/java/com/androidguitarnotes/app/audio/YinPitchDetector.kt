@@ -125,16 +125,6 @@ class YinPitchDetector(
      * d_t(tau) = sum((x_j - x_{j+tau})^2)
      *
      * This measures how different the signal is from a time-shifted version of itself.
-     * 
-     * CRITICAL: The summation must iterate over (audioData.size - tau) samples, not
-     * (audioData.size - maxLag). Using maxLag creates a fixed-length window that causes
-     * systematic bias toward shorter lags (higher frequencies), resulting in incorrect
-     * pitch detection for low frequencies. Each lag tau must be evaluated over its own
-     * maximum valid window to ensure accurate comparison.
-     * 
-     * NOTE: Since different lags use different window sizes, we normalize by the number
-     * of samples to make values comparable. Without this normalization, larger lags would
-     * have systematically smaller values simply due to fewer samples in the sum.
      */
     private fun calculateDifference(
         audioData: FloatArray,
@@ -144,13 +134,11 @@ class YinPitchDetector(
 
         for (tau in 0..maxLag) {
             var sum = 0.0
-            val windowSize = audioData.size - tau
-            for (j in 0 until windowSize) {
+            for (j in 0 until (audioData.size - maxLag)) {
                 val delta = audioData[j] - audioData[j + tau]
                 sum += delta * delta
             }
-            // Normalize by window size to make different lags comparable
-            difference[tau] = (sum / windowSize).toFloat()
+            difference[tau] = sum.toFloat()
         }
 
         return difference
