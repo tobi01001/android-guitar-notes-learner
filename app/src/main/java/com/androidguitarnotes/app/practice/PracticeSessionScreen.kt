@@ -220,9 +220,9 @@ private fun ActiveSessionScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Large note display
+            // Compact note display card
             Card(
-                modifier = Modifier.fillMaxWidth(0.8f),
+                modifier = Modifier.fillMaxWidth(0.6f),
                 colors =
                     CardDefaults.cardColors(
                         containerColor = NoteColors.getLightColorForNote(state.currentNote.noteName),
@@ -232,17 +232,18 @@ private fun ActiveSessionScreen(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .padding(32.dp),
+                            .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
                         text = state.currentNote.noteNameWithOctave,
-                        style = MaterialTheme.typography.displayLarge,
-                        fontSize = 96.sp,
+                        style = MaterialTheme.typography.displayMedium,
+                        fontSize = 48.sp,
                         color = NoteColors.getDarkColorForNote(state.currentNote.noteName),
+                        maxLines = 1,
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
                         text =
@@ -251,21 +252,22 @@ private fun ActiveSessionScreen(
                                 state.currentNote.stringNumber,
                                 state.currentNote.fret,
                             ),
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Fretboard visualization showing target note position
+            // Fretboard visualization showing target note position (only on target string)
             FretboardView(
                 detectedNote = state.currentNote.noteName,
                 detectedNoteWithOctave = state.currentNote.noteNameWithOctave,
                 maxFret = 12,
                 highlightAlpha = 1.0f,
                 isPersisted = false,
+                targetStringNumber = state.currentNote.stringNumber, // Show only on target string
             )
 
             // Note feedback display - always show for all modes

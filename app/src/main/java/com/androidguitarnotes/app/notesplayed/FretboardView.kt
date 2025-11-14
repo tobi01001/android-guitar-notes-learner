@@ -23,6 +23,7 @@ private const val GUITAR_STRINGS = 6
 // Realistic fretboard colors
 private val FRETBOARD_WOOD_COLOR = Color(0xFF8B5A3C) // Rosewood brown
 private val FRET_BAR_COLOR = Color(0xFFC0C0C0) // Silver/metal
+private val NUT_COLOR = Color(0xFFF5F5DC) // Beige/bone color for nut (fret 0)
 private val STRING_COLOR = Color(0xFF808080) // Steel grey
 
 /**
@@ -37,6 +38,7 @@ private val STRING_COLOR = Color(0xFF808080) // Steel grey
  * @param maxFret The maximum fret number to display (default is 12).
  * @param highlightAlpha The alpha (opacity) value for highlighted notes (0.0 to 1.0).
  * @param isPersisted Whether the note is persisted (no longer actively detected).
+ * @param targetStringNumber If specified, only highlight notes on this string (for practice mode).
  * @param modifier Modifier to be applied to the fretboard container.
  */
 @Composable
@@ -46,15 +48,28 @@ fun FretboardView(
     maxFret: Int = 12,
     highlightAlpha: Float = 1.0f,
     isPersisted: Boolean = false,
+    targetStringNumber: Int? = null,
     modifier: Modifier = Modifier,
 ) {
     val highlightedPositions =
         if (detectedNoteWithOctave != null) {
             // Use octave-sensitive detection if available
-            FretboardHelper.findPositionsForNoteWithOctave(detectedNoteWithOctave, maxFret)
+            val positions = FretboardHelper.findPositionsForNoteWithOctave(detectedNoteWithOctave, maxFret)
+            // Filter by target string if specified (for practice mode)
+            if (targetStringNumber != null) {
+                positions.filter { it.stringNumber == targetStringNumber }
+            } else {
+                positions
+            }
         } else if (detectedNote != null) {
             // Fall back to note name only
-            FretboardHelper.findPositionsForNote(detectedNote, maxFret)
+            val positions = FretboardHelper.findPositionsForNote(detectedNote, maxFret)
+            // Filter by target string if specified (for practice mode)
+            if (targetStringNumber != null) {
+                positions.filter { it.stringNumber == targetStringNumber }
+            } else {
+                positions
+            }
         } else {
             emptyList()
         }
@@ -80,27 +95,60 @@ fun FretboardView(
                     .clip(RoundedCornerShape(8.dp))
                     .background(FRETBOARD_WOOD_COLOR),
         ) {
-            Row(
+            Column(
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp),
             ) {
-                // Fret markers (dots) - positioned between strings 3 and 4
-                FretMarkers(maxFret = maxFret)
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                // Strings and frets
+                // String labels
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     for (stringNumber in GUITAR_STRINGS downTo 1) {
-                        StringColumn(
-                            stringNumber = stringNumber,
-                            maxFret = maxFret,
-                            highlightedPositions = highlightedPositions,
-                            detectedNote = detectedNote,
-                            highlightAlpha = highlightAlpha,
-                            isPersisted = isPersisted,
-                        )
+                        Box(
+                            modifier = Modifier.width(32.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = stringNumber.toString(),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Fretboard with strings, frets, and notes
+                Box {
+                    // Fret markers (dots) on the left side between strings 3 and 4
+                    Row {
+                        FretMarkers(maxFret = maxFret)
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        // Strings, fret bars, and note markers
+                        Box {
+                            // Fret bars crossing all strings
+                            FretBars(maxFret = maxFret)
+
+                            // Strings and note markers
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
+                                for (stringNumber in GUITAR_STRINGS downTo 1) {
+                                    StringColumn(
+                                        stringNumber = stringNumber,
+                                        maxFret = maxFret,
+                                        highlightedPositions = highlightedPositions,
+                                        detectedNote = detectedNote,
+                                        highlightAlpha = highlightAlpha,
+                                        isPersisted = isPersisted,
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -171,7 +219,50 @@ private fun MarkerDot(
 }
 
 /**
- * Displays fret numbers on the left side of the fretboard.
+ * Displays fret bars crossing the entire neck.
+ */
+@Composable
+private fun FretBars(
+    maxFret: Int,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier =
+            modifier
+                .fillMaxWidth(),
+        verticalArrangement = Arrangement.SpaceEvenly,
+    ) {
+        for (fret in 0..maxFret) {
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.TopCenter,
+            ) {
+                if (fret == 0) {
+                    // Nut at fret 0 (thicker, bone/plastic color)
+                    Box(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(4.dp)
+                                .background(NUT_COLOR),
+                    )
+                } else {
+                    // Metal fret bars
+                    Box(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(2.dp)
+                                .background(FRET_BAR_COLOR),
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Displays fret numbers on the left side of the fretboard, aligned with fret bars.
  */
 @Composable
 private fun FretNumbers(
@@ -188,7 +279,7 @@ private fun FretNumbers(
         for (fret in 0..maxFret) {
             Box(
                 modifier = Modifier.weight(1f),
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.TopCenter,
             ) {
                 Text(
                     text = fret.toString(),
@@ -203,7 +294,7 @@ private fun FretNumbers(
 }
 
 /**
- * Displays a single string with its frets.
+ * Displays a single string with note markers at fret intersections.
  */
 @Composable
 private fun StringColumn(
@@ -239,63 +330,32 @@ private fun StringColumn(
                 Modifier
                     .width(stringWidth)
                     .fillMaxHeight()
-                    .padding(top = 40.dp)
                     .background(STRING_COLOR),
         )
 
+        // Note markers at fret intersections
         Column(
             modifier = Modifier.fillMaxHeight(),
             horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly,
         ) {
-            // String label
-            Text(
-                text = stringNumber.toString(),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                modifier =
-                    Modifier
-                        .height(32.dp)
-                        .wrapContentHeight(Alignment.CenterVertically),
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Frets with fret bars
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.SpaceEvenly,
-            ) {
-                for (fret in 0..maxFret) {
-                    val isHighlighted =
-                        highlightedPositions.any {
-                            it.stringNumber == stringNumber && it.fret == fret
-                        }
-
-                    Box(
-                        modifier = Modifier.weight(1f),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        // Fret bar (horizontal metal bar)
-                        if (fret > 0) {
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .height(2.dp)
-                                        .align(Alignment.TopCenter)
-                                        .background(FRET_BAR_COLOR),
-                            )
-                        }
-
-                        // Note marker at string/fret intersection
-                        FretMarker(
-                            isHighlighted = isHighlighted,
-                            noteName = detectedNote,
-                            highlightAlpha = highlightAlpha,
-                            isPersisted = isPersisted,
-                        )
+            for (fret in 0..maxFret) {
+                val isHighlighted =
+                    highlightedPositions.any {
+                        it.stringNumber == stringNumber && it.fret == fret
                     }
+
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.TopCenter,
+                ) {
+                    // Note marker at string/fret intersection (at the fret bar)
+                    FretMarker(
+                        isHighlighted = isHighlighted,
+                        noteName = detectedNote,
+                        highlightAlpha = highlightAlpha,
+                        isPersisted = isPersisted,
+                    )
                 }
             }
         }

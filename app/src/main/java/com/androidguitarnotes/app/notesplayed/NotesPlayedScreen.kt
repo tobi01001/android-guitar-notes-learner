@@ -237,6 +237,7 @@ private fun NoteCard(
         modifier =
             modifier
                 .fillMaxWidth()
+                .height(160.dp) // Fixed height to prevent card movement
                 .padding(horizontal = 16.dp),
         colors =
             CardDefaults.cardColors(
@@ -267,11 +268,11 @@ private fun NoteCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
-            // Large note name display with animation
+            // Large note name display with animation - fixed size to prevent jumping
             Box(
                 modifier =
                     Modifier
-                        .size(120.dp)
+                        .size(width = 140.dp, height = 120.dp) // Fixed size to accommodate sharps
                         .graphicsLayer(
                             scaleX = noteScale,
                             scaleY = noteScale,
@@ -300,9 +301,10 @@ private fun NoteCard(
                     Text(
                         text = detectedNote.noteNameWithOctave,
                         style = MaterialTheme.typography.displayLarge,
-                        fontSize = 72.sp,
+                        fontSize = 64.sp, // Slightly smaller to fit sharps better
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimary,
+                        maxLines = 1,
                     )
                 } else {
                     Text(
