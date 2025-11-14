@@ -74,31 +74,23 @@ fun FretboardView(
             emptyList()
         }
 
-    Row(
+    Column(
         modifier =
             modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
     ) {
-        // Fret numbers
-        FretNumbers(maxFret = maxFret)
-
-        Spacer(modifier = Modifier.width(8.dp))
-
         // Main fretboard area with wooden background
         Box(
             modifier =
                 Modifier
                     .clip(RoundedCornerShape(8.dp))
-                    .background(FRETBOARD_WOOD_COLOR),
+                    .background(FRETBOARD_WOOD_COLOR)
+                    .padding(horizontal = 8.dp, vertical = 12.dp),
         ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp),
-            ) {
-                // String labels
+            Column {
+                // String labels (6 = low E on left, 1 = high E on right)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -120,44 +112,59 @@ fun FretboardView(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Fretboard with strings, frets, and notes
-                Box {
-                    // Fret markers (dots) on the left side between strings 3 and 4
-                    Row {
-                        FretMarkers(maxFret = maxFret)
+                // Fret numbers and fretboard content
+                Row {
+                    // Fret numbers aligned with fret bars
+                    FretNumbers(maxFret = maxFret)
 
-                        Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
 
-                        // Strings, fret bars, and note markers
-                        Box {
-                            // Fret bars crossing all strings
-                            FretBars(maxFret = maxFret)
+                    // Fretboard with strings, frets, and notes
+                    Box {
+                        // Fret bars crossing all strings
+                        FretBars(maxFret = maxFret)
 
-                            // Strings and note markers
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            ) {
-                                for (stringNumber in GUITAR_STRINGS downTo 1) {
-                                    StringColumn(
-                                        stringNumber = stringNumber,
-                                        maxFret = maxFret,
-                                        highlightedPositions = highlightedPositions,
-                                        detectedNote = detectedNote,
-                                        highlightAlpha = highlightAlpha,
-                                        isPersisted = isPersisted,
-                                    )
-                                }
+                        // Strings, fret markers, and note markers
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            // Strings 6-4 (low E, A, D)
+                            for (stringNumber in GUITAR_STRINGS downTo 4) {
+                                StringColumn(
+                                    stringNumber = stringNumber,
+                                    maxFret = maxFret,
+                                    highlightedPositions = highlightedPositions,
+                                    detectedNote = detectedNote,
+                                    highlightAlpha = highlightAlpha,
+                                    isPersisted = isPersisted,
+                                )
                             }
-                        }
-                    }
-                }
-            }
-        }
-    }
+
+                            // Fret markers between strings 3 and 4
+                            FretMarkers(maxFret = maxFret)
+
+                            // Strings 3-1 (G, B, high E)
+                            for (stringNumber in 3 downTo 1) {
+                                StringColumn(
+                                    stringNumber = stringNumber,
+                                    maxFret = maxFret,
+                                    highlightedPositions = highlightedPositions,
+                                    detectedNote = detectedNote,
+                                    highlightAlpha = highlightAlpha,
+                                    isPersisted = isPersisted,
+                                )
+                            }
+                        } // End Row (strings and markers)
+                    } // End Box (fretboard content)
+                } // End Row (fret numbers + content)
+            } // End Column (labels + fretboard)
+        } // End Box (wooden background)
+    } // End Column (outer container)
 }
 
 /**
  * Displays standard fret markers (dots at frets 3, 5, 7, 9 and double dots at 12).
+ * Positioned between strings 3 and 4.
  */
 @Composable
 private fun FretMarkers(
@@ -169,30 +176,28 @@ private fun FretMarkers(
     Column(
         modifier =
             modifier
-                .width(24.dp)
-                // Padding aligns fret markers with the fret positions below, accounting for the string label area.
-                .padding(top = 40.dp),
+                .width(20.dp),
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         for (fret in 0..maxFret) {
             Box(
                 modifier = Modifier.weight(1f),
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.TopCenter, // Align with fret bars
             ) {
                 when {
                     fret == 12 -> {
                         // Double dots at fret 12
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(3.dp),
                         ) {
-                            MarkerDot(size = 6.dp)
-                            MarkerDot(size = 6.dp)
+                            MarkerDot(size = 5.dp)
+                            MarkerDot(size = 5.dp)
                         }
                     }
                     fret in markerFrets -> {
                         // Single dot at frets 3, 5, 7, 9
-                        MarkerDot(size = 8.dp)
+                        MarkerDot(size = 7.dp)
                     }
                 }
             }
@@ -270,10 +275,7 @@ private fun FretNumbers(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier =
-            modifier
-                // Padding aligns fret numbers with the fret markers below, accounting for the string label area.
-                .padding(top = 40.dp),
+        modifier = modifier,
         verticalArrangement = Arrangement.SpaceEvenly,
     ) {
         for (fret in 0..maxFret) {
