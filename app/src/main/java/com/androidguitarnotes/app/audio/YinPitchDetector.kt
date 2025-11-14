@@ -4,7 +4,7 @@ import kotlin.math.abs
 import kotlin.math.min
 
 /**
- * YIN pitch detection algorithm implementation.
+ * YIN pitch detection algorithm implementation with enhancements.
  *
  * Based on "YIN, a fundamental frequency estimator for speech and music"
  * by De Cheveigné & Kawahara (2002).
@@ -15,13 +15,19 @@ import kotlin.math.min
  * 3. Using absolute thresholding for reliable period detection
  * 4. Adding parabolic interpolation for sub-sample accuracy
  *
+ * ## Enhancements (Issue #84):
+ * - **Adaptive Threshold**: Dynamically adjusts threshold based on signal characteristics
+ * - **Multi-Period Analysis**: Validates detected period against multiple candidates
+ *
  * This implementation is designed for guitar note detection (60 Hz - 1500 Hz range)
  * and provides improved accuracy (±1 Hz typical, ±0.1 Hz with interpolation) compared
  * to basic autocorrelation.
  */
 class YinPitchDetector(
     private val sampleRate: Int = 44100,
-    private val threshold: Float = 0.1f, // Absolute threshold for detection (0.05-0.2 typical)
+    private val threshold: Float = 0.1f, // Base threshold for detection (0.05-0.2 typical)
+    private val adaptiveThreshold: Boolean = false, // Enable adaptive threshold adjustment
+    private val multiPeriodAnalysis: Boolean = false, // Enable multi-period validation
 ) {
     companion object {
         private const val MIN_FREQUENCY = 60.0 // Low E2 (~82 Hz), with margin
@@ -29,6 +35,15 @@ class YinPitchDetector(
 
         // Minimum signal energy to avoid processing silence
         private const val MIN_ENERGY_THRESHOLD = 1e-10
+        
+        // Adaptive threshold parameters
+        private const val ADAPTIVE_THRESHOLD_MIN = 0.05f // Minimum threshold for clean signals
+        private const val ADAPTIVE_THRESHOLD_MAX = 0.25f // Maximum threshold for noisy signals
+        private const val HIGH_SNR_THRESHOLD = 20.0 // High SNR in dB
+        private const val LOW_SNR_THRESHOLD = 5.0 // Low SNR in dB
+        
+        // Multi-period analysis parameters
+        private const val MAX_PERIOD_CANDIDATES = 3 // Number of period candidates to validate
     }
 
     /**
@@ -40,7 +55,7 @@ class YinPitchDetector(
     )
 
     /**
-     * Detects the fundamental frequency using the YIN algorithm.
+     * Detects the fundamental frequency using the YIN algorithm with enhancements.
      *
      * @param audioData Array of audio samples (PCM float)
      * @return YinResult with frequency and confidence, or null if no clear pitch detected
@@ -65,13 +80,27 @@ class YinPitchDetector(
         // Step 2: Calculate cumulative mean normalized difference function
         val normalizedDifference = cumulativeMeanNormalizedDifference(differenceFunction)
 
+        // Enhancement 1: Adaptive Threshold - adjust based on signal characteristics
+        val effectiveThreshold = if (adaptiveThreshold) {
+            calculateAdaptiveThreshold(audioData, normalizedDifference, energy)
+        } else {
+            threshold
+        }
+
         // Step 3: Find the first lag below threshold (absolute threshold)
         val detectedLag =
-            findAbsoluteThreshold(normalizedDifference, minLag, threshold)
+            findAbsoluteThreshold(normalizedDifference, minLag, effectiveThreshold)
                 ?: return null
 
+        // Enhancement 2: Multi-Period Analysis - validate against multiple candidates
+        val validatedLag = if (multiPeriodAnalysis) {
+            validateMultiplePeriods(normalizedDifference, detectedLag, minLag, effectiveThreshold)
+        } else {
+            detectedLag
+        }
+
         // Step 4: Apply parabolic interpolation for sub-sample accuracy
-        val refinedLag = parabolicInterpolation(normalizedDifference, detectedLag)
+        val refinedLag = parabolicInterpolation(normalizedDifference, validatedLag)
 
         // Calculate frequency from refined lag
         val frequency = sampleRate.toDouble() / refinedLag
@@ -83,7 +112,7 @@ class YinPitchDetector(
 
         // Confidence is the normalized difference at the detected lag
         // Lower values indicate better periodicity (inverted from autocorrelation)
-        val confidence = normalizedDifference[detectedLag]
+        val confidence = normalizedDifference[validatedLag]
 
         return YinResult(frequency, confidence)
     }
@@ -244,5 +273,195 @@ class YinPitchDetector(
             energy += sample * sample
         }
         return energy
+    }
+
+    /**
+     * Enhancement 1: Calculate adaptive threshold based on signal characteristics.
+     *
+     * Analyzes:
+     * - RMS level (signal strength)
+     * - Estimated SNR (signal-to-noise ratio)
+     * - Harmonic content (periodicity quality from normalized difference)
+     *
+     * Goals:
+     * - Lower threshold for clean, strong signals (better detection of subtle variations)
+     * - Higher threshold for noisy, weak signals (reduce false positives)
+     *
+     * @param audioData Raw audio samples
+     * @param normalizedDifference YIN normalized difference function
+     * @param energy Total signal energy
+     * @return Adapted threshold value (ADAPTIVE_THRESHOLD_MIN to ADAPTIVE_THRESHOLD_MAX)
+     */
+    private fun calculateAdaptiveThreshold(
+        audioData: FloatArray,
+        normalizedDifference: FloatArray,
+        energy: Double,
+    ): Float {
+        // Calculate RMS level
+        val rms = kotlin.math.sqrt(energy / audioData.size)
+        
+        // Estimate SNR: ratio of signal power to noise floor estimate
+        // Use minimum difference as noise floor proxy
+        val minDifference = normalizedDifference.drop(1).minOrNull() ?: 0.5f
+        val avgDifference = normalizedDifference.drop(1).average().toFloat()
+        
+        // SNR estimate in dB (simple heuristic)
+        val snrEstimate = if (minDifference > 0.0001f) {
+            20 * kotlin.math.log10((avgDifference / minDifference).toDouble())
+        } else {
+            HIGH_SNR_THRESHOLD // Assume high SNR if very periodic
+        }
+        
+        // Adaptive threshold calculation
+        val adaptedThreshold = when {
+            // High SNR and good RMS: use stricter threshold for better precision
+            snrEstimate >= HIGH_SNR_THRESHOLD && rms >= 0.05 -> {
+                ADAPTIVE_THRESHOLD_MIN
+            }
+            // Low SNR or weak signal: use looser threshold to avoid missing detections
+            snrEstimate <= LOW_SNR_THRESHOLD || rms < 0.01 -> {
+                ADAPTIVE_THRESHOLD_MAX
+            }
+            // Medium conditions: interpolate
+            else -> {
+                val snrFactor = ((snrEstimate - LOW_SNR_THRESHOLD) / (HIGH_SNR_THRESHOLD - LOW_SNR_THRESHOLD))
+                    .toFloat()
+                    .coerceIn(0f, 1f)
+                val rmsFactor = ((rms - 0.01) / (0.05 - 0.01))
+                    .toFloat()
+                    .coerceIn(0f, 1f)
+                
+                // Weighted average: prioritize SNR but consider RMS
+                val combinedFactor = (snrFactor * 0.7f + rmsFactor * 0.3f)
+                ADAPTIVE_THRESHOLD_MAX - combinedFactor * (ADAPTIVE_THRESHOLD_MAX - ADAPTIVE_THRESHOLD_MIN)
+            }
+        }
+        
+        return adaptedThreshold.coerceIn(ADAPTIVE_THRESHOLD_MIN, ADAPTIVE_THRESHOLD_MAX)
+    }
+
+    /**
+     * Enhancement 2: Validate detected period against multiple period candidates.
+     *
+     * Finds and analyzes multiple local minima in the normalized difference function
+     * to confirm the fundamental frequency. This guards against:
+     * - Octave errors (detecting 2f instead of f)
+     * - Sub-harmonic errors (detecting f/2 instead of f)
+     * - Noise-induced false positives
+     *
+     * Strategy:
+     * 1. Find multiple period candidates (local minima below threshold)
+     * 2. Check for harmonic relationships (2:1, 3:1, etc.)
+     * 3. Choose the most likely fundamental based on:
+     *    - Minimum normalized difference (best periodicity)
+     *    - Harmonic support (presence of integer multiple periods)
+     *
+     * @param normalizedDifference YIN normalized difference function
+     * @param initialLag Initially detected lag
+     * @param minLag Minimum valid lag
+     * @param threshold Detection threshold
+     * @return Validated lag (may be same as initial or corrected)
+     */
+    private fun validateMultiplePeriods(
+        normalizedDifference: FloatArray,
+        initialLag: Int,
+        minLag: Int,
+        threshold: Float,
+    ): Int {
+        // Find multiple period candidates (local minima below threshold)
+        val candidates = findPeriodCandidates(normalizedDifference, minLag, threshold)
+        
+        if (candidates.size <= 1) {
+            // Only one candidate, no validation needed
+            return initialLag
+        }
+        
+        // Analyze candidates for harmonic relationships
+        var bestLag = initialLag
+        var bestScore = normalizedDifference[initialLag]
+        
+        for (candidate in candidates.take(MAX_PERIOD_CANDIDATES)) {
+            val lag = candidate.first
+            val value = candidate.second
+            
+            // Check if this candidate has harmonic support
+            val harmonicSupport = countHarmonicSupport(lag, candidates)
+            
+            // Score combines periodicity quality (lower value = better)
+            // with harmonic support (more harmonics = better)
+            // Prefer candidates with strong harmonic support
+            val score = value - (harmonicSupport * 0.02f) // Bonus for harmonic support
+            
+            if (score < bestScore) {
+                bestScore = score
+                bestLag = lag
+            }
+        }
+        
+        return bestLag
+    }
+
+    /**
+     * Find period candidates: local minima in normalized difference below threshold.
+     *
+     * @return List of (lag, value) pairs sorted by value (best first)
+     */
+    private fun findPeriodCandidates(
+        normalizedDifference: FloatArray,
+        minLag: Int,
+        threshold: Float,
+    ): List<Pair<Int, Float>> {
+        val candidates = mutableListOf<Pair<Int, Float>>()
+        
+        var tau = minLag
+        while (tau < normalizedDifference.size - 1) {
+            if (normalizedDifference[tau] < threshold) {
+                // Found a point below threshold, find local minimum
+                val localMin = findLocalMinimum(normalizedDifference, tau)
+                candidates.add(Pair(localMin, normalizedDifference[localMin]))
+                
+                // Skip ahead to avoid finding the same minimum multiple times
+                tau = localMin + (localMin / 2).coerceAtLeast(5)
+            } else {
+                tau++
+            }
+        }
+        
+        // Sort by value (best periodicity first)
+        return candidates.sortedBy { it.second }
+    }
+
+    /**
+     * Count how many other candidates are harmonics of this lag.
+     *
+     * A harmonic relationship exists if candidate2 ≈ n × candidate1 (where n = 2, 3, ...)
+     *
+     * @param lag The lag to check
+     * @param candidates All period candidates
+     * @return Number of harmonics found
+     */
+    private fun countHarmonicSupport(
+        lag: Int,
+        candidates: List<Pair<Int, Float>>,
+    ): Int {
+        var harmonicCount = 0
+        
+        for (candidate in candidates) {
+            val otherLag = candidate.first
+            if (otherLag == lag) continue
+            
+            // Check if otherLag is approximately an integer multiple of lag
+            val ratio = otherLag.toDouble() / lag.toDouble()
+            val nearestInt = kotlin.math.round(ratio).toInt()
+            
+            if (nearestInt >= 2 && nearestInt <= 4) {
+                val error = abs(ratio - nearestInt)
+                if (error < 0.05) { // Within 5% of integer ratio
+                    harmonicCount++
+                }
+            }
+        }
+        
+        return harmonicCount
     }
 }
