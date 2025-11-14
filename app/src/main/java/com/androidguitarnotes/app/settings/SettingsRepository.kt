@@ -27,6 +27,7 @@ class SettingsRepository(
         val DEFAULT_TUNING = stringPreferencesKey("default_tuning")
         val MICROPHONE_SENSITIVITY = floatPreferencesKey("microphone_sensitivity")
         val AUTO_ADJUST_SENSITIVITY = booleanPreferencesKey("auto_adjust_sensitivity")
+        val PITCH_DETECTION_ALGORITHM = stringPreferencesKey("pitch_detection_algorithm")
     }
 
     /**
@@ -130,5 +131,22 @@ class SettingsRepository(
     val autoAdjustSensitivity: Flow<Boolean> =
         context.settingsDataStore.data.map { preferences ->
             preferences[PreferencesKeys.AUTO_ADJUST_SENSITIVITY] ?: false
+        }
+
+    /**
+     * Saves the pitch detection algorithm setting.
+     */
+    suspend fun savePitchDetectionAlgorithm(algorithm: String) {
+        context.settingsDataStore.edit { preferences ->
+            preferences[PreferencesKeys.PITCH_DETECTION_ALGORITHM] = algorithm
+        }
+    }
+
+    /**
+     * Loads the pitch detection algorithm setting (default "YIN").
+     */
+    val pitchDetectionAlgorithm: Flow<String> =
+        context.settingsDataStore.data.map { preferences ->
+            preferences[PreferencesKeys.PITCH_DETECTION_ALGORITHM] ?: "YIN"
         }
 }

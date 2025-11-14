@@ -18,6 +18,33 @@ enum class PitchDetectionAlgorithm {
      * Recommended for guitar tuning and precise note detection.
      */
     YIN,
+
+    /**
+     * YIN with adaptive threshold (Enhancement #84.1).
+     * Dynamically adjusts threshold based on signal characteristics.
+     * Better for varying signal conditions (quiet notes, noisy backgrounds).
+     */
+    YIN_ADAPTIVE,
+
+    /**
+     * YIN with multi-period analysis (Enhancement #84.2).
+     * Validates detected period against multiple candidates.
+     * Reduces octave errors and false positives.
+     */
+    YIN_MULTI_PERIOD,
+
+    /**
+     * YIN with both adaptive threshold and multi-period analysis (Enhancement #84.1+2).
+     * Combines both enhancements for maximum robustness.
+     */
+    YIN_ENHANCED,
+
+    /**
+     * Hybrid YIN + FFT detector (Enhancement #84.3).
+     * Combines time-domain (YIN) and frequency-domain (FFT) analysis.
+     * Best accuracy and robustness for challenging cases.
+     */
+    HYBRID_YIN_FFT,
 }
 
 /**
@@ -26,6 +53,10 @@ enum class PitchDetectionAlgorithm {
  * Supports multiple detection algorithms:
  * - AUTOCORRELATION: Normalized autocorrelation (original implementation)
  * - YIN: YIN algorithm with parabolic interpolation (improved accuracy)
+ * - YIN_ADAPTIVE: YIN with adaptive threshold (Enhancement #84.1)
+ * - YIN_MULTI_PERIOD: YIN with multi-period analysis (Enhancement #84.2)
+ * - YIN_ENHANCED: YIN with both adaptive threshold and multi-period analysis
+ * - HYBRID_YIN_FFT: Hybrid YIN + FFT detector (Enhancement #84.3)
  *
  * ## Normalized Autocorrelation
  *
@@ -45,12 +76,34 @@ enum class PitchDetectionAlgorithm {
  * - Absolute threshold for period detection
  * - Parabolic interpolation for sub-sample accuracy
  * - Better noise robustness and fewer octave errors
+ *
+ * ## YIN Enhancements (Issue #84)
+ *
+ * ### Adaptive Threshold (#84.1)
+ * Dynamically adjusts YIN's threshold based on signal characteristics (RMS, SNR, harmonic content).
+ * Benefits: Better accuracy across varying conditions, fewer false positives.
+ *
+ * ### Multi-Period Analysis (#84.2)
+ * Validates detected period against multiple candidates to confirm fundamental frequency.
+ * Benefits: Reduced octave errors, better disambiguation of harmonically rich signals.
+ *
+ * ### Hybrid YIN + FFT (#84.3)
+ * Combines time-domain (YIN) and frequency-domain (FFT) analysis for robust detection.
+ * Benefits: Excellent accuracy in challenging cases, octave error correction via harmonics.
  */
 class PitchDetector(
     private val sampleRate: Int = 44100,
     private val algorithm: PitchDetectionAlgorithm = PitchDetectionAlgorithm.YIN,
 ) {
     private val yinDetector = YinPitchDetector(sampleRate)
+    private val yinAdaptiveDetector = YinPitchDetector(sampleRate, adaptiveThreshold = true)
+    private val yinMultiPeriodDetector = YinPitchDetector(sampleRate, multiPeriodAnalysis = true)
+    private val yinEnhancedDetector = YinPitchDetector(
+        sampleRate, 
+        adaptiveThreshold = true, 
+        multiPeriodAnalysis = true
+    )
+    private val hybridDetector = HybridYinFftDetector(sampleRate)
 
     companion object {
         private const val MIN_FREQUENCY = 60.0 // Low E2 (~82 Hz), with margin
@@ -89,6 +142,30 @@ class PitchDetector(
                 yinResult?.let {
                     // YIN confidence is inverted (lower = better), so we invert it for consistency
                     PitchResult(it.frequency, 1.0f - it.confidence)
+                }
+            }
+            PitchDetectionAlgorithm.YIN_ADAPTIVE -> {
+                val yinResult = yinAdaptiveDetector.detectPitch(audioData)
+                yinResult?.let {
+                    PitchResult(it.frequency, 1.0f - it.confidence)
+                }
+            }
+            PitchDetectionAlgorithm.YIN_MULTI_PERIOD -> {
+                val yinResult = yinMultiPeriodDetector.detectPitch(audioData)
+                yinResult?.let {
+                    PitchResult(it.frequency, 1.0f - it.confidence)
+                }
+            }
+            PitchDetectionAlgorithm.YIN_ENHANCED -> {
+                val yinResult = yinEnhancedDetector.detectPitch(audioData)
+                yinResult?.let {
+                    PitchResult(it.frequency, 1.0f - it.confidence)
+                }
+            }
+            PitchDetectionAlgorithm.HYBRID_YIN_FFT -> {
+                val hybridResult = hybridDetector.detectPitch(audioData)
+                hybridResult?.let {
+                    PitchResult(it.frequency, it.confidence)
                 }
             }
             PitchDetectionAlgorithm.AUTOCORRELATION -> {

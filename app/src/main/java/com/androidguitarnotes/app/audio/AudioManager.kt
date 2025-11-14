@@ -15,10 +15,20 @@ import kotlinx.coroutines.flow.map
  * - Consistent confidence and audio level information
  * - No need to check multiple result types downstream
  */
-class AudioManager {
+class AudioManager(
+    private var algorithm: PitchDetectionAlgorithm = PitchDetectionAlgorithm.YIN,
+) {
     private val audioRecorder = AudioRecorder()
-    private val pitchDetector = PitchDetector()
+    private var pitchDetector = PitchDetector(algorithm = algorithm)
     private val noteRecognizer = NoteRecognizer()
+
+    /**
+     * Updates the pitch detection algorithm.
+     */
+    fun setAlgorithm(newAlgorithm: PitchDetectionAlgorithm) {
+        algorithm = newAlgorithm
+        pitchDetector = PitchDetector(algorithm = algorithm)
+    }
 
     /**
      * Canonical data model for note detection results.

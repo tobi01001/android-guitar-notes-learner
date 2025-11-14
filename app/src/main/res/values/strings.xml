@@ -124,6 +124,14 @@
     <string name="noise_gate_medium">Medium</string>
     <string name="noise_gate_high">High</string>
     <string name="noise_gate_idle">Idle (noise gate active)</string>
+    <string name="pitch_detection_algorithm">Pitch Detection Algorithm</string>
+    <string name="pitch_detection_description">Select the algorithm for detecting musical notes</string>
+    <string name="algorithm_autocorrelation">Autocorrelation (Legacy)</string>
+    <string name="algorithm_yin">YIN (Recommended)</string>
+    <string name="algorithm_yin_adaptive">YIN Adaptive</string>
+    <string name="algorithm_yin_multi_period">YIN Multi-Period</string>
+    <string name="algorithm_yin_enhanced">YIN Enhanced</string>
+    <string name="algorithm_hybrid_yin_fft">Hybrid YIN+FFT</string>
 
     <!-- Notes Played -->
     <string name="notes_played_title">Notes Played</string>

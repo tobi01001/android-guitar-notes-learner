@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.androidguitarnotes.app.R
 import com.androidguitarnotes.app.audio.AudioManager
+import com.androidguitarnotes.app.audio.PitchDetectionAlgorithm
 
 @Composable
 fun SettingsScreen(
@@ -53,19 +54,37 @@ fun SettingsScreen(
     val autoAdjustSensitivity by viewModel.autoAdjustSensitivity.collectAsStateWithLifecycle()
     val audioSource by viewModel.audioSource.collectAsStateWithLifecycle()
     val noiseGateThreshold by viewModel.noiseGateThreshold.collectAsStateWithLifecycle()
+    val pitchDetectionAlgorithm by viewModel.pitchDetectionAlgorithm.collectAsStateWithLifecycle()
 
     var showAudioSourceDialog by remember { mutableStateOf(false) }
+    var showAlgorithmDialog by remember { mutableStateOf(false) }
 
     // Use remember with cleanup for proper lifecycle management
     val audioManager =
         remember {
-            AudioManager()
+            val algorithm =
+                try {
+                    PitchDetectionAlgorithm.valueOf(pitchDetectionAlgorithm)
+                } catch (e: IllegalArgumentException) {
+                    PitchDetectionAlgorithm.YIN // Default to YIN if invalid
+                }
+            AudioManager(algorithm)
         }
     var currentAudioLevel by remember { mutableFloatStateOf(0f) }
     var isGated by remember { mutableStateOf(false) }
 
+    // Update algorithm when it changes
+    LaunchedEffect(pitchDetectionAlgorithm) {
+        try {
+            val algorithm = PitchDetectionAlgorithm.valueOf(pitchDetectionAlgorithm)
+            audioManager.setAlgorithm(algorithm)
+        } catch (e: IllegalArgumentException) {
+            // Ignore invalid algorithm names
+        }
+    }
+
     // Single effect to handle audio listening based on all relevant parameters
-    LaunchedEffect(microphoneSensitivity, audioFeedbackEnabled, audioSource, noiseGateThreshold, autoAdjustSensitivity) {
+    LaunchedEffect(microphoneSensitivity, audioFeedbackEnabled, audioSource, noiseGateThreshold, autoAdjustSensitivity, pitchDetectionAlgorithm) {
         // Stop any previous listening session before starting a new one
         audioManager.stopListening()
 
@@ -204,6 +223,16 @@ fun SettingsScreen(
                 )
 
                 Divider()
+
+                // Pitch Detection Algorithm Selection
+                SettingsClickableItem(
+                    title = stringResource(R.string.pitch_detection_algorithm),
+                    subtitle = getAlgorithmDisplayName(pitchDetectionAlgorithm),
+                    description = stringResource(R.string.pitch_detection_description),
+                    onClick = { showAlgorithmDialog = true },
+                )
+
+                Divider()
             }
 
             // About Section
@@ -225,6 +254,18 @@ fun SettingsScreen(
                 showAudioSourceDialog = false
             },
             onDismiss = { showAudioSourceDialog = false },
+        )
+    }
+
+    // Pitch Detection Algorithm Selection Dialog
+    if (showAlgorithmDialog) {
+        AlgorithmDialog(
+            currentAlgorithm = pitchDetectionAlgorithm,
+            onAlgorithmSelected = { algorithm ->
+                viewModel.setPitchDetectionAlgorithm(algorithm)
+                showAlgorithmDialog = false
+            },
+            onDismiss = { showAlgorithmDialog = false },
         )
     }
 }
@@ -490,3 +531,78 @@ private fun AudioSourceOption(
 
 @Composable
 private fun getAudioSourceName(source: AudioSource): String = source.displayName
+
+@Composable
+private fun getAlgorithmDisplayName(algorithm: String): String =
+    when (algorithm) {
+        "AUTOCORRELATION" -> stringResource(R.string.algorithm_autocorrelation)
+        "YIN" -> stringResource(R.string.algorithm_yin)
+        "YIN_ADAPTIVE" -> stringResource(R.string.algorithm_yin_adaptive)
+        "YIN_MULTI_PERIOD" -> stringResource(R.string.algorithm_yin_multi_period)
+        "YIN_ENHANCED" -> stringResource(R.string.algorithm_yin_enhanced)
+        "HYBRID_YIN_FFT" -> stringResource(R.string.algorithm_hybrid_yin_fft)
+        else -> stringResource(R.string.algorithm_yin) // Default to YIN
+    }
+
+@Composable
+private fun AlgorithmDialog(
+    currentAlgorithm: String,
+    onAlgorithmSelected: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val algorithms =
+        listOf(
+            "AUTOCORRELATION" to stringResource(R.string.algorithm_autocorrelation),
+            "YIN" to stringResource(R.string.algorithm_yin),
+            "YIN_ADAPTIVE" to stringResource(R.string.algorithm_yin_adaptive),
+            "YIN_MULTI_PERIOD" to stringResource(R.string.algorithm_yin_multi_period),
+            "YIN_ENHANCED" to stringResource(R.string.algorithm_yin_enhanced),
+            "HYBRID_YIN_FFT" to stringResource(R.string.algorithm_hybrid_yin_fft),
+        )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.pitch_detection_algorithm)) },
+        text = {
+            Column {
+                algorithms.forEach { (algorithmKey, displayName) ->
+                    AlgorithmOption(
+                        name = displayName,
+                        algorithmKey = algorithmKey,
+                        currentAlgorithm = currentAlgorithm,
+                        onSelect = onAlgorithmSelected,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.ok))
+            }
+        },
+    )
+}
+
+@Composable
+private fun AlgorithmOption(
+    name: String,
+    algorithmKey: String,
+    currentAlgorithm: String,
+    onSelect: (String) -> Unit,
+) {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable { onSelect(algorithmKey) }
+                .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioButton(
+            selected = algorithmKey == currentAlgorithm,
+            onClick = { onSelect(algorithmKey) },
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = name)
+    }
+}
