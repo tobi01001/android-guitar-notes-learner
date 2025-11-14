@@ -366,6 +366,7 @@ private fun StringColumn(
 
 /**
  * Displays a single fret position marker at string/fret intersection.
+ * Positioned directly on the fret bar.
  */
 @Composable
 private fun FretMarker(
@@ -375,43 +376,35 @@ private fun FretMarker(
     isPersisted: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    Box(
-        modifier =
-            modifier
-                .size(28.dp)
-                .padding(2.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (isHighlighted && noteName != null) {
-            val baseColor = NoteColors.getColorForNote(noteName)
-            // Apply greyscale effect when persisted
-            val noteColor =
-                if (isPersisted) {
-                    baseColor.copy(
-                        red = 0.5f,
-                        green = 0.5f,
-                        blue = 0.5f,
-                    )
-                } else {
-                    baseColor
-                }
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape)
-                        .background(noteColor.copy(alpha = highlightAlpha))
-                        .border(2.dp, NoteColors.getDarkColorForNote(noteName).copy(alpha = highlightAlpha), CircleShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = noteName,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = highlightAlpha),
+    if (isHighlighted && noteName != null) {
+        val baseColor = NoteColors.getColorForNote(noteName)
+        // Apply greyscale effect when persisted
+        val noteColor =
+            if (isPersisted) {
+                baseColor.copy(
+                    red = 0.5f,
+                    green = 0.5f,
+                    blue = 0.5f,
                 )
+            } else {
+                baseColor
             }
+        Box(
+            modifier =
+                modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(noteColor.copy(alpha = highlightAlpha))
+                    .border(2.dp, NoteColors.getDarkColorForNote(noteName).copy(alpha = highlightAlpha), CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = noteName,
+                style = MaterialTheme.typography.labelSmall,
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White.copy(alpha = highlightAlpha),
+            )
         }
     }
 }
