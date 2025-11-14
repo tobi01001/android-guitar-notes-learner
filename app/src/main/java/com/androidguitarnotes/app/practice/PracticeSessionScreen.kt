@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.androidguitarnotes.app.R
+import com.androidguitarnotes.app.notesplayed.FretboardView
 import com.androidguitarnotes.app.permissions.PermissionRationaleScreen
 import com.androidguitarnotes.app.ui.KeepScreenOn
 import com.androidguitarnotes.app.ui.NoteColors
@@ -255,6 +256,17 @@ private fun ActiveSessionScreen(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Fretboard visualization showing target note position
+            FretboardView(
+                detectedNote = state.currentNote.noteName,
+                detectedNoteWithOctave = state.currentNote.noteNameWithOctave,
+                maxFret = 12,
+                highlightAlpha = 1.0f,
+                isPersisted = false,
+            )
 
             // Note feedback display - always show for all modes
             Spacer(modifier = Modifier.height(16.dp))

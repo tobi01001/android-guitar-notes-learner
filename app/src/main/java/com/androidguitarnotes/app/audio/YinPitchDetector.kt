@@ -1,7 +1,6 @@
 package com.androidguitarnotes.app.audio
 
 import kotlin.math.abs
-import kotlin.math.min
 
 /**
  * YIN pitch detection algorithm implementation with enhancements.
@@ -223,7 +222,7 @@ class YinPitchDetector(
         // We continue as long as values are decreasing or staying below threshold
         for (tau in (startTau + 1) until normalizedDifference.size) {
             val currentValue = normalizedDifference[tau]
-            
+
             if (currentValue < minValue) {
                 // Found a lower value, update minimum
                 minValue = currentValue
@@ -233,7 +232,7 @@ class YinPitchDetector(
                 // This prevents searching too far when we've clearly found the local minimum
                 break
             }
-            
+
             // If we're far past the minimum and values haven't decreased,
             // stop searching to avoid going into the next period
             if (tau > minTau + 50) {

@@ -215,15 +215,16 @@ private fun StringColumn(
     modifier: Modifier = Modifier,
 ) {
     // String thickness varies by string number (thicker for lower strings)
-    val stringWidth = when (stringNumber) {
-        1 -> 1.5.dp // High E (thinnest)
-        2 -> 2.dp   // B
-        3 -> 2.5.dp // G
-        4 -> 3.dp   // D
-        5 -> 3.5.dp // A
-        6 -> 4.dp   // Low E (thickest)
-        else -> 2.dp
-    }
+    val stringWidth =
+        when (stringNumber) {
+            1 -> 1.5.dp // High E (thinnest)
+            2 -> 2.dp // B
+            3 -> 2.5.dp // G
+            4 -> 3.dp // D
+            5 -> 3.5.dp // A
+            6 -> 4.dp // Low E (thickest)
+            else -> 2.dp
+        }
 
     Box(
         modifier =
