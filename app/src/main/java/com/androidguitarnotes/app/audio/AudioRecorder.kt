@@ -26,7 +26,7 @@ import kotlin.coroutines.coroutineContext
  *    - **CRITICAL:** No hard clamping applied during analysis chain
  *    - Hard clamping creates irreversible distortion and loss of harmonics
  *    - Clamping only appropriate before playback/output step (not in analysis)
- * 6. **High-pass filtering** - Removes low-frequency rumble and noise (60 Hz cutoff, configurable)
+ * 6. **High-pass filtering** - Removes low-frequency rumble and noise (40 Hz cutoff, configurable)
  *    - Applied after gain to avoid amplifying DC offset and low-frequency noise
  * 7. **Noise gate check** - Compute RMS and check if signal passes threshold
  * 8. **Post-processing RMS** - Calculate audio level for visual feedback (after filtering)

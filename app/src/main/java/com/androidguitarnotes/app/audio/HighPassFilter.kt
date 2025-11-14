@@ -5,7 +5,7 @@ import kotlin.math.PI
 /**
  * A lightweight one-pole IIR high-pass filter for removing low-frequency rumble and noise.
  *
- * This filter is designed to attenuate frequencies below the cutoff frequency (typically 50-60 Hz)
+ * This filter is designed to attenuate frequencies below the cutoff frequency (typically 30-50 Hz)
  * to reduce non-musical artifacts such as handling noise, wind rumble, and low-frequency
  * environmental noise that can interfere with guitar pitch detection.
  *
@@ -21,7 +21,7 @@ import kotlin.math.PI
  * ## Usage
  *
  * ```kotlin
- * val filter = HighPassFilter(sampleRate = 44100, cutoffFrequency = 60.0)
+ * val filter = HighPassFilter(sampleRate = 44100, cutoffFrequency = 40.0)
  * val filteredSamples = filter.process(audioSamples)
  * ```
  *
