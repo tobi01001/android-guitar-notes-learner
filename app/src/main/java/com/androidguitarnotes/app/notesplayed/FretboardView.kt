@@ -107,7 +107,7 @@ fun FretboardView(
 
                     // Foreground layer: Strings with note markers
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp), // Reduced from 12dp
                     ) {
                         // All strings from 6 (low E) to 1 (high E)
                         for (stringNumber in GUITAR_STRINGS downTo 1) {
@@ -129,7 +129,7 @@ fun FretboardView(
 
 /**
  * Displays standard fret markers (inlays) as a background decoration.
- * Positioned in the center of the fretboard, between fret lines.
+ * Positioned precisely between strings 3 and 4, centered in fret spaces.
  * Dots appear at frets 3, 5, 7, 9 (single) and 12 (double).
  */
 @Composable
@@ -139,34 +139,46 @@ private fun FretMarkers(
 ) {
     val markerFrets = setOf(3, 5, 7, 9)
 
-    // Position markers in the horizontal center between strings 3 and 4
-    Row(
+    // Calculate horizontal position: 3 strings (6,5,4) + 2.5 gaps to center between 3 and 4
+    // String width = 28dp, spacing = 10dp
+    val markerOffset = (28.dp * 3) + (10.dp * 2.5f)
+
+    Box(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
     ) {
         Column(
-            modifier = modifier.width(24.dp),
-            verticalArrangement = Arrangement.SpaceEvenly,
-            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier =
+                modifier
+                    .width(20.dp)
+                    .offset(x = markerOffset),
         ) {
-            for (fret in 0..maxFret) {
-                Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.Center, // Center dots in the fret space
-                ) {
-                    when {
-                        fret == 12 -> {
-                            // Double dots at fret 12
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            ) {
-                                MarkerDot(size = 6.dp)
-                                MarkerDot(size = 6.dp)
+            // Add offset to match string number label height
+            Spacer(modifier = Modifier.height(28.dp))
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.SpaceEvenly,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                for (fret in 0..maxFret) {
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center, // Center dots in the fret space
+                    ) {
+                        when {
+                            fret == 12 -> {
+                                // Double dots at fret 12
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                ) {
+                                    MarkerDot(size = 5.dp)
+                                    MarkerDot(size = 5.dp)
+                                }
                             }
-                        }
-                        fret in markerFrets -> {
-                            // Single dot at frets 3, 5, 7, 9
-                            MarkerDot(size = 8.dp)
+                            fret in markerFrets -> {
+                                // Single dot at frets 3, 5, 7, 9
+                                MarkerDot(size = 7.dp)
+                            }
                         }
                     }
                 }
@@ -246,20 +258,27 @@ private fun FretNumbers(
 ) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.SpaceEvenly,
     ) {
-        for (fret in 0..maxFret) {
-            Box(
-                modifier = Modifier.weight(1f),
-                contentAlignment = Alignment.TopCenter,
-            ) {
-                Text(
-                    text = fret.toString(),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, // Better contrast
-                )
+        // Add offset to match string number label height (24dp + 4dp spacer)
+        Spacer(modifier = Modifier.height(28.dp))
+
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            for (fret in 0..maxFret) {
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.TopCenter,
+                ) {
+                    Text(
+                        text = fret.toString(),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFFE0E0E0), // Light gray for visibility on dark wood
+                    )
+                }
             }
         }
     }
@@ -294,7 +313,7 @@ private fun StringColumn(
     Column(
         modifier =
             modifier
-                .width(32.dp),
+                .width(28.dp), // Reduced from 32dp for more compact fretboard
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // String number label at the top
@@ -336,11 +355,10 @@ private fun StringColumn(
 
                     Box(
                         modifier = Modifier.weight(1f),
-                        // Fret 0 (open string) aligns to top (near nut)
-                        // Other frets center notes in the fret space
-                        contentAlignment = if (fret == 0) Alignment.TopCenter else Alignment.Center,
+                        // All notes align to top where fret bar is located
+                        contentAlignment = Alignment.TopCenter,
                     ) {
-                        // Note marker centered in the fret space
+                        // Note marker at fret bar position
                         FretMarker(
                             isHighlighted = isHighlighted,
                             noteName = detectedNote,
