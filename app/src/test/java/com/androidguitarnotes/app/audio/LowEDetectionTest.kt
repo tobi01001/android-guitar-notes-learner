@@ -2,23 +2,22 @@ package com.androidguitarnotes.app.audio
 
 import org.junit.Test
 import kotlin.math.PI
-import kotlin.math.abs
 import kotlin.math.sin
 
 class LowEDetectionTest {
     private val sampleRate = 44100
-    
+
     @Test
     fun `test E2 detection at 82_4 Hz with YIN`() {
         val frequency = 82.4 // Low E string
         val detector = YinPitchDetector(sampleRate = sampleRate)
-        
+
         // Test with different durations
         for (duration in listOf(0.1, 0.2, 0.3, 0.5)) {
             val samples = (sampleRate * duration).toInt()
             val audioData = generateSineWave(frequency, sampleRate, samples)
             val result = detector.detectPitch(audioData)
-            
+
             println("Duration: ${duration}s, Samples: $samples")
             if (result != null) {
                 println("  Detected: ${result.frequency} Hz, Confidence: ${result.confidence}")
@@ -28,27 +27,28 @@ class LowEDetectionTest {
             }
         }
     }
-    
+
     @Test
     fun `test E2 detection at 82_4 Hz with all algorithms`() {
         val frequency = 82.4
         val duration = 0.3
         val samples = (sampleRate * duration).toInt()
         val audioData = generateSineWave(frequency, sampleRate, samples)
-        
-        val algorithms = listOf(
-            PitchDetectionAlgorithm.AUTOCORRELATION,
-            PitchDetectionAlgorithm.YIN,
-            PitchDetectionAlgorithm.YIN_ADAPTIVE,
-            PitchDetectionAlgorithm.YIN_MULTI_PERIOD,
-            PitchDetectionAlgorithm.YIN_ENHANCED,
-            PitchDetectionAlgorithm.HYBRID_YIN_FFT
-        )
-        
+
+        val algorithms =
+            listOf(
+                PitchDetectionAlgorithm.AUTOCORRELATION,
+                PitchDetectionAlgorithm.YIN,
+                PitchDetectionAlgorithm.YIN_ADAPTIVE,
+                PitchDetectionAlgorithm.YIN_MULTI_PERIOD,
+                PitchDetectionAlgorithm.YIN_ENHANCED,
+                PitchDetectionAlgorithm.HYBRID_YIN_FFT,
+            )
+
         for (algo in algorithms) {
             val detector = PitchDetector(sampleRate = sampleRate, algorithm = algo)
             val result = detector.detectPitchWithConfidence(audioData)
-            
+
             println("Algorithm: $algo")
             if (result != null) {
                 println("  Detected: ${result.frequency} Hz, Confidence: ${result.confidence}")

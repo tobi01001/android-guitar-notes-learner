@@ -104,6 +104,14 @@ fun SettingsScreen(
         }
     }
 
+    // Check permission on screen entry if audio feedback is enabled
+    // This handles the fresh install case where audio is enabled by default
+    LaunchedEffect(Unit) {
+        if (audioFeedbackEnabled && !permissionManager.isRecordAudioPermissionGranted()) {
+            showPermissionRationale = true
+        }
+    }
+
     // Create a new AudioManager instance whenever the algorithm changes
     // This ensures clean state and avoids coroutine cancellation issues
     val audioManager =
