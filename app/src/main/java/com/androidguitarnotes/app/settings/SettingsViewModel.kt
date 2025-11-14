@@ -50,6 +50,9 @@ class SettingsViewModel(
     private val _noiseGateThreshold = MutableStateFlow(0.01f)
     val noiseGateThreshold: StateFlow<Float> = _noiseGateThreshold.asStateFlow()
 
+    private val _pitchDetectionAlgorithm = MutableStateFlow("YIN")
+    val pitchDetectionAlgorithm: StateFlow<String> = _pitchDetectionAlgorithm.asStateFlow()
+
     init {
         // Load saved audio source
         viewModelScope.launch {
@@ -90,6 +93,13 @@ class SettingsViewModel(
         viewModelScope.launch {
             repository.autoAdjustSensitivity.collect { savedAutoAdjust ->
                 _autoAdjustSensitivity.value = savedAutoAdjust
+            }
+        }
+
+        // Load saved pitch detection algorithm
+        viewModelScope.launch {
+            repository.pitchDetectionAlgorithm.collect { savedAlgorithm ->
+                _pitchDetectionAlgorithm.value = savedAlgorithm
             }
         }
     }
@@ -156,6 +166,16 @@ class SettingsViewModel(
         _noiseGateThreshold.value = threshold.coerceIn(0.001f, 0.1f)
         viewModelScope.launch {
             repository.saveNoiseGateThreshold(_noiseGateThreshold.value)
+        }
+    }
+
+    /**
+     * Sets the pitch detection algorithm.
+     */
+    fun setPitchDetectionAlgorithm(algorithm: String) {
+        _pitchDetectionAlgorithm.value = algorithm
+        viewModelScope.launch {
+            repository.savePitchDetectionAlgorithm(algorithm)
         }
     }
 }
