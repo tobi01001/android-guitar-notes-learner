@@ -1,7 +1,6 @@
 package com.androidguitarnotes.app.audio
 
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.math.PI
@@ -20,7 +19,7 @@ class YinEnhancementsTest {
     private val sampleRate = 44100
 
     // Test Enhancement 1: Adaptive Threshold
-    
+
     @Test
     fun `adaptive threshold handles clean strong signal with lower threshold`() {
         // Clean, strong signal (high SNR, good RMS)
@@ -94,8 +93,10 @@ class YinEnhancementsTest {
                 assertNotNull("Should detect amplitude $amplitude", result)
                 result?.let {
                     val error = abs(it.frequency - frequency)
-                    assertTrue("Should be accurate for amplitude $amplitude: error $error Hz", 
-                        error < 5.0)
+                    assertTrue(
+                        "Should be accurate for amplitude $amplitude: error $error Hz",
+                        error < 5.0,
+                    )
                 }
             }
         }
@@ -114,11 +115,12 @@ class YinEnhancementsTest {
         for (i in 0 until samples) {
             val time = i.toDouble() / sampleRate
             // Fundamental + 2nd harmonic + 3rd harmonic
-            audioData[i] = (
-                0.5f * sin(2 * PI * fundamental * time) +
-                0.3f * sin(2 * PI * fundamental * 2 * time) +
-                0.2f * sin(2 * PI * fundamental * 3 * time)
-            ).toFloat()
+            audioData[i] =
+                (
+                    0.5f * sin(2 * PI * fundamental * time) +
+                        0.3f * sin(2 * PI * fundamental * 2 * time) +
+                        0.2f * sin(2 * PI * fundamental * 3 * time)
+                ).toFloat()
         }
 
         val standardDetector = YinPitchDetector(sampleRate = sampleRate)
@@ -135,7 +137,7 @@ class YinEnhancementsTest {
             // Multi-period should correctly identify fundamental, not harmonic
             assertTrue(
                 "Multi-period should detect fundamental ($fundamental Hz), got ${it.frequency} Hz, error: $error Hz",
-                error < 5.0
+                error < 5.0,
             )
         }
     }
@@ -150,10 +152,11 @@ class YinEnhancementsTest {
         val audioData = FloatArray(samples)
         for (i in 0 until samples) {
             val time = i.toDouble() / sampleRate
-            audioData[i] = (
-                0.4f * sin(2 * PI * frequency * time) + // Weak fundamental
-                0.6f * sin(2 * PI * frequency * 2 * time) // Strong 2nd harmonic
-            ).toFloat()
+            audioData[i] =
+                (
+                    0.4f * sin(2 * PI * frequency * time) + // Weak fundamental
+                        0.6f * sin(2 * PI * frequency * 2 * time) // Strong 2nd harmonic
+                ).toFloat()
         }
 
         val multiPeriodDetector = YinPitchDetector(sampleRate = sampleRate, multiPeriodAnalysis = true)
@@ -164,7 +167,7 @@ class YinEnhancementsTest {
             // Should detect fundamental, not octave up
             assertTrue(
                 "Should detect fundamental ~$frequency Hz, not octave ~${frequency * 2} Hz. Got ${it.frequency} Hz",
-                abs(it.frequency - frequency) < abs(it.frequency - frequency * 2)
+                abs(it.frequency - frequency) < abs(it.frequency - frequency * 2),
             )
         }
     }
@@ -199,20 +202,22 @@ class YinEnhancementsTest {
         val audioData = FloatArray(samples)
         for (i in 0 until samples) {
             val time = i.toDouble() / sampleRate
-            val signal = (
-                0.3f * sin(2 * PI * fundamental * time) +
-                0.5f * sin(2 * PI * fundamental * 2 * time) +
-                0.2f * sin(2 * PI * fundamental * 3 * time)
-            ).toFloat()
+            val signal =
+                (
+                    0.3f * sin(2 * PI * fundamental * time) +
+                        0.5f * sin(2 * PI * fundamental * 2 * time) +
+                        0.2f * sin(2 * PI * fundamental * 3 * time)
+                ).toFloat()
             val noise = 0.1f * (Math.random().toFloat() - 0.5f)
             audioData[i] = signal + noise
         }
 
-        val enhancedDetector = YinPitchDetector(
-            sampleRate = sampleRate,
-            adaptiveThreshold = true,
-            multiPeriodAnalysis = true
-        )
+        val enhancedDetector =
+            YinPitchDetector(
+                sampleRate = sampleRate,
+                adaptiveThreshold = true,
+                multiPeriodAnalysis = true,
+            )
         val result = enhancedDetector.detectPitch(audioData)
 
         // Enhanced detector should handle this challenging case
@@ -221,7 +226,7 @@ class YinEnhancementsTest {
             val error = abs(it.frequency - fundamental)
             assertTrue(
                 "Should detect fundamental despite weak signal and harmonics: error $error Hz",
-                error < 10.0 // More tolerance for difficult case
+                error < 10.0, // More tolerance for difficult case
             )
         }
     }

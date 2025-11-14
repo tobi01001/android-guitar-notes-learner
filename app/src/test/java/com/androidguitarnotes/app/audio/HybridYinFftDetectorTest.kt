@@ -46,11 +46,12 @@ class HybridYinFftDetectorTest {
         val audioData = FloatArray(samples)
         for (i in 0 until samples) {
             val time = i.toDouble() / sampleRate
-            audioData[i] = (
-                0.4f * sin(2 * PI * fundamental * time) +
-                0.4f * sin(2 * PI * fundamental * 2 * time) +
-                0.2f * sin(2 * PI * fundamental * 3 * time)
-            ).toFloat()
+            audioData[i] =
+                (
+                    0.4f * sin(2 * PI * fundamental * time) +
+                        0.4f * sin(2 * PI * fundamental * 2 * time) +
+                        0.2f * sin(2 * PI * fundamental * 3 * time)
+                ).toFloat()
         }
 
         val result = detector.detectPitch(audioData)
@@ -61,7 +62,7 @@ class HybridYinFftDetectorTest {
             val error = abs(it.frequency - fundamental)
             assertTrue(
                 "Should detect fundamental ($fundamental Hz), got ${it.frequency} Hz, error: $error Hz",
-                error < 20.0 // More tolerance for complex signal
+                error < 20.0, // More tolerance for complex signal
             )
         }
     }
@@ -76,10 +77,11 @@ class HybridYinFftDetectorTest {
         val audioData = FloatArray(samples)
         for (i in 0 until samples) {
             val time = i.toDouble() / sampleRate
-            audioData[i] = (
-                0.3f * sin(2 * PI * fundamental * time) + // Weak fundamental
-                0.7f * sin(2 * PI * fundamental * 2 * time) // Strong octave
-            ).toFloat()
+            audioData[i] =
+                (
+                    0.3f * sin(2 * PI * fundamental * time) + // Weak fundamental
+                        0.7f * sin(2 * PI * fundamental * 2 * time) // Strong octave
+                ).toFloat()
         }
 
         val result = detector.detectPitch(audioData)
@@ -89,21 +91,22 @@ class HybridYinFftDetectorTest {
             // Hybrid should resolve to fundamental
             assertTrue(
                 "Should prefer fundamental over octave: got ${it.frequency} Hz",
-                it.frequency < fundamental * 1.5 // Closer to fundamental than octave
+                it.frequency < fundamental * 1.5, // Closer to fundamental than octave
             )
         }
     }
 
     @Test
     fun `hybrid detector handles all guitar string frequencies`() {
-        val guitarFrequencies = listOf(
-            82.41,  // E2 (low E)
-            110.00, // A2
-            146.83, // D3
-            196.00, // G3
-            246.94, // B3
-            329.63  // E4 (high E)
-        )
+        val guitarFrequencies =
+            listOf(
+                82.41, // E2 (low E)
+                110.00, // A2
+                146.83, // D3
+                196.00, // G3
+                246.94, // B3
+                329.63, // E4 (high E)
+            )
 
         for (expectedFreq in guitarFrequencies) {
             val duration = if (expectedFreq < 150) 0.25 else 0.15 // Longer for low frequencies
@@ -117,7 +120,7 @@ class HybridYinFftDetectorTest {
                 val tolerance = if (expectedFreq < 150) 15.0 else 10.0
                 assertTrue(
                     "For $expectedFreq Hz: detected ${it.frequency} Hz, error: $error Hz",
-                    error < tolerance
+                    error < tolerance,
                 )
             }
         }
@@ -168,7 +171,7 @@ class HybridYinFftDetectorTest {
             val error = abs(it.frequency - frequency)
             assertTrue(
                 "Should maintain reasonable accuracy with noise: error $error Hz",
-                error < 20.0
+                error < 20.0,
             )
         }
     }
@@ -187,7 +190,7 @@ class HybridYinFftDetectorTest {
             // Should have at least one of YIN or FFT results
             assertTrue(
                 "Should have YIN or FFT frequency",
-                it.yinFrequency != null || it.fftFrequency != null
+                it.yinFrequency != null || it.fftFrequency != null,
             )
         }
     }
@@ -205,7 +208,7 @@ class HybridYinFftDetectorTest {
         result?.let {
             assertTrue(
                 "Any detected frequency should be in valid range",
-                it.frequency in 60.0..1500.0
+                it.frequency in 60.0..1500.0,
             )
         }
     }
