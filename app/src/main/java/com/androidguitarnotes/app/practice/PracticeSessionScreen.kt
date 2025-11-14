@@ -19,6 +19,7 @@ import com.androidguitarnotes.app.R
 import com.androidguitarnotes.app.permissions.PermissionRationaleScreen
 import com.androidguitarnotes.app.ui.KeepScreenOn
 import com.androidguitarnotes.app.ui.NoteColors
+import java.util.Locale
 
 /**
  * Practice session screen showing the current note and session progress.
@@ -234,7 +235,7 @@ private fun ActiveSessionScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
-                        text = state.currentNote.noteName,
+                        text = state.currentNote.noteNameWithOctave,
                         style = MaterialTheme.typography.displayLarge,
                         fontSize = 96.sp,
                         color = NoteColors.getDarkColorForNote(state.currentNote.noteName),
@@ -557,5 +558,5 @@ private fun NoteFeedbackDisplay(feedback: PracticeSessionState.NoteFeedback) {
 private fun formatTime(seconds: Long): String {
     val minutes = seconds / 60
     val remainingSeconds = seconds % 60
-    return String.format("%d:%02d", minutes, remainingSeconds)
+    return String.format(Locale.US, "%d:%02d", minutes, remainingSeconds)
 }

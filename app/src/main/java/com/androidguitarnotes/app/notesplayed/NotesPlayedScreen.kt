@@ -40,7 +40,7 @@ fun NotesPlayedScreen(
         viewModel(
             factory =
                 com.androidguitarnotes.app.settings.SettingsViewModelFactory(
-                    androidx.compose.ui.platform.LocalContext.current.applicationContext,
+                    LocalContext.current.applicationContext,
                 ),
         ),
 ) {
@@ -204,9 +204,9 @@ private fun NoteDisplayArea(
  */
 @Composable
 private fun NoteCard(
+    modifier: Modifier = Modifier,
     detectedNote: DetectedNoteInfo?,
     isPersisted: Boolean = false,
-    modifier: Modifier = Modifier,
 ) {
     // Animate note letter size based on detection (subtle pulse effect)
     val noteScale = 1.0f /* by animateFloatAsState(
@@ -242,7 +242,17 @@ private fun NoteCard(
             CardDefaults.cardColors(
                 containerColor =
                     if (detectedNote != null) {
-                        NoteColors.getLightColorForNote(detectedNote.noteName)
+                        // Reduce saturation when persisted by mixing with gray
+                        val baseColor = NoteColors.getLightColorForNote(detectedNote.noteName)
+                        if (isPersisted) {
+                            baseColor.copy(
+                                red = baseColor.red * saturation + 0.6f * (1f - saturation),
+                                green = baseColor.green * saturation + 0.6f * (1f - saturation),
+                                blue = baseColor.blue * saturation + 0.6f * (1f - saturation),
+                            )
+                        } else {
+                            baseColor
+                        }
                     } else {
                         MaterialTheme.colorScheme.primaryContainer
                     },
@@ -273,9 +283,9 @@ private fun NoteCard(
                                 val baseColor = NoteColors.getColorForNote(detectedNote.noteName)
                                 if (isPersisted) {
                                     baseColor.copy(
-                                        red = baseColor.red * saturation + 0.2f * (1f - saturation),
-                                        green = baseColor.green * saturation + 0.2f * (1f - saturation),
-                                        blue = baseColor.blue * saturation + 0.2f * (1f - saturation),
+                                        red = baseColor.red * saturation + 0.6f * (1f - saturation),
+                                        green = baseColor.green * saturation + 0.6f * (1f - saturation),
+                                        blue = baseColor.blue * saturation + 0.6f * (1f - saturation),
                                     )
                                 } else {
                                     baseColor
@@ -288,7 +298,7 @@ private fun NoteCard(
             ) {
                 if (detectedNote != null) {
                     Text(
-                        text = detectedNote.noteName,
+                        text = detectedNote.noteNameWithOctave,
                         style = MaterialTheme.typography.displayLarge,
                         fontSize = 72.sp,
                         fontWeight = FontWeight.Bold,

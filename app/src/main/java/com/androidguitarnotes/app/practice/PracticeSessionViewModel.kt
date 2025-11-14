@@ -182,7 +182,7 @@ class PracticeSessionViewModel(
                                     // Auto-advance if in AUDIO_VERIFICATION mode and note is correct
                                     if (config.progressionMode == ProgressionMode.AUDIO_VERIFICATION && isCorrect) {
                                         // Small delay before advancing to show the "Correct!" feedback
-                                        delay(800)
+                                        delay(300)
                                         nextNote()
                                     }
                                 } else {
