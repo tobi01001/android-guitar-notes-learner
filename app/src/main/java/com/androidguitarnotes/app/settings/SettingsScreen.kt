@@ -1,5 +1,8 @@
 package com.androidguitarnotes.app.settings
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -39,6 +43,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.androidguitarnotes.app.R
 import com.androidguitarnotes.app.audio.AudioManager
 import com.androidguitarnotes.app.audio.PitchDetectionAlgorithm
+import com.androidguitarnotes.app.permissions.PermissionManager
+import com.androidguitarnotes.app.permissions.PermissionRationaleScreen
 
 @Composable
 fun SettingsScreen(
@@ -48,6 +54,9 @@ fun SettingsScreen(
             factory = SettingsViewModelFactory(androidx.compose.ui.platform.LocalContext.current.applicationContext),
         ),
 ) {
+    val context = LocalContext.current
+    val permissionManager = remember { PermissionManager(context) }
+
     val audioFeedbackEnabled by viewModel.audioFeedbackEnabled.collectAsStateWithLifecycle()
     val defaultTuning by viewModel.defaultTuning.collectAsStateWithLifecycle()
     val microphoneSensitivity by viewModel.microphoneSensitivity.collectAsStateWithLifecycle()
@@ -58,6 +67,42 @@ fun SettingsScreen(
 
     var showAudioSourceDialog by remember { mutableStateOf(false) }
     var showAlgorithmDialog by remember { mutableStateOf(false) }
+    var showPermissionRationale by remember { mutableStateOf(false) }
+    var permissionRequestPending by remember { mutableStateOf(false) }
+
+    // Audio permission launcher
+    val audioPermissionLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission(),
+        ) { isGranted ->
+            if (!isGranted) {
+                // If permission denied, disable audio feedback
+                viewModel.toggleAudioFeedback(false)
+            }
+            permissionRequestPending = false
+        }
+
+    // Show permission rationale dialog
+    if (showPermissionRationale) {
+        PermissionRationaleScreen(
+            onRequestPermission = {
+                showPermissionRationale = false
+                permissionRequestPending = true
+            },
+            onDismiss = {
+                showPermissionRationale = false
+                // If user dismissed rationale, turn off audio feedback
+                viewModel.toggleAudioFeedback(false)
+            },
+        )
+    }
+
+    // Request permission when pending
+    LaunchedEffect(permissionRequestPending) {
+        if (permissionRequestPending) {
+            audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
 
     // Create a new AudioManager instance whenever the algorithm changes
     // This ensures clean state and avoids coroutine cancellation issues
@@ -75,9 +120,18 @@ fun SettingsScreen(
     var isGated by remember { mutableStateOf(false) }
 
     // Single effect to handle audio listening based on all relevant parameters
-    // When any parameter changes, this effect is cancelled and restarted
-    LaunchedEffect(microphoneSensitivity, audioFeedbackEnabled, audioSource, noiseGateThreshold, autoAdjustSensitivity, pitchDetectionAlgorithm) {
-        if (audioFeedbackEnabled) {
+    LaunchedEffect(
+        microphoneSensitivity,
+        audioFeedbackEnabled,
+        audioSource,
+        noiseGateThreshold,
+        autoAdjustSensitivity,
+        pitchDetectionAlgorithm,
+    ) {
+        // Stop any previous listening session before starting a new one
+        audioManager.stopListening()
+
+        if (audioFeedbackEnabled && permissionManager.isRecordAudioPermissionGranted()) {
             try {
                 val audioSourceValue = if (audioSource.value == -1) null else audioSource.value
                 audioManager
@@ -138,7 +192,15 @@ fun SettingsScreen(
                 title = stringResource(R.string.audio_feedback),
                 description = stringResource(R.string.audio_feedback_description),
                 checked = audioFeedbackEnabled,
-                onCheckedChange = { viewModel.toggleAudioFeedback(it) },
+                onCheckedChange = { enabled ->
+                    if (enabled && !permissionManager.isRecordAudioPermissionGranted()) {
+                        // Request permission before enabling
+                        showPermissionRationale = true
+                    } else {
+                        // Permission already granted or disabling
+                        viewModel.toggleAudioFeedback(enabled)
+                    }
+                },
             )
 
             Divider()

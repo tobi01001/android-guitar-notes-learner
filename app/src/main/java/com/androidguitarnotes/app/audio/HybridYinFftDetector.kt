@@ -41,14 +41,14 @@ class HybridYinFftDetector(
     companion object {
         private const val MIN_FREQUENCY = 60.0 // Low E2 (~82 Hz), with margin
         private const val MAX_FREQUENCY = 1500.0 // High E4 + harmonics
-        
+
         // FFT parameters
         private const val FFT_SIZE = 4096 // Power of 2 for efficient FFT (if optimized)
         private const val MIN_PEAK_THRESHOLD = 0.1f // Minimum magnitude for peak detection
-        
+
         // Frequency matching tolerance (Hz)
         private const val FREQUENCY_MATCH_TOLERANCE = 10.0 // ±10 Hz
-        
+
         // Harmonic matching tolerance
         private const val HARMONIC_RATIO_TOLERANCE = 0.05 // ±5%
     }
@@ -94,14 +94,15 @@ class HybridYinFftDetector(
      */
     private fun detectPitchFFT(audioData: FloatArray): Pair<Double, Float>? {
         // Use first FFT_SIZE samples (or pad if too short)
-        val fftInput = if (audioData.size >= FFT_SIZE) {
-            audioData.take(FFT_SIZE).toFloatArray()
-        } else {
-            // Pad with zeros
-            FloatArray(FFT_SIZE) { i ->
-                if (i < audioData.size) audioData[i] else 0f
+        val fftInput =
+            if (audioData.size >= FFT_SIZE) {
+                audioData.take(FFT_SIZE).toFloatArray()
+            } else {
+                // Pad with zeros
+                FloatArray(FFT_SIZE) { i ->
+                    if (i < audioData.size) audioData[i] else 0f
+                }
             }
-        }
 
         // Apply Hann window to reduce spectral leakage
         applyHannWindow(fftInput)
@@ -175,8 +176,9 @@ class HybridYinFftDetector(
             if (frequency < MIN_FREQUENCY || frequency > MAX_FREQUENCY) continue
 
             // Check if above threshold and higher than current peak
-            if (magnitudeSpectrum[bin] > MIN_PEAK_THRESHOLD && 
-                magnitudeSpectrum[bin] > peakMagnitude) {
+            if (magnitudeSpectrum[bin] > MIN_PEAK_THRESHOLD &&
+                magnitudeSpectrum[bin] > peakMagnitude
+            ) {
                 peakMagnitude = magnitudeSpectrum[bin]
                 peakBin = bin
             }
@@ -213,13 +215,13 @@ class HybridYinFftDetector(
 
             // Check if they agree
             val frequencyDiff = abs(yinFreq - fftFreq)
-            
+
             if (frequencyDiff <= FREQUENCY_MATCH_TOLERANCE) {
                 // Agreement: use average and boost confidence
                 val avgFreq = (yinFreq + fftFreq) / 2.0
                 val agreementScore = 1.0f - (frequencyDiff / FREQUENCY_MATCH_TOLERANCE).toFloat()
                 val boostedConfidence = (1.0f - yinResult.confidence) * (1.0f + agreementScore * 0.2f)
-                
+
                 return HybridResult(
                     frequency = avgFreq,
                     confidence = boostedConfidence.coerceIn(0f, 1f),
@@ -230,7 +232,7 @@ class HybridYinFftDetector(
             } else {
                 // Disagreement: check for harmonic relationship
                 val harmonicResult = resolveHarmonicDisagreement(yinFreq, fftFreq, yinResult.confidence)
-                
+
                 return HybridResult(
                     frequency = harmonicResult.first,
                     confidence = harmonicResult.second,
@@ -256,7 +258,7 @@ class HybridYinFftDetector(
         if (fftResult != null) {
             // Normalize magnitude to confidence (heuristic)
             val confidence = (fftResult.second / 100.0f).coerceIn(0f, 1f) * 0.7f
-            
+
             return HybridResult(
                 frequency = fftResult.first,
                 confidence = confidence,
@@ -287,20 +289,20 @@ class HybridYinFftDetector(
     ): Triple<Double, Float, Float> {
         // Check if one is a harmonic of the other
         val ratio = fftFreq / yinFreq
-        
+
         // Common harmonic ratios: 2 (octave), 3 (fifth+octave), 0.5 (octave down)
         val commonRatios = listOf(2.0, 3.0, 0.5, 1.5, 4.0)
-        
+
         for (expectedRatio in commonRatios) {
             val ratioError = abs(ratio - expectedRatio) / expectedRatio
-            
+
             if (ratioError < HARMONIC_RATIO_TOLERANCE) {
                 // Found harmonic relationship
                 // Prefer the lower frequency (fundamental)
                 val fundamental = if (ratio > 1.0) yinFreq else fftFreq
                 val agreementScore = (1.0f - ratioError.toFloat())
                 val confidence = (1.0f - yinConfidence) * (0.9f + agreementScore * 0.1f)
-                
+
                 return Triple(fundamental, confidence, agreementScore)
             }
         }

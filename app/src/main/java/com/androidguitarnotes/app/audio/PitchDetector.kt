@@ -98,11 +98,12 @@ class PitchDetector(
     private val yinDetector = YinPitchDetector(sampleRate)
     private val yinAdaptiveDetector = YinPitchDetector(sampleRate, adaptiveThreshold = true)
     private val yinMultiPeriodDetector = YinPitchDetector(sampleRate, multiPeriodAnalysis = true)
-    private val yinEnhancedDetector = YinPitchDetector(
-        sampleRate, 
-        adaptiveThreshold = true, 
-        multiPeriodAnalysis = true
-    )
+    private val yinEnhancedDetector =
+        YinPitchDetector(
+            sampleRate,
+            adaptiveThreshold = true,
+            multiPeriodAnalysis = true,
+        )
     private val hybridDetector = HybridYinFftDetector(sampleRate)
 
     companion object {

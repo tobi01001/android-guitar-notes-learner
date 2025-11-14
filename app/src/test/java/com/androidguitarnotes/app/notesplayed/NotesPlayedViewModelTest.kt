@@ -20,6 +20,7 @@ import org.junit.Test
 class NotesPlayedViewModelTest {
     private lateinit var audioManager: AudioManager
     private lateinit var settingsViewModel: com.androidguitarnotes.app.settings.SettingsViewModel
+    private lateinit var permissionManager: com.androidguitarnotes.app.permissions.PermissionManager
     private lateinit var viewModel: NotesPlayedViewModel
     private val testDispatcher = UnconfinedTestDispatcher()
 
@@ -27,6 +28,9 @@ class NotesPlayedViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         audioManager = mockk(relaxed = true)
+        permissionManager = mockk(relaxed = true)
+        // Mock permission as granted by default for tests
+        every { permissionManager.isRecordAudioPermissionGranted() } returns true
         val settingsRepository =
             mockk<com.androidguitarnotes.app.settings.SettingsRepository>(relaxed = true)
         every { settingsRepository.audioSource } returns
@@ -34,7 +38,7 @@ class NotesPlayedViewModelTest {
         settingsViewModel =
             com.androidguitarnotes.app.settings
                 .SettingsViewModel(settingsRepository)
-        viewModel = NotesPlayedViewModel(audioManager, settingsViewModel)
+        viewModel = NotesPlayedViewModel(audioManager, settingsViewModel, permissionManager)
     }
 
     @After

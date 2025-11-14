@@ -1,5 +1,8 @@
 package com.androidguitarnotes.app.tuner
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -13,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -21,6 +25,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.androidguitarnotes.app.R
 import com.androidguitarnotes.app.audio.AudioManager
+import com.androidguitarnotes.app.permissions.PermissionManager
+import com.androidguitarnotes.app.permissions.PermissionRationaleScreen
 import com.androidguitarnotes.app.ui.KeepScreenOn
 import com.androidguitarnotes.app.ui.NoteColors
 import kotlin.math.abs
@@ -40,7 +46,10 @@ fun TunerScreen(
                 ),
         ),
 ) {
+    val context = LocalContext.current
     val audioManager = remember { AudioManager() }
+    val permissionManager = remember { PermissionManager(context) }
+
     DisposableEffect(audioManager) {
         onDispose {
             audioManager.stopListening()
@@ -48,9 +57,38 @@ fun TunerScreen(
     }
     val viewModel: TunerViewModel =
         viewModel(
-            factory = TunerViewModelFactory(audioManager, settingsViewModel),
+            factory = TunerViewModelFactory(audioManager, settingsViewModel, permissionManager),
         )
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val audioPermissionRequired by viewModel.audioPermissionRequired.collectAsStateWithLifecycle()
+    val showPermissionRationale by viewModel.showPermissionRationale.collectAsStateWithLifecycle()
+
+    // Audio permission launcher
+    val audioPermissionLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission(),
+        ) { isGranted ->
+            if (isGranted) {
+                viewModel.onAudioPermissionGranted()
+            } else {
+                viewModel.onAudioPermissionDenied()
+            }
+        }
+
+    // Show permission rationale dialog
+    if (showPermissionRationale) {
+        PermissionRationaleScreen(
+            onRequestPermission = { viewModel.requestAudioPermission() },
+            onDismiss = { viewModel.onPermissionRationaleDismissed() },
+        )
+    }
+
+    // Request permission when needed
+    LaunchedEffect(audioPermissionRequired) {
+        if (audioPermissionRequired) {
+            audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
 
     // Keep screen on while listening
     KeepScreenOn(enabled = state.isListening)

@@ -35,13 +35,13 @@ class YinPitchDetector(
 
         // Minimum signal energy to avoid processing silence
         private const val MIN_ENERGY_THRESHOLD = 1e-10
-        
+
         // Adaptive threshold parameters
         private const val ADAPTIVE_THRESHOLD_MIN = 0.05f // Minimum threshold for clean signals
         private const val ADAPTIVE_THRESHOLD_MAX = 0.25f // Maximum threshold for noisy signals
         private const val HIGH_SNR_THRESHOLD = 20.0 // High SNR in dB
         private const val LOW_SNR_THRESHOLD = 5.0 // Low SNR in dB
-        
+
         // Multi-period analysis parameters
         private const val MAX_PERIOD_CANDIDATES = 3 // Number of period candidates to validate
     }
@@ -81,11 +81,12 @@ class YinPitchDetector(
         val normalizedDifference = cumulativeMeanNormalizedDifference(differenceFunction)
 
         // Enhancement 1: Adaptive Threshold - adjust based on signal characteristics
-        val effectiveThreshold = if (adaptiveThreshold) {
-            calculateAdaptiveThreshold(audioData, normalizedDifference, energy)
-        } else {
-            threshold
-        }
+        val effectiveThreshold =
+            if (adaptiveThreshold) {
+                calculateAdaptiveThreshold(audioData, normalizedDifference, energy)
+            } else {
+                threshold
+            }
 
         // Step 3: Find the first lag below threshold (absolute threshold)
         val detectedLag =
@@ -93,11 +94,12 @@ class YinPitchDetector(
                 ?: return null
 
         // Enhancement 2: Multi-Period Analysis - validate against multiple candidates
-        val validatedLag = if (multiPeriodAnalysis) {
-            validateMultiplePeriods(normalizedDifference, detectedLag, minLag, effectiveThreshold)
-        } else {
-            detectedLag
-        }
+        val validatedLag =
+            if (multiPeriodAnalysis) {
+                validateMultiplePeriods(normalizedDifference, detectedLag, minLag, effectiveThreshold)
+            } else {
+                detectedLag
+            }
 
         // Step 4: Apply parabolic interpolation for sub-sample accuracy
         val refinedLag = parabolicInterpolation(normalizedDifference, validatedLag)
@@ -299,44 +301,48 @@ class YinPitchDetector(
     ): Float {
         // Calculate RMS level
         val rms = kotlin.math.sqrt(energy / audioData.size)
-        
+
         // Estimate SNR: ratio of signal power to noise floor estimate
         // Use minimum difference as noise floor proxy
         val minDifference = normalizedDifference.drop(1).minOrNull() ?: 0.5f
         val avgDifference = normalizedDifference.drop(1).average().toFloat()
-        
+
         // SNR estimate in dB (simple heuristic)
-        val snrEstimate = if (minDifference > 0.0001f) {
-            20 * kotlin.math.log10((avgDifference / minDifference).toDouble())
-        } else {
-            HIGH_SNR_THRESHOLD // Assume high SNR if very periodic
-        }
-        
+        val snrEstimate =
+            if (minDifference > 0.0001f) {
+                20 * kotlin.math.log10((avgDifference / minDifference).toDouble())
+            } else {
+                HIGH_SNR_THRESHOLD // Assume high SNR if very periodic
+            }
+
         // Adaptive threshold calculation
-        val adaptedThreshold = when {
-            // High SNR and good RMS: use stricter threshold for better precision
-            snrEstimate >= HIGH_SNR_THRESHOLD && rms >= 0.05 -> {
-                ADAPTIVE_THRESHOLD_MIN
+        val adaptedThreshold =
+            when {
+                // High SNR and good RMS: use stricter threshold for better precision
+                snrEstimate >= HIGH_SNR_THRESHOLD && rms >= 0.05 -> {
+                    ADAPTIVE_THRESHOLD_MIN
+                }
+                // Low SNR or weak signal: use looser threshold to avoid missing detections
+                snrEstimate <= LOW_SNR_THRESHOLD || rms < 0.01 -> {
+                    ADAPTIVE_THRESHOLD_MAX
+                }
+                // Medium conditions: interpolate
+                else -> {
+                    val snrFactor =
+                        ((snrEstimate - LOW_SNR_THRESHOLD) / (HIGH_SNR_THRESHOLD - LOW_SNR_THRESHOLD))
+                            .toFloat()
+                            .coerceIn(0f, 1f)
+                    val rmsFactor =
+                        ((rms - 0.01) / (0.05 - 0.01))
+                            .toFloat()
+                            .coerceIn(0f, 1f)
+
+                    // Weighted average: prioritize SNR but consider RMS
+                    val combinedFactor = (snrFactor * 0.7f + rmsFactor * 0.3f)
+                    ADAPTIVE_THRESHOLD_MAX - combinedFactor * (ADAPTIVE_THRESHOLD_MAX - ADAPTIVE_THRESHOLD_MIN)
+                }
             }
-            // Low SNR or weak signal: use looser threshold to avoid missing detections
-            snrEstimate <= LOW_SNR_THRESHOLD || rms < 0.01 -> {
-                ADAPTIVE_THRESHOLD_MAX
-            }
-            // Medium conditions: interpolate
-            else -> {
-                val snrFactor = ((snrEstimate - LOW_SNR_THRESHOLD) / (HIGH_SNR_THRESHOLD - LOW_SNR_THRESHOLD))
-                    .toFloat()
-                    .coerceIn(0f, 1f)
-                val rmsFactor = ((rms - 0.01) / (0.05 - 0.01))
-                    .toFloat()
-                    .coerceIn(0f, 1f)
-                
-                // Weighted average: prioritize SNR but consider RMS
-                val combinedFactor = (snrFactor * 0.7f + rmsFactor * 0.3f)
-                ADAPTIVE_THRESHOLD_MAX - combinedFactor * (ADAPTIVE_THRESHOLD_MAX - ADAPTIVE_THRESHOLD_MIN)
-            }
-        }
-        
+
         return adaptedThreshold.coerceIn(ADAPTIVE_THRESHOLD_MIN, ADAPTIVE_THRESHOLD_MAX)
     }
 
@@ -370,34 +376,34 @@ class YinPitchDetector(
     ): Int {
         // Find multiple period candidates (local minima below threshold)
         val candidates = findPeriodCandidates(normalizedDifference, minLag, threshold)
-        
+
         if (candidates.size <= 1) {
             // Only one candidate, no validation needed
             return initialLag
         }
-        
+
         // Analyze candidates for harmonic relationships
         var bestLag = initialLag
         var bestScore = normalizedDifference[initialLag]
-        
+
         for (candidate in candidates.take(MAX_PERIOD_CANDIDATES)) {
             val lag = candidate.first
             val value = candidate.second
-            
+
             // Check if this candidate has harmonic support
             val harmonicSupport = countHarmonicSupport(lag, candidates)
-            
+
             // Score combines periodicity quality (lower value = better)
             // with harmonic support (more harmonics = better)
             // Prefer candidates with strong harmonic support
             val score = value - (harmonicSupport * 0.02f) // Bonus for harmonic support
-            
+
             if (score < bestScore) {
                 bestScore = score
                 bestLag = lag
             }
         }
-        
+
         return bestLag
     }
 
@@ -412,21 +418,21 @@ class YinPitchDetector(
         threshold: Float,
     ): List<Pair<Int, Float>> {
         val candidates = mutableListOf<Pair<Int, Float>>()
-        
+
         var tau = minLag
         while (tau < normalizedDifference.size - 1) {
             if (normalizedDifference[tau] < threshold) {
                 // Found a point below threshold, find local minimum
                 val localMin = findLocalMinimum(normalizedDifference, tau)
                 candidates.add(Pair(localMin, normalizedDifference[localMin]))
-                
+
                 // Skip ahead to avoid finding the same minimum multiple times
                 tau = localMin + (localMin / 2).coerceAtLeast(5)
             } else {
                 tau++
             }
         }
-        
+
         // Sort by value (best periodicity first)
         return candidates.sortedBy { it.second }
     }
@@ -445,15 +451,15 @@ class YinPitchDetector(
         candidates: List<Pair<Int, Float>>,
     ): Int {
         var harmonicCount = 0
-        
+
         for (candidate in candidates) {
             val otherLag = candidate.first
             if (otherLag == lag) continue
-            
+
             // Check if otherLag is approximately an integer multiple of lag
             val ratio = otherLag.toDouble() / lag.toDouble()
             val nearestInt = kotlin.math.round(ratio).toInt()
-            
+
             if (nearestInt >= 2 && nearestInt <= 4) {
                 val error = abs(ratio - nearestInt)
                 if (error < 0.05) { // Within 5% of integer ratio
@@ -461,7 +467,7 @@ class YinPitchDetector(
                 }
             }
         }
-        
+
         return harmonicCount
     }
 }
