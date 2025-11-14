@@ -2,6 +2,7 @@ package com.androidguitarnotes.app.audio
 
 import org.junit.Test
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.sin
 
 class LowEDetectionTest {
