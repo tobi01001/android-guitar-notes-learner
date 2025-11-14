@@ -15,9 +15,9 @@ import kotlin.coroutines.coroutineContext
 /**
  * Records audio from microphone and provides audio samples for pitch detection.
  *
- * ## Audio Processing Pipeline (Improved Order)
+ * ## Audio Processing Pipeline (Split Path Design)
  *
- * The audio processing pipeline applies the following operations in order:
+ * The audio processing pipeline uses split paths to avoid phase distortion in pitch detection:
  * 1. **Raw audio capture** from microphone (44.1 kHz, mono, PCM float)
  * 2. **Float conversion** - Samples already in float format from Android AudioRecord
  * 3. **Pre-processing RMS** - Calculate raw RMS for auto-adjust algorithm (only when auto-adjust is enabled)
@@ -26,40 +26,43 @@ import kotlin.coroutines.coroutineContext
  *    - **CRITICAL:** No hard clamping applied during analysis chain
  *    - Hard clamping creates irreversible distortion and loss of harmonics
  *    - Clamping only appropriate before playback/output step (not in analysis)
- * 6. **High-pass filtering** - Removes low-frequency rumble and noise (40 Hz cutoff, configurable)
- *    - Applied after gain to avoid amplifying DC offset and low-frequency noise
- * 7. **Noise gate check** - Compute RMS and check if signal passes threshold
- * 8. **Post-processing RMS** - Calculate audio level for visual feedback (after filtering)
- * 9. **Emit to flow** - Sends processed audio for pitch detection (normalized autocorrelation)
+ * 6. **Signal split:**
+ *    - **Path A (Pitch Detection):** Unfiltered audio → pitch detection algorithms
+ *    - **Path B (Level Display):** High-pass filtered audio → RMS calculation for visual feedback
+ * 7. **Noise gate check** - Uses unfiltered RMS to check if signal passes threshold
+ * 8. **Emit to flow** - Sends UNFILTERED audio for pitch detection
+ *
+ * ## Why Split Paths?
+ *
+ * IIR high-pass filters introduce **phase distortion** that causes systematic frequency errors
+ * at low frequencies. Even with a 40 Hz cutoff (well below E2 at 82 Hz):
+ * - E2 (82.4 Hz) is detected as 88.8 Hz (+6.4 Hz, +129 cents) → appears as F2 instead of E2
+ * - D3 (146.8 Hz) is detected as 153.3 Hz (+6.5 Hz, +75 cents) → appears as D#3
+ * - Error decreases as frequency increases
+ * 
+ * This affects ALL pitch detection algorithms (YIN, autocorrelation, FFT) because the phase
+ * distortion shifts zero-crossings in time, making period measurement incorrect.
+ *
+ * **Solution:** Remove filter from pitch detection path, but keep it for RMS calculation
+ * to provide clean visual level feedback without rumble fluctuations.
  *
  * ## Processing Order Rationale
  *
  * - **Auto-adjust before gain:** Uses raw RMS to determine appropriate gain adjustment
- * - **Gain before high-pass:** Allows the auto-adjust algorithm to work on raw signal levels before
- *   filtering, and applies gain uniformly to all frequencies before selectively attenuating low frequencies.
- *   Note: This means DC offset and low-frequency noise are amplified by the gain, but the high-pass
- *   filter removes them immediately afterward.
+ * - **No filtering for pitch detection:** Preserves accurate phase relationships for period detection
  * - **No hard clamping:** Preserves harmonics and signal quality for pitch detection
- * - **High-pass after gain:** Removes amplified DC offset and rumble from the signal
- * - **Gate and RMS after filtering:** Accurate level measurement on clean signal
+ * - **Filtering only for level display:** Removes rumble from visual feedback without affecting accuracy
+ * - **Gate uses unfiltered RMS:** True signal energy check, not influenced by filter
  *
- * ## High-Pass Filter
+ * ## High-Pass Filter (Level Display Only)
  *
- * A one-pole IIR high-pass filter with 40 Hz cutoff is automatically applied to all audio.
- * This removes:
+ * A one-pole IIR high-pass filter with 40 Hz cutoff is applied ONLY to the level calculation path.
+ * This provides clean visual feedback by removing:
  * - Low-frequency handling noise (bumps, taps)
  * - Environmental rumble (traffic, wind, HVAC)
  * - DC offset and subsonic content
  *
- * The filter cutoff is set well below the lowest guitar note (E2 at 82 Hz) to minimize
- * phase distortion that could affect pitch detection accuracy. The 40 Hz cutoff provides:
- * - Only -0.9 dB attenuation at E2 (82 Hz)
- * - Only 26° phase shift at E2 (vs 36° at 60 Hz cutoff)
- * - Effective removal of sub-40 Hz noise
- *
- * **Configurable cutoff:** While default is 40 Hz, the cutoff can be adjusted (30-50 Hz range)
- * based on environmental noise conditions. Higher cutoffs (>50 Hz) may introduce phase
- * distortion that affects low E string detection accuracy.
+ * The filter is NOT applied to the pitch detection signal to avoid phase distortion errors.
  *
  * ## Microphone Sensitivity
  *
@@ -285,22 +288,34 @@ class AudioRecorder {
                             } else {
                                 sensitivityMultiplier
                             }
-                        // Apply sensitivity multiplier
+                        // Apply sensitivity multiplier to clean audio for pitch detection
                         val adjustedData = applySensitivity(audioData, combinedMultiplier)
 
-                        // Apply high-pass filter to remove low-frequency noise
-                        // This happens after sensitivity but before RMS and pitch detection
-                        highPassFilter.process(adjustedData)
+                        // CRITICAL FIX: Do NOT apply high-pass filter to pitch detection signal
+                        // The IIR high-pass filter introduces phase distortion that causes systematic
+                        // frequency errors at low frequencies. For example, at 40 Hz cutoff:
+                        // - E2 (82.4 Hz) appears as 88.8 Hz (+6.4 Hz, essentially F2)
+                        // - D3 (146.8 Hz) appears as 153.3 Hz (+6.5 Hz, essentially D#3)
+                        // This affects ALL pitch detection algorithms equally.
+                        //
+                        // Solution: Split signal paths:
+                        // 1. Pitch detection: Use raw adjusted audio (no filtering)
+                        // 2. Level display: Use filtered audio for clean RMS calculation
+                        
+                        // Create filtered copy for RMS/level calculation only
+                        val filteredDataForLevel = adjustedData.copyOf()
+                        highPassFilter.process(filteredDataForLevel)
 
-                        // Calculate raw RMS for noise gate check
+                        // Calculate raw RMS for noise gate check (using unfiltered data)
                         val rawRms = calculateRawRms(adjustedData)
 
                         // Check if signal passes the noise gate
                         val isGated = rawRms < noiseGateThreshold
 
-                        // Calculate audio level (RMS) after filtering
-                        val level = calculateAudioLevel(adjustedData)
+                        // Calculate audio level from filtered data (cleaner visual feedback)
+                        val level = calculateAudioLevel(filteredDataForLevel)
 
+                        // Emit unfiltered data for pitch detection
                         emit(AudioDataWithLevel(adjustedData, level, isGated))
                     } else if (readResult < 0) {
                         // Error reading audio data
