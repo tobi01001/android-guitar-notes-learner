@@ -3,6 +3,7 @@ package com.androidguitarnotes.app.notesplayed
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.androidguitarnotes.app.audio.AudioManager
+import com.androidguitarnotes.app.permissions.PermissionManager
 import com.androidguitarnotes.app.settings.SettingsViewModel
 
 /**
@@ -11,11 +12,12 @@ import com.androidguitarnotes.app.settings.SettingsViewModel
  */
 class NotesPlayedViewModelFactory(
     private val settingsViewModel: SettingsViewModel,
+    private val permissionManager: PermissionManager,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(NotesPlayedViewModel::class.java)) {
-            return NotesPlayedViewModel(AudioManager(), settingsViewModel) as T
+            return NotesPlayedViewModel(AudioManager(), settingsViewModel, permissionManager) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
