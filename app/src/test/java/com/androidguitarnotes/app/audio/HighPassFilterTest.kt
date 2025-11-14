@@ -90,7 +90,7 @@ class HighPassFilterTest {
 
     @Test
     fun `filter passes guitar E2 frequency with minimal attenuation`() {
-        val filter = HighPassFilter(sampleRate = 44100, cutoffFrequency = 60.0)
+        val filter = HighPassFilter(sampleRate = 44100, cutoffFrequency = 40.0)
 
         // Generate 82.41 Hz sine wave (low E string)
         val frequency = 82.41
@@ -108,11 +108,12 @@ class HighPassFilterTest {
         val steadyStateFiltered = filtered.sliceArray(1000 until filtered.size)
         val outputRMS = calculateRMS(steadyStateFiltered)
 
-        // Output should be mostly preserved (expect < 20% reduction)
+        // With 40 Hz cutoff, E2 (82 Hz) should have minimal attenuation (~10% or less)
+        // Expected: -0.9 dB attenuation = ~90% amplitude preserved
         assertTrue(
             "Guitar E2 frequency ($frequency Hz) should pass with minimal attenuation, " +
                 "input RMS: $inputRMS, output RMS: $outputRMS, attenuation: ${(1 - outputRMS / inputRMS) * 100}%",
-            outputRMS > inputRMS * 0.8f,
+            outputRMS > inputRMS * 0.85f,
         )
     }
 
@@ -261,6 +262,43 @@ class HighPassFilterTest {
             }
         }
         assertTrue("Filter should modify the input array", hasChanged)
+    }
+
+    @Test
+    fun `filter with 40 Hz cutoff has less attenuation at E2 than 60 Hz cutoff`() {
+        val filter40 = HighPassFilter(sampleRate = 44100, cutoffFrequency = 40.0)
+        val filter60 = HighPassFilter(sampleRate = 44100, cutoffFrequency = 60.0)
+
+        // Generate E2 (82.41 Hz) sine wave
+        val frequency = 82.41
+        val samples = generateSineWave(frequency, 44100, 22050)
+        val inputRMS = calculateRMS(samples)
+
+        // Process with both filters
+        val filtered40 = filter40.process(samples.copyOf())
+        val filtered60 = filter60.process(samples.copyOf())
+
+        // Calculate RMS after transient
+        val output40RMS = calculateRMS(filtered40.sliceArray(1000 until filtered40.size))
+        val output60RMS = calculateRMS(filtered60.sliceArray(1000 until filtered60.size))
+
+        // 40 Hz filter should have less attenuation than 60 Hz filter
+        val attenuation40 = 1 - output40RMS / inputRMS
+        val attenuation60 = 1 - output60RMS / inputRMS
+
+        assertTrue(
+            "40 Hz cutoff should attenuate E2 less than 60 Hz cutoff, " +
+                "40 Hz attenuation: ${"%.1f".format(attenuation40 * 100)}%, " +
+                "60 Hz attenuation: ${"%.1f".format(attenuation60 * 100)}%",
+            attenuation40 < attenuation60,
+        )
+
+        // Verify 40 Hz cutoff has minimal impact (< 15% attenuation)
+        assertTrue(
+            "40 Hz cutoff should have minimal impact on E2, " +
+                "attenuation: ${"%.1f".format(attenuation40 * 100)}%",
+            attenuation40 < 0.15f,
+        )
     }
 
     // Helper function to generate sine wave for testing

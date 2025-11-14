@@ -45,17 +45,21 @@ import kotlin.coroutines.coroutineContext
  *
  * ## High-Pass Filter
  *
- * A one-pole IIR high-pass filter with 60 Hz cutoff is automatically applied to all audio.
+ * A one-pole IIR high-pass filter with 40 Hz cutoff is automatically applied to all audio.
  * This removes:
  * - Low-frequency handling noise (bumps, taps)
  * - Environmental rumble (traffic, wind, HVAC)
  * - DC offset and subsonic content
  *
- * The filter does not affect guitar notes (lowest E2 is 82 Hz) and improves pitch detection
- * accuracy by reducing spurious low-frequency triggers.
+ * The filter cutoff is set well below the lowest guitar note (E2 at 82 Hz) to minimize
+ * phase distortion that could affect pitch detection accuracy. The 40 Hz cutoff provides:
+ * - Only -0.9 dB attenuation at E2 (82 Hz)
+ * - Only 26° phase shift at E2 (vs 36° at 60 Hz cutoff)
+ * - Effective removal of sub-40 Hz noise
  *
- * **Configurable cutoff:** While default is 60 Hz, the cutoff can be adjusted (40-80 Hz range)
- * based on environmental noise conditions and guitar tuning.
+ * **Configurable cutoff:** While default is 40 Hz, the cutoff can be adjusted (30-50 Hz range)
+ * based on environmental noise conditions. Higher cutoffs (>50 Hz) may introduce phase
+ * distortion that affects low E string detection accuracy.
  *
  * ## Microphone Sensitivity
  *
@@ -258,8 +262,9 @@ class AudioRecorder {
                 audioRecord?.startRecording()
 
                 // Create high-pass filter to remove low-frequency rumble
-                // Cutoff at 60 Hz (below lowest guitar note E2 at ~82 Hz)
-                val highPassFilter = HighPassFilter(sampleRate = SAMPLE_RATE, cutoffFrequency = 60.0)
+                // Cutoff at 40 Hz (well below lowest guitar note E2 at ~82 Hz)
+                // Lowered from 60 Hz to reduce phase distortion at E2 frequency
+                val highPassFilter = HighPassFilter(sampleRate = SAMPLE_RATE, cutoffFrequency = 40.0)
 
                 val buffer = FloatArray(bufferSize / 4)
 

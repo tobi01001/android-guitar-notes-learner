@@ -27,19 +27,20 @@ import kotlin.math.PI
  *
  * ## Tuning Guidelines
  *
- * - **Default 60 Hz**: Good general-purpose cutoff for guitar applications
+ * - **Default 40 Hz**: Optimal cutoff for guitar applications
  *   - Removes most handling noise and rumble
  *   - Well below lowest guitar note (E2 at ~82 Hz)
- *   - Minimal impact on guitar tone
+ *   - Minimal phase distortion (-0.9 dB, 26° phase shift at E2)
+ *   - Prevents systematic frequency detection errors on low E string
  *
- * - **Lower cutoff (50 Hz)**: Use if guitar detection is affected
- *   - More conservative filtering
- *   - Allows more low-frequency content through
+ * - **Lower cutoff (30 Hz)**: Use for very clean recording environments
+ *   - Even more conservative filtering
+ *   - Minimal impact on any guitar frequency
  *
- * - **Higher cutoff (70-80 Hz)**: Use in very noisy environments
- *   - More aggressive filtering
- *   - May slightly affect lowest E string (82 Hz)
- *   - Use with caution
+ * - **Higher cutoff (50-60 Hz)**: Use in very noisy environments with caution
+ *   - More aggressive filtering of rumble
+ *   - May introduce phase distortion affecting low E detection
+ *   - 60 Hz cutoff causes -1.8 dB attenuation and 36° phase shift at E2
  *
  * ## Performance
  *
@@ -48,13 +49,13 @@ import kotlin.math.PI
  * - Processes samples in-place for efficiency
  *
  * @param sampleRate Sample rate in Hz (typically 44100)
- * @param cutoffFrequency Cutoff frequency in Hz (typically 50-60 Hz)
+ * @param cutoffFrequency Cutoff frequency in Hz (typically 30-50 Hz, default 40 Hz)
  *
  * @see AUDIO_DETECTION_ANALYSIS.md Section 7.2.3 for implementation details
  */
 class HighPassFilter(
     sampleRate: Int = 44100,
-    cutoffFrequency: Double = 60.0,
+    cutoffFrequency: Double = 40.0,
 ) {
     // Filter state variables
     private var prevInput = 0f
