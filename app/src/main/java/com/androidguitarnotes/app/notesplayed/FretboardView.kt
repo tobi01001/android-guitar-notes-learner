@@ -26,8 +26,9 @@ private val FRET_BAR_COLOR = Color(0xFFC0C0C0) // Silver/metal
 private val STRING_COLOR = Color(0xFF808080) // Steel grey
 
 /**
- * Fretboard visualization composable.
- * Displays a guitar fretboard and highlights positions for the detected note.
+ * Enhanced fretboard visualization composable with realistic guitar appearance.
+ * Displays a guitar fretboard with wooden background, metal fret bars, and realistic strings.
+ * Highlights note positions at string/fret intersections.
  *
  * @param detectedNote The note name to highlight on the fretboard (e.g., 'A', 'C#', 'F').
  *                     If null, no positions will be highlighted.
