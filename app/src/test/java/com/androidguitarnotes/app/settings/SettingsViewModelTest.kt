@@ -42,6 +42,7 @@ class SettingsViewModelTest {
         coEvery { repository.defaultTuning } returns flowOf("Standard")
         coEvery { repository.microphoneSensitivity } returns flowOf(1.0f)
         coEvery { repository.autoAdjustSensitivity } returns flowOf(false)
+        coEvery { repository.pitchDetectionAlgorithm } returns flowOf("YIN")
         return repository
     }
 
@@ -298,6 +299,7 @@ class SettingsViewModelTest {
             coEvery { repository.defaultTuning } returns flowOf("Standard")
             coEvery { repository.microphoneSensitivity } returns flowOf(1.0f)
             coEvery { repository.autoAdjustSensitivity } returns flowOf(false)
+            coEvery { repository.pitchDetectionAlgorithm } returns flowOf("YIN")
 
             val viewModel = SettingsViewModel(repository)
             testDispatcher.scheduler.advanceUntilIdle()
@@ -316,6 +318,7 @@ class SettingsViewModelTest {
             coEvery { repository.defaultTuning } returns flowOf("Standard")
             coEvery { repository.microphoneSensitivity } returns flowOf(1.8f)
             coEvery { repository.autoAdjustSensitivity } returns flowOf(false)
+            coEvery { repository.pitchDetectionAlgorithm } returns flowOf("YIN")
 
             val viewModel = SettingsViewModel(repository)
             testDispatcher.scheduler.advanceUntilIdle()
@@ -334,6 +337,7 @@ class SettingsViewModelTest {
             coEvery { repository.defaultTuning } returns flowOf("Standard")
             coEvery { repository.microphoneSensitivity } returns flowOf(1.0f)
             coEvery { repository.autoAdjustSensitivity } returns flowOf(true)
+            coEvery { repository.pitchDetectionAlgorithm } returns flowOf("YIN")
 
             val viewModel = SettingsViewModel(repository)
             testDispatcher.scheduler.advanceUntilIdle()
@@ -352,11 +356,81 @@ class SettingsViewModelTest {
             coEvery { repository.defaultTuning } returns flowOf("Drop D")
             coEvery { repository.microphoneSensitivity } returns flowOf(1.0f)
             coEvery { repository.autoAdjustSensitivity } returns flowOf(false)
+            coEvery { repository.pitchDetectionAlgorithm } returns flowOf("YIN")
 
             val viewModel = SettingsViewModel(repository)
             testDispatcher.scheduler.advanceUntilIdle()
 
             val tuning = viewModel.defaultTuning.first()
             assertEquals("Default tuning should be loaded as 'Drop D' from repository", "Drop D", tuning)
+        }
+
+    @Test
+    fun `default pitch detection algorithm is YIN`() =
+        runTest {
+            val viewModel = SettingsViewModel(createMockRepository())
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val algorithm = viewModel.pitchDetectionAlgorithm.first()
+
+            assertEquals("Pitch detection algorithm should be YIN by default", "YIN", algorithm)
+        }
+
+    @Test
+    fun `setPitchDetectionAlgorithm updates state`() =
+        runTest {
+            val viewModel = SettingsViewModel(createMockRepository())
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.setPitchDetectionAlgorithm("HYBRID_YIN_FFT")
+            val algorithm = viewModel.pitchDetectionAlgorithm.first()
+
+            assertEquals("Pitch detection algorithm should be HYBRID_YIN_FFT", "HYBRID_YIN_FFT", algorithm)
+        }
+
+    @Test
+    fun `setPitchDetectionAlgorithm can be changed multiple times`() =
+        runTest {
+            val viewModel = SettingsViewModel(createMockRepository())
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.setPitchDetectionAlgorithm("AUTOCORRELATION")
+            viewModel.setPitchDetectionAlgorithm("HYBRID_YIN_FFT")
+            viewModel.setPitchDetectionAlgorithm("YIN_ENHANCED")
+            val algorithm = viewModel.pitchDetectionAlgorithm.first()
+
+            assertEquals("Pitch detection algorithm should be YIN_ENHANCED", "YIN_ENHANCED", algorithm)
+        }
+
+    @Test
+    fun `setPitchDetectionAlgorithm persists to repository`() =
+        runTest {
+            val repository = createMockRepository()
+            val viewModel = SettingsViewModel(repository)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.setPitchDetectionAlgorithm("HYBRID_YIN_FFT")
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            io.mockk.coVerify { repository.savePitchDetectionAlgorithm("HYBRID_YIN_FFT") }
+        }
+
+    @Test
+    fun `pitchDetectionAlgorithm loads from repository on init`() =
+        runTest {
+            val repository = mockk<SettingsRepository>(relaxed = true)
+            coEvery { repository.audioSource } returns flowOf(AudioSource.AUTO)
+            coEvery { repository.noiseGateThreshold } returns flowOf(0.01f)
+            coEvery { repository.audioFeedbackEnabled } returns flowOf(true)
+            coEvery { repository.defaultTuning } returns flowOf("Standard")
+            coEvery { repository.microphoneSensitivity } returns flowOf(1.0f)
+            coEvery { repository.autoAdjustSensitivity } returns flowOf(false)
+            coEvery { repository.pitchDetectionAlgorithm } returns flowOf("HYBRID_YIN_FFT")
+
+            val viewModel = SettingsViewModel(repository)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val algorithm = viewModel.pitchDetectionAlgorithm.first()
+            assertEquals("Pitch detection algorithm should be loaded as 'HYBRID_YIN_FFT' from repository", "HYBRID_YIN_FFT", algorithm)
         }
 }

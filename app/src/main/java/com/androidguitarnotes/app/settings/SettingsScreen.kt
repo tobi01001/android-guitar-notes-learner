@@ -104,9 +104,10 @@ fun SettingsScreen(
         }
     }
 
-    // Use remember with cleanup for proper lifecycle management
+    // Create a new AudioManager instance whenever the algorithm changes
+    // This ensures clean state and avoids coroutine cancellation issues
     val audioManager =
-        remember {
+        remember(pitchDetectionAlgorithm) {
             val algorithm =
                 try {
                     PitchDetectionAlgorithm.valueOf(pitchDetectionAlgorithm)
@@ -117,16 +118,6 @@ fun SettingsScreen(
         }
     var currentAudioLevel by remember { mutableFloatStateOf(0f) }
     var isGated by remember { mutableStateOf(false) }
-
-    // Update algorithm when it changes
-    LaunchedEffect(pitchDetectionAlgorithm) {
-        try {
-            val algorithm = PitchDetectionAlgorithm.valueOf(pitchDetectionAlgorithm)
-            audioManager.setAlgorithm(algorithm)
-        } catch (e: IllegalArgumentException) {
-            // Ignore invalid algorithm names
-        }
-    }
 
     // Single effect to handle audio listening based on all relevant parameters
     LaunchedEffect(
@@ -162,8 +153,8 @@ fun SettingsScreen(
         }
     }
 
-    // Cleanup when screen is disposed
-    DisposableEffect(Unit) {
+    // Cleanup when screen is disposed or audioManager changes
+    DisposableEffect(audioManager) {
         onDispose {
             audioManager.stopListening()
         }
