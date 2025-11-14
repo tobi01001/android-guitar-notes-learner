@@ -1,8 +1,11 @@
 # Android Guitar Notes Learner
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Android CI](https://github.com/tobi01001/android-guitar-notes-learner/actions/workflows/ci.yml/badge.svg)](https://github.com/tobi01001/android-guitar-notes-learner/actions/workflows/ci.yml)
+
 A Kotlin + Jetpack Compose app to help learn and memorize the notes on the guitar neck.
 
-Goals
+## Goals
 - Kotlin, Jetpack Compose, single-activity app.
 - Minimum API level 34 (Android 14+) — no backward compatibility required initially.
 - Material 3 Compose theming.
@@ -10,7 +13,8 @@ Goals
 - Built-in guitar tuner (standard tuning to start).
 - Real-time pitch detection with configurable sensitivity and auto-adjust capabilities.
 
-Quick start (local)
+## Quick Start
+
 1. Open project in Android Studio (use an Android Studio version that supports the Android Gradle Plugin used in the build files).
 2. Build and run on a device (microphone required for audio features).
 
@@ -91,28 +95,29 @@ All checks run on push to main and on pull requests.
 
 ## Documentation
 
-### Project Documentation
-- **[FUTURE_ENHANCEMENTS.md](FUTURE_ENHANCEMENTS.md)** - Central index for tracking future feature ideas and enhancements
-  - [ENH-001: Multi-Frame Pitch Confirmation](ENHANCEMENT_001_MULTI_FRAME_CONFIRMATION.md) - Optional detection stability improvement
-  - [ENH-002: Harmonic Consistency Checks](ENHANCEMENT_002_HARMONIC_CONSISTENCY.md) - Priority 2 octave disambiguation
+### For Contributors
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - How to contribute to this project
+- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** - Community guidelines and standards
 
-### Technical Analysis
-- **[AUDIO_DETECTION_ANALYSIS.md](AUDIO_DETECTION_ANALYSIS.md)** - Comprehensive analysis of audio processing and pitch detection
-- **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** - Summary of implemented features
-- **[ISSUE_62_README.md](ISSUE_62_README.md)** - Investigation of HighPassFilter initialization
-- **[ISSUE_68_REVIEW_README.md](ISSUE_68_REVIEW_README.md)** - Review of audio reception improvements
+### Technical Documentation
+- **[Audio Detection Analysis](docs/technical/AUDIO_DETECTION_ANALYSIS.md)** - Comprehensive analysis of audio processing and pitch detection
+- **[Audio Library Research](docs/technical/AUDIO_LIBRARY_RESEARCH.md)** - Research on audio processing libraries and techniques
 
-Planned initial features (M1)
-- App skeleton with Compose navigation (Home / Practice / Settings).
-- Practice configuration UI (string selection, fret range, mode, duration).
-- Random note generator for practice sessions.
-- Permission handling for RECORD_AUDIO; placeholder for tuner / pitch detection.
+### Development Documentation
+- **[Future Enhancements](docs/development/FUTURE_ENHANCEMENTS.md)** - Planned features and improvements
+  - [ENH-001: Multi-Frame Pitch Confirmation](docs/development/ENHANCEMENT_001_MULTI_FRAME_CONFIRMATION.md)
+  - [ENH-002: Harmonic Consistency Checks](docs/development/ENHANCEMENT_002_HARMONIC_CONSISTENCY.md)
+- **[Practice Configuration](docs/development/PRACTICE_CONFIG_README.md)** - Practice session configuration details
+- **[Practice Session](docs/development/PRACTICE_SESSION_README.md)** - Practice session implementation details
 
-Repository details
-- Package name: com.androidguitarnotes.app
-- Build system: Gradle Kotlin DSL (build.gradle.kts)
-- License: MIT
+## Project Information
 
-Next steps
-- I will create the private repository tobi01001/android-guitar-notes-learner and push this skeleton directly to main once you accept the GitHub authorization prompt.
-- After pushing, I will create issues for the CI task and break the practice/tuner work into issues.
+- **Package name**: `com.androidguitarnotes.app`
+- **Build system**: Gradle Kotlin DSL (build.gradle.kts)
+- **License**: MIT
+- **Min SDK**: 34 (Android 14+)
+- **Target SDK**: 34
+
+## Contributing
+
+We welcome contributions! Please read our [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before submitting pull requests.
