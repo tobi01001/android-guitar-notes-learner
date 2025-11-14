@@ -122,9 +122,14 @@ class YinPitchDetector(
     /**
      * Step 1: Calculate the difference function (squared difference).
      *
-     * d_t(tau) = sum((x_j - x_{j+tau})^2)
+     * d_t(tau) = sum_{j=0}^{N-tau-1} (x_j - x_{j+tau})^2
      *
      * This measures how different the signal is from a time-shifted version of itself.
+     *
+     * According to the YIN algorithm paper (De Cheveigné & Kawahara, 2002),
+     * each tau should sum over all available data: from j=0 to j=N-tau-1.
+     * The cumulative mean normalization in step 2 compensates for the varying
+     * number of terms, ensuring fair comparison across different tau values.
      */
     private fun calculateDifference(
         audioData: FloatArray,
@@ -134,7 +139,8 @@ class YinPitchDetector(
 
         for (tau in 0..maxLag) {
             var sum = 0.0
-            for (j in 0 until (audioData.size - maxLag)) {
+            // Sum over all available pairs for this specific tau value
+            for (j in 0 until (audioData.size - tau)) {
                 val delta = audioData[j] - audioData[j + tau]
                 sum += delta * delta
             }
@@ -200,7 +206,11 @@ class YinPitchDetector(
      * Find local minimum around the given tau.
      *
      * After finding the first point below threshold, we search for a local minimum
-     * to get the best period estimate.
+     * to get the best period estimate. We continue searching forward until the
+     * value starts consistently increasing, indicating we've passed the minimum.
+     *
+     * This is critical for low-frequency detection where the true minimum might be
+     * many samples away from the first point below threshold.
      */
     private fun findLocalMinimum(
         normalizedDifference: FloatArray,
@@ -209,13 +219,24 @@ class YinPitchDetector(
         var minTau = startTau
         var minValue = normalizedDifference[startTau]
 
-        // Search forward until value increases again
-        for (tau in (startTau + 1) until min(startTau + 10, normalizedDifference.size)) {
-            if (normalizedDifference[tau] < minValue) {
-                minValue = normalizedDifference[tau]
+        // Search forward until we find a local minimum
+        // We continue as long as values are decreasing or staying below threshold
+        for (tau in (startTau + 1) until normalizedDifference.size) {
+            val currentValue = normalizedDifference[tau]
+            
+            if (currentValue < minValue) {
+                // Found a lower value, update minimum
+                minValue = currentValue
                 minTau = tau
-            } else if (normalizedDifference[tau] > minValue) {
-                // Found the minimum, stop searching
+            } else if (currentValue > minValue * 1.2) {
+                // Value has increased significantly (20%), we've passed the minimum
+                // This prevents searching too far when we've clearly found the local minimum
+                break
+            }
+            
+            // If we're far past the minimum and values haven't decreased,
+            // stop searching to avoid going into the next period
+            if (tau > minTau + 50) {
                 break
             }
         }

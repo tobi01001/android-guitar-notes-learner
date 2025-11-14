@@ -68,7 +68,7 @@ class YinPitchDetectorTest {
             val error = abs(it.frequency - frequency)
             assertTrue(
                 "Detected ${it.frequency} Hz, expected $frequency Hz, error: $error Hz",
-                error < 5.0, // More tolerance for very low frequencies - YIN is still better than autocorrelation
+                error < 1.0, // YIN now achieves excellent accuracy even for low frequencies
             )
         }
     }
@@ -114,9 +114,8 @@ class YinPitchDetectorTest {
             assertNotNull("Should detect $expectedFreq Hz", result)
             result?.let {
                 val error = abs(it.frequency - expectedFreq)
-                // Use adaptive tolerance: more for low frequencies
-                // YIN achieves ±1-7 Hz accuracy which is still better than autocorrelation (±5-10 Hz)
-                val tolerance = if (expectedFreq < 200) 7.0 else 6.0
+                // YIN now achieves excellent accuracy across all guitar frequencies
+                val tolerance = 1.0 // ±1 Hz for all frequencies
                 assertTrue(
                     "For $expectedFreq Hz: detected ${it.frequency} Hz, error: $error Hz",
                     error < tolerance,
