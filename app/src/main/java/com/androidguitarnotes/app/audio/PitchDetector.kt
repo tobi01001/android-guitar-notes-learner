@@ -3,7 +3,29 @@ package com.androidguitarnotes.app.audio
 import kotlin.math.sqrt
 
 /**
- * Detects the pitch (fundamental frequency) from audio samples using normalized autocorrelation.
+ * Pitch detection algorithm selection.
+ */
+enum class PitchDetectionAlgorithm {
+    /**
+     * Normalized autocorrelation method (original implementation).
+     * Good for basic pitch detection, moderate accuracy.
+     */
+    AUTOCORRELATION,
+
+    /**
+     * YIN algorithm with parabolic interpolation.
+     * Improved accuracy (±1 Hz), better noise robustness, fewer octave errors.
+     * Recommended for guitar tuning and precise note detection.
+     */
+    YIN,
+}
+
+/**
+ * Detects the pitch (fundamental frequency) from audio samples.
+ *
+ * Supports multiple detection algorithms:
+ * - AUTOCORRELATION: Normalized autocorrelation (original implementation)
+ * - YIN: YIN algorithm with parabolic interpolation (improved accuracy)
  *
  * ## Normalized Autocorrelation
  *
@@ -15,10 +37,21 @@ import kotlin.math.sqrt
  * - Quiet but periodic signals are properly detected
  * - Confidence metric indicates signal periodicity quality
  * - More robust to varying input levels
+ *
+ * ## YIN Algorithm
+ *
+ * The YIN algorithm (De Cheveigné & Kawahara, 2002) improves upon autocorrelation with:
+ * - Cumulative mean normalized difference function
+ * - Absolute threshold for period detection
+ * - Parabolic interpolation for sub-sample accuracy
+ * - Better noise robustness and fewer octave errors
  */
 class PitchDetector(
     private val sampleRate: Int = 44100,
+    private val algorithm: PitchDetectionAlgorithm = PitchDetectionAlgorithm.YIN,
 ) {
+    private val yinDetector = YinPitchDetector(sampleRate)
+
     companion object {
         private const val MIN_FREQUENCY = 60.0 // Low E2 (~82 Hz), with margin
         private const val MAX_FREQUENCY = 1500.0 // High E4 + harmonics
@@ -42,6 +75,28 @@ class PitchDetector(
     )
 
     /**
+     * Detects the fundamental frequency from audio samples.
+     *
+     * Uses the configured algorithm (YIN by default, or AUTOCORRELATION).
+     *
+     * @param audioData Array of audio samples (PCM float, no amplitude restrictions)
+     * @return PitchResult with frequency and confidence, or null if no clear pitch detected
+     */
+    fun detectPitchWithConfidence(audioData: FloatArray): PitchResult? =
+        when (algorithm) {
+            PitchDetectionAlgorithm.YIN -> {
+                val yinResult = yinDetector.detectPitch(audioData)
+                yinResult?.let {
+                    // YIN confidence is inverted (lower = better), so we invert it for consistency
+                    PitchResult(it.frequency, 1.0f - it.confidence)
+                }
+            }
+            PitchDetectionAlgorithm.AUTOCORRELATION -> {
+                detectPitchAutocorrelation(audioData)
+            }
+        }
+
+    /**
      * Detects the fundamental frequency from audio samples using normalized autocorrelation.
      *
      * Applies a small bias towards shorter lags to favor the fundamental frequency over sub-harmonics.
@@ -51,7 +106,7 @@ class PitchDetector(
      * @param audioData Array of audio samples (PCM float, no amplitude restrictions)
      * @return PitchResult with frequency and confidence, or null if no clear pitch detected
      */
-    fun detectPitchWithConfidence(audioData: FloatArray): PitchResult? {
+    private fun detectPitchAutocorrelation(audioData: FloatArray): PitchResult? {
         if (audioData.isEmpty()) return null
 
         // Calculate normalized autocorrelation for each lag
