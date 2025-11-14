@@ -3,11 +3,21 @@ package com.androidguitarnotes.app.practice
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -220,55 +230,111 @@ private fun ActiveSessionScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Compact note display card
-            Card(
-                modifier = Modifier.fillMaxWidth(0.6f),
-                colors =
-                    CardDefaults.cardColors(
-                        containerColor = NoteColors.getLightColorForNote(state.currentNote.noteName),
+            // Compact note display card with animated green glow when correct
+            val isCorrect = state.noteFeedback is PracticeSessionState.NoteFeedback.Correct
+            val infiniteTransition = rememberInfiniteTransition(label = "glow")
+            val glowAlpha by infiniteTransition.animateFloat(
+                initialValue = 0.3f,
+                targetValue = 0.8f,
+                animationSpec =
+                    infiniteRepeatable(
+                        animation = tween(1000, easing = FastOutSlowInEasing),
+                        repeatMode = RepeatMode.Reverse,
                     ),
+                label = "glowAlpha",
+            )
+
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxWidth(0.6f)
+                        .then(
+                            if (isCorrect) {
+                                Modifier
+                                    .shadow(
+                                        elevation = 16.dp,
+                                        shape = RoundedCornerShape(12.dp),
+                                        ambientColor = Color.Green,
+                                        spotColor = Color.Green,
+                                    ).border(
+                                        width = 3.dp,
+                                        color = Color.Green.copy(alpha = glowAlpha),
+                                        shape = RoundedCornerShape(12.dp),
+                                    )
+                            } else {
+                                Modifier
+                            },
+                        ),
             ) {
-                Column(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor = NoteColors.getLightColorForNote(state.currentNote.noteName),
+                        ),
                 ) {
-                    Text(
-                        text = state.currentNote.noteNameWithOctave,
-                        style = MaterialTheme.typography.displayMedium,
-                        fontSize = 48.sp,
-                        color = NoteColors.getDarkColorForNote(state.currentNote.noteName),
-                        maxLines = 1,
-                    )
+                    Column(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = state.currentNote.noteNameWithOctave,
+                            style = MaterialTheme.typography.displayMedium,
+                            fontSize = 48.sp,
+                            color = NoteColors.getDarkColorForNote(state.currentNote.noteName),
+                            maxLines = 1,
+                        )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                    Text(
-                        text =
-                            stringResource(
-                                R.string.string_and_fret,
-                                state.currentNote.stringNumber,
-                                state.currentNote.fret,
-                            ),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
+                        Text(
+                            text =
+                                stringResource(
+                                    R.string.string_and_fret,
+                                    state.currentNote.stringNumber,
+                                    state.currentNote.fret,
+                                ),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
             // Fretboard visualization showing target note position (only on target string)
-            FretboardView(
-                detectedNote = state.currentNote.noteName,
-                detectedNoteWithOctave = state.currentNote.noteNameWithOctave,
-                maxFret = 12,
-                highlightAlpha = 1.0f,
-                isPersisted = false,
-                targetStringNumber = state.currentNote.stringNumber, // Show only on target string
-            )
+            // with animated green glow when correct
+            Box(
+                modifier =
+                    if (isCorrect) {
+                        Modifier
+                            .shadow(
+                                elevation = 16.dp,
+                                shape = RoundedCornerShape(8.dp),
+                                ambientColor = Color.Green,
+                                spotColor = Color.Green,
+                            ).border(
+                                width = 3.dp,
+                                color = Color.Green.copy(alpha = glowAlpha),
+                                shape = RoundedCornerShape(8.dp),
+                            )
+                    } else {
+                        Modifier
+                    },
+            ) {
+                FretboardView(
+                    detectedNote = state.currentNote.noteName,
+                    detectedNoteWithOctave = state.currentNote.noteNameWithOctave,
+                    maxFret = 12,
+                    highlightAlpha = 1.0f,
+                    isPersisted = false,
+                    targetStringNumber = state.currentNote.stringNumber, // Show only on target string
+                )
+            }
 
             // Note feedback display - always show for all modes
             Spacer(modifier = Modifier.height(16.dp))
