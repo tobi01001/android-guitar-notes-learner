@@ -178,7 +178,7 @@ private fun NoteDisplayArea(
                 targetValue = if (detectedNote != null) 1.0f else 0.3f,
                 animationSpec =
                     tween(
-                        durationMillis = if (detectedNote != null) 200 else 600,
+                        durationMillis = if (detectedNote != null) 300 else 800,
                     ),
                 label = "highlightAlpha",
             )
@@ -237,7 +237,7 @@ private fun NoteCard(
         modifier =
             modifier
                 .fillMaxWidth()
-                .height(160.dp) // Fixed height to prevent card movement
+                .height(120.dp) // Fixed height to prevent card movement
                 .padding(horizontal = 16.dp),
         colors =
             CardDefaults.cardColors(
@@ -272,7 +272,7 @@ private fun NoteCard(
             Box(
                 modifier =
                     Modifier
-                        .size(width = 140.dp, height = 120.dp) // Fixed size to accommodate sharps
+                        .size(width = 140.dp, height = 80.dp) // Fixed size to accommodate sharps
                         .graphicsLayer(
                             scaleX = noteScale,
                             scaleY = noteScale,
@@ -301,7 +301,7 @@ private fun NoteCard(
                     Text(
                         text = detectedNote.noteNameWithOctave,
                         style = MaterialTheme.typography.displayLarge,
-                        fontSize = 64.sp, // Slightly smaller to fit sharps better
+                        fontSize = 48.sp, // Slightly smaller to fit sharps better
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimary,
                         maxLines = 1,
@@ -310,7 +310,7 @@ private fun NoteCard(
                     Text(
                         text = "?",
                         style = MaterialTheme.typography.displayLarge,
-                        fontSize = 72.sp,
+                        fontSize = 48.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

@@ -104,7 +104,7 @@ object FretboardGridSystem {
         val usableHeight = viewHeight - 2 * verticalPaddingPx
 
         val columnStepPx = usableWidth / 12.0f // 12 intervals between 13 columns
-        val rowStepPx = usableHeight / 26.0f // 26 intervals between 27 rows
+        val rowStepPx = usableHeight / 27.0f // 27 intervals
 
         /**
          * Convert column index to pixel X coordinate.
@@ -118,7 +118,7 @@ object FretboardGridSystem {
          * Convert row index to pixel Y coordinate.
          */
         fun pixelY(row: Int): Float {
-            require(row in 0..ROWS - 1) { "Row must be 0-${ROWS - 1}" }
+            require(row in 0..ROWS ) { "Row must be 0-${ROWS}" }
             return verticalPaddingPx + row * rowStepPx
         }
 

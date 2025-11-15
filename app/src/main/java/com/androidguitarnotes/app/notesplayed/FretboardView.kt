@@ -5,8 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -92,14 +92,15 @@ fun FretboardView(
         modifier =
             modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Main fretboard with wooden background
         Box(
             modifier =
                 Modifier
-                    .fillMaxWidth()
+                    .fillMaxWidth(0.9f)
                     .aspectRatio(0.7f) // Aspect ratio for realistic guitar neck proportions
                     .clip(RoundedCornerShape(8.dp))
                     .background(FRETBOARD_WOOD_COLOR)
@@ -124,7 +125,7 @@ fun FretboardView(
                 drawNeckEdges(pixelLayout)
 
                 // Layer 2: Fret bars
-                drawFretBars(pixelLayout, maxFret)
+                drawFretBars(pixelLayout, maxFret+1)
 
                 // Layer 3: Strings
                 drawStrings(pixelLayout)
@@ -157,20 +158,20 @@ fun FretboardView(
  */
 private fun DrawScope.drawNeckEdges(layout: PixelLayout) {
     val edgeWidth = 3.dp.toPx()
-
+    val offset = 10.dp.toPx()
     // Left edge (column 0)
     drawLine(
         color = NECK_EDGE_COLOR,
-        start = Offset(layout.pixelX(0), layout.pixelY(0)),
-        end = Offset(layout.pixelX(0), layout.pixelY(FretboardGridSystem.ROWS - 1)),
+        start = Offset(layout.pixelX(0) - offset, layout.pixelY(0) - offset),
+        end = Offset(layout.pixelX(0) - offset, layout.pixelY(FretboardGridSystem.ROWS) + offset),
         strokeWidth = edgeWidth,
     )
 
     // Right edge (column 12)
     drawLine(
         color = NECK_EDGE_COLOR,
-        start = Offset(layout.pixelX(12), layout.pixelY(0)),
-        end = Offset(layout.pixelX(12), layout.pixelY(FretboardGridSystem.ROWS - 1)),
+        start = Offset(layout.pixelX(12) + offset, layout.pixelY(0) - offset),
+        end = Offset(layout.pixelX(12) + offset, layout.pixelY(FretboardGridSystem.ROWS) + offset),
         strokeWidth = edgeWidth,
     )
 }
@@ -219,7 +220,7 @@ private fun DrawScope.drawStrings(layout: PixelLayout) {
     FretboardGridSystem.STRING_COLUMN_INDICES.forEachIndexed { index, column ->
         val x = layout.pixelX(column)
         val y1 = layout.pixelY(0)
-        val y2 = layout.pixelY(FretboardGridSystem.ROWS - 1)
+        val y2 = layout.pixelY(FretboardGridSystem.ROWS) + 16.dp.toPx()
         val strokeWidth = stringWidths[index].toPx()
 
         drawLine(
@@ -259,7 +260,7 @@ private fun DrawScope.drawFretMarkers(layout: PixelLayout) {
     if (doubleDotFret <= 12) {
         val fretRow = FretboardGridSystem.fretToRow(doubleDotFret)
         val y1 = layout.pixelY(fretRow)
-        val y2 = if (fretRow + 2 < FretboardGridSystem.ROWS) layout.pixelY(fretRow + 2) else layout.pixelY(FretboardGridSystem.ROWS - 1)
+        val y2 = layout.pixelY(fretRow + 2)
         val markerY = (y1 + y2) / 2f
 
         val offset = 8.dp.toPx()
@@ -286,15 +287,16 @@ private fun DrawScope.drawFretNumbers(
 ) {
     val textStyle =
         TextStyle(
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color(0xFFE0E0E0),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            background = FRETBOARD_WOOD_COLOR,
         )
 
     for (fret in 0..maxFret) {
         val row = FretboardGridSystem.fretToRow(fret)
         val y = layout.pixelY(row)
-        val x = layout.pixelX(0) - 16.dp.toPx()
+        val x = layout.pixelX(0)
 
         val textLayoutResult =
             textMeasurer.measure(
@@ -325,12 +327,13 @@ private fun DrawScope.drawStringNumbers(
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White,
+            background = FRETBOARD_WOOD_COLOR,
         )
 
     FretboardGridSystem.STRING_COLUMN_INDICES.forEachIndexed { index, column ->
         val stringNumber = 6 - index
         val x = layout.pixelX(column)
-        val y = layout.pixelY(0) - 12.dp.toPx()
+        val y = layout.pixelY(0) - 2.dp.toPx()
 
         val textLayoutResult =
             textMeasurer.measure(
