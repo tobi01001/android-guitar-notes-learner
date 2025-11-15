@@ -5,7 +5,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.math.PI
 import kotlin.math.abs
-import kotlin.math.cos
 import kotlin.math.sin
 
 class FFTTest {
@@ -52,9 +51,10 @@ class FFTTest {
         val frequency = 440.0 // A4 note
 
         // Generate sine wave
-        val signal = FloatArray(n) { i ->
-            sin(2.0 * PI * frequency * i / sampleRate).toFloat()
-        }
+        val signal =
+            FloatArray(n) { i ->
+                sin(2.0 * PI * frequency * i / sampleRate).toFloat()
+            }
 
         // Compute FFT
         val fft = FFT(n)
@@ -85,10 +85,11 @@ class FFTTest {
         val sampleRate = 44100
 
         // Generate signal with two frequencies: 440 Hz (A4) and 880 Hz (A5)
-        val signal = FloatArray(n) { i ->
-            val t = i.toDouble() / sampleRate
-            (sin(2.0 * PI * 440.0 * t) + 0.5 * sin(2.0 * PI * 880.0 * t)).toFloat()
-        }
+        val signal =
+            FloatArray(n) { i ->
+                val t = i.toDouble() / sampleRate
+                (sin(2.0 * PI * 440.0 * t) + 0.5 * sin(2.0 * PI * 880.0 * t)).toFloat()
+            }
 
         // Compute FFT
         val fft = FFT(n)
@@ -157,14 +158,15 @@ class FFTTest {
         val frequency = 82.41 // Low E2
 
         // Generate signal similar to guitar note (fundamental + harmonics)
-        val signal = FloatArray(n) { i ->
-            val t = i.toDouble() / sampleRate
-            (
-                sin(2.0 * PI * frequency * t) + // Fundamental
-                    0.5 * sin(2.0 * PI * frequency * 2.0 * t) + // 2nd harmonic
-                    0.3 * sin(2.0 * PI * frequency * 3.0 * t) // 3rd harmonic
+        val signal =
+            FloatArray(n) { i ->
+                val t = i.toDouble() / sampleRate
+                (
+                    sin(2.0 * PI * frequency * t) + // Fundamental
+                        0.5 * sin(2.0 * PI * frequency * 2.0 * t) + // 2nd harmonic
+                        0.3 * sin(2.0 * PI * frequency * 3.0 * t) // 3rd harmonic
                 ).toFloat()
-        }
+            }
 
         // Compute FFT
         val fft = FFT(n)
@@ -197,9 +199,10 @@ class FFTTest {
     @Test
     fun testFFTPerformance() {
         val n = 4096
-        val signal = FloatArray(n) { i ->
-            sin(2.0 * PI * 440.0 * i / 44100.0).toFloat()
-        }
+        val signal =
+            FloatArray(n) { i ->
+                sin(2.0 * PI * 440.0 * i / 44100.0).toFloat()
+            }
 
         val fft = FFT(n)
 

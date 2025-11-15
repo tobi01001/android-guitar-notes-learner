@@ -39,7 +39,7 @@ import kotlin.coroutines.coroutineContext
  * - E2 (82.4 Hz) is detected as 88.8 Hz (+6.4 Hz, +129 cents) → appears as F2 instead of E2
  * - D3 (146.8 Hz) is detected as 153.3 Hz (+6.5 Hz, +75 cents) → appears as D#3
  * - Error decreases as frequency increases
- * 
+ *
  * This affects ALL pitch detection algorithms (YIN, autocorrelation, FFT) because the phase
  * distortion shifts zero-crossings in time, making period measurement incorrect.
  *
@@ -301,7 +301,7 @@ class AudioRecorder {
                         // Solution: Split signal paths:
                         // 1. Pitch detection: Use raw adjusted audio (no filtering)
                         // 2. Level display: Use filtered audio for clean RMS calculation
-                        
+
                         // Create filtered copy for RMS/level calculation only
                         val filteredDataForLevel = adjustedData.copyOf()
                         highPassFilter.process(filteredDataForLevel)
