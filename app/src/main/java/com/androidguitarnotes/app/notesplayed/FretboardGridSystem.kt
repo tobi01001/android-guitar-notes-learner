@@ -96,15 +96,16 @@ object FretboardGridSystem {
         val viewHeight: Float,
         val horizontalPadding: Dp = 16.dp,
         val verticalPadding: Dp = 32.dp,
+        val density: Float = 1f,
     ) {
-        private val horizontalPaddingPx = horizontalPadding.value
-        private val verticalPaddingPx = verticalPadding.value
+        private val horizontalPaddingPx = horizontalPadding.value * density
+        private val verticalPaddingPx = verticalPadding.value * density
 
         val usableWidth = viewWidth - 2 * horizontalPaddingPx
         val usableHeight = viewHeight - 2 * verticalPaddingPx
 
         val columnStepPx = usableWidth / 12.0f // 12 intervals between 13 columns
-        val rowStepPx = usableHeight / 27.0f // 27 intervals
+        val rowStepPx = usableHeight / 26.0f // 26 intervals between 27 rows
 
         /**
          * Convert column index to pixel X coordinate.
@@ -116,9 +117,10 @@ object FretboardGridSystem {
 
         /**
          * Convert row index to pixel Y coordinate.
+         * Note: Allows row == ROWS for drawing elements beyond the last fret.
          */
         fun pixelY(row: Int): Float {
-            require(row in 0..ROWS ) { "Row must be 0-${ROWS}" }
+            require(row in 0..ROWS) { "Row must be 0-$ROWS" }
             return verticalPaddingPx + row * rowStepPx
         }
 
@@ -130,7 +132,11 @@ object FretboardGridSystem {
         /**
          * Convert grid coordinate to pixel offset for center of cell.
          */
-        fun toCenterPixelOffset(coord: GridCoord): Offset = Offset(pixelX(coord.column), pixelY(coord.row))
+        fun toCenterPixelOffset(coord: GridCoord): Offset =
+            Offset(
+                pixelX(coord.column) + columnStepPx / 2,
+                pixelY(coord.row) + rowStepPx / 2,
+            )
     }
 
     /**

@@ -232,17 +232,21 @@ private fun ActiveSessionScreen(
 
             // Compact note display card with animated green glow when correct
             val isCorrect = state.noteFeedback is PracticeSessionState.NoteFeedback.Correct
-            val infiniteTransition = rememberInfiniteTransition(label = "glow")
-            val glowAlpha by infiniteTransition.animateFloat(
-                initialValue = 0.3f,
-                targetValue = 0.8f,
-                animationSpec =
-                    infiniteRepeatable(
-                        animation = tween(1000, easing = FastOutSlowInEasing),
-                        repeatMode = RepeatMode.Reverse,
-                    ),
-                label = "glowAlpha",
-            )
+            val glowAlpha by if (isCorrect) {
+                val infiniteTransition = rememberInfiniteTransition(label = "glow")
+                infiniteTransition.animateFloat(
+                    initialValue = 0.3f,
+                    targetValue = 0.8f,
+                    animationSpec =
+                        infiniteRepeatable(
+                            animation = tween(1000, easing = FastOutSlowInEasing),
+                            repeatMode = RepeatMode.Reverse,
+                        ),
+                    label = "glowAlpha",
+                )
+            } else {
+                remember { mutableStateOf(0f) }
+            }
 
             Box(
                 modifier =

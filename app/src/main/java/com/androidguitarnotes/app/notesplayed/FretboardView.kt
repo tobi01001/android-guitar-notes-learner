@@ -13,6 +13,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
@@ -88,6 +90,25 @@ fun FretboardView(
     // Prepare text measurers in Composable context
     val textMeasurer = rememberTextMeasurer()
 
+    // Build accessibility description
+    val accessibilityDescription =
+        buildString {
+            append("Guitar fretboard showing ")
+            if (highlightedCoords.isEmpty()) {
+                append("no notes highlighted")
+            } else {
+                append("${highlightedCoords.size} position(s) highlighted")
+                if (detectedNoteWithOctave != null) {
+                    append(" for note $detectedNoteWithOctave")
+                } else if (detectedNote != null) {
+                    append(" for note $detectedNote")
+                }
+                if (targetStringNumber != null) {
+                    append(" on string $targetStringNumber")
+                }
+            }
+        }
+
     Column(
         modifier =
             modifier
@@ -104,7 +125,10 @@ fun FretboardView(
                     .aspectRatio(0.7f) // Aspect ratio for realistic guitar neck proportions
                     .clip(RoundedCornerShape(8.dp))
                     .background(FRETBOARD_WOOD_COLOR)
-                    .border(2.dp, NECK_EDGE_COLOR, RoundedCornerShape(8.dp)),
+                    .border(2.dp, NECK_EDGE_COLOR, RoundedCornerShape(8.dp))
+                    .semantics(mergeDescendants = true) {
+                        contentDescription = accessibilityDescription
+                    },
         ) {
             // Canvas for drawing the fretboard grid
             Canvas(
@@ -119,13 +143,14 @@ fun FretboardView(
                         viewHeight = size.height,
                         horizontalPadding = 24.dp,
                         verticalPadding = 32.dp,
+                        density = density,
                     )
 
                 // Layer 1: Neck edges/binding
                 drawNeckEdges(pixelLayout)
 
                 // Layer 2: Fret bars
-                drawFretBars(pixelLayout, maxFret+1)
+                drawFretBars(pixelLayout, maxFret)
 
                 // Layer 3: Strings
                 drawStrings(pixelLayout)
