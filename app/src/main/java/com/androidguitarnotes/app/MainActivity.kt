@@ -138,14 +138,14 @@ fun HomeScreen(
                         HomeNavigationButton(
                             label = stringResource(R.string.home_practice),
                             icon = Icons.Filled.MusicNote,
-                            backgroundColor = NoteColors.getColorForNote("A"),
+                            backgroundColor = NoteColors.getAccessibleButtonColorForNote("A"),
                             onClick = onStartPractice,
                             modifier = Modifier.weight(1f),
                         )
                         HomeNavigationButton(
                             label = stringResource(R.string.home_tuner),
                             icon = Icons.Filled.Tune,
-                            backgroundColor = NoteColors.getColorForNote("D"),
+                            backgroundColor = NoteColors.getAccessibleButtonColorForNote("D"),
                             onClick = onOpenTuner,
                             modifier = Modifier.weight(1f),
                         )
@@ -158,14 +158,14 @@ fun HomeScreen(
                         HomeNavigationButton(
                             label = stringResource(R.string.home_notes_played),
                             icon = Icons.Filled.History,
-                            backgroundColor = NoteColors.getColorForNote("G"),
+                            backgroundColor = NoteColors.getAccessibleButtonColorForNote("G"),
                             onClick = onOpenNotesPlayed,
                             modifier = Modifier.weight(1f),
                         )
                         HomeNavigationButton(
                             label = stringResource(R.string.home_settings),
                             icon = Icons.Filled.Settings,
-                            backgroundColor = NoteColors.getColorForNote("C"),
+                            backgroundColor = NoteColors.getAccessibleButtonColorForNote("C"),
                             onClick = onOpenSettings,
                             modifier = Modifier.weight(1f),
                         )

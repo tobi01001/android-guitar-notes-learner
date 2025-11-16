@@ -78,4 +78,16 @@ object NoteColors {
             alpha = 1f,
         )
     }
+
+    /**
+     * Returns an accessible button color with good contrast against white text.
+     * For colors with poor contrast (like yellow), returns a more accessible variant.
+     */
+    fun getAccessibleButtonColorForNote(noteName: String): Color =
+        when (noteName) {
+            // Yellow needs special handling for accessibility - darker golden yellow
+            "C" -> Color(0xFF8A6900) // Darker golden yellow with 4.5:1+ contrast
+            // For other colors, use the dark variant
+            else -> getDarkColorForNote(noteName)
+        }
 }
