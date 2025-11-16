@@ -146,4 +146,12 @@
     
     <!-- Fretboard -->
     <string name="fretboard_description">Guitar fretboard visualization showing note positions</string>
+    
+    <!-- Home Screen -->
+    <string name="app_name">Guitar Notes Learner</string>
+    <string name="home_welcome_message">Welcome — select an option to begin</string>
+    <string name="home_practice">Practice</string>
+    <string name="home_tuner">Tuner</string>
+    <string name="home_notes_played">Notes Played</string>
+    <string name="home_settings">Settings</string>
 </resources>
