@@ -102,108 +102,120 @@ fun HomeScreen(
     onOpenNotesPlayed: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.app_name)) },
-                colors =
-                    TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Black.copy(alpha = 0.7f),
-                        titleContentColor = Color.White,
-                    ),
-            )
-        },
-        containerColor = Color.Transparent,
-    ) { padding ->
+    // Button transparency constant to avoid magic numbers
+    val buttonTransparency = 0.9f
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        // Full-screen guitar fretboard background
+        // Image credit: Photo by Iván Tamás (https://www.pexels.com/@oskelaq/)
+        // Source: https://www.pexels.com/photo/selective-focus-photo-of-fretboard-1808343/
+        Image(
+            painter = painterResource(id = R.drawable.background),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+        )
+
+        // Semi-transparent overlay to ensure button visibility
         Box(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(padding),
+                    .background(Color.Black.copy(alpha = 0.4f)),
+        )
+
+        // Content layer
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // Full-screen guitar fretboard background
-            // Image credit: Photo by Iván Tamás (https://www.pexels.com/@oskelaq/)
-            // Source: https://www.pexels.com/photo/selective-focus-photo-of-fretboard-1808343/
-            Image(
-                painter = painterResource(id = R.drawable.background),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
+            // App title at top
+            Text(
+                text = stringResource(R.string.app_name),
+                style = MaterialTheme.typography.headlineMedium,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 32.dp, bottom = 16.dp),
             )
 
-            // Semi-transparent overlay to ensure button visibility
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Welcome message with semi-transparent background box
             Box(
                 modifier =
                     Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.4f)),
-            )
-
-            // Content layer
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
+                        .background(
+                            color = Color.Black.copy(alpha = 0.8f),
+                            shape = RoundedCornerShape(12.dp),
+                        ).padding(horizontal = 24.dp, vertical = 16.dp),
             ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                Text(
+                    text = stringResource(R.string.home_welcome_message),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 2x2 Grid of navigation buttons
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                // First row
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    // Welcome message - white text on dark background
-                    Text(
-                        text = stringResource(R.string.home_welcome_message),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Color.White,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(bottom = 16.dp),
+                    HomeNavigationButton(
+                        label = stringResource(R.string.home_practice),
+                        icon = Icons.Filled.MusicNote,
+                        backgroundColor = NoteColors.getAccessibleButtonColorFor("Practice"),
+                        onClick = onStartPractice,
+                        modifier = Modifier.weight(1f),
+                        buttonTransparency = buttonTransparency,
                     )
+                    HomeNavigationButton(
+                        label = stringResource(R.string.home_tuner),
+                        icon = Icons.Filled.Tune,
+                        backgroundColor = NoteColors.getAccessibleButtonColorFor("Tuner"),
+                        onClick = onOpenTuner,
+                        modifier = Modifier.weight(1f),
+                        buttonTransparency = buttonTransparency,
+                    )
+                }
 
-                    // 2x2 Grid of navigation buttons
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        // First row
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        ) {
-                            HomeNavigationButton(
-                                label = stringResource(R.string.home_practice),
-                                icon = Icons.Filled.MusicNote,
-                                backgroundColor = NoteColors.getAccessibleButtonColorFor("Practice"),
-                                onClick = onStartPractice,
-                                modifier = Modifier.weight(1f),
-                            )
-                            HomeNavigationButton(
-                                label = stringResource(R.string.home_tuner),
-                                icon = Icons.Filled.Tune,
-                                backgroundColor = NoteColors.getAccessibleButtonColorFor("Tuner"),
-                                onClick = onOpenTuner,
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-
-                        // Second row
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        ) {
-                            HomeNavigationButton(
-                                label = stringResource(R.string.home_notes_played),
-                                icon = Icons.Filled.History,
-                                backgroundColor = NoteColors.getAccessibleButtonColorFor("Notes Played"),
-                                onClick = onOpenNotesPlayed,
-                                modifier = Modifier.weight(1f),
-                            )
-                            HomeNavigationButton(
-                                label = stringResource(R.string.home_settings),
-                                icon = Icons.Filled.Settings,
-                                backgroundColor = NoteColors.getAccessibleButtonColorFor("Settings"),
-                                onClick = onOpenSettings,
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                    }
+                // Second row
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    HomeNavigationButton(
+                        label = stringResource(R.string.home_notes_played),
+                        icon = Icons.Filled.History,
+                        backgroundColor = NoteColors.getAccessibleButtonColorFor("Notes Played"),
+                        onClick = onOpenNotesPlayed,
+                        modifier = Modifier.weight(1f),
+                        buttonTransparency = buttonTransparency,
+                    )
+                    HomeNavigationButton(
+                        label = stringResource(R.string.home_settings),
+                        icon = Icons.Filled.Settings,
+                        backgroundColor = NoteColors.getAccessibleButtonColorFor("Settings"),
+                        onClick = onOpenSettings,
+                        modifier = Modifier.weight(1f),
+                        buttonTransparency = buttonTransparency,
+                    )
                 }
             }
+
+            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }
@@ -215,6 +227,7 @@ fun HomeNavigationButton(
     backgroundColor: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    buttonTransparency: Float = 0.9f,
 ) {
     Button(
         onClick = onClick,
@@ -224,7 +237,7 @@ fun HomeNavigationButton(
                 .height(140.dp),
         colors =
             ButtonDefaults.buttonColors(
-                containerColor = backgroundColor,
+                containerColor = backgroundColor.copy(alpha = buttonTransparency),
                 contentColor = Color.White,
             ),
         shape = RoundedCornerShape(16.dp),
