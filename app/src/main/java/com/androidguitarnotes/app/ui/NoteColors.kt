@@ -78,4 +78,17 @@ object NoteColors {
             alpha = 1f,
         )
     }
+
+    /**
+     * Returns an accessible button color with good contrast against white text.
+     * For colors with poor contrast (like yellow), returns a more accessible variant.
+     */
+    fun getAccessibleButtonColorFor(buttonName: String): Color =
+        when (buttonName) {
+            "Settings" -> getDarkColorForNote("F")
+            "Practice" -> getDarkColorForNote("A")
+            "Tuner" -> getDarkColorForNote("D")
+            "Notes Played" -> getDarkColorForNote("G")
+            else -> getDarkColorForNote("C")
+        }
 }

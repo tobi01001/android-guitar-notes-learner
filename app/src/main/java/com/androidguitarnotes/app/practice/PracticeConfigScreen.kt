@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.androidguitarnotes.app.R
@@ -31,14 +32,46 @@ fun PracticeConfigScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.practice_config_title)) })
+            TopAppBar(
+                title = { Text(stringResource(R.string.practice_config_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Text("←", fontSize = 24.sp)
+                    }
+                },
+            )
+        },
+        bottomBar = {
+            // Bottom buttons permanently visible
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                OutlinedButton(
+                    onClick = onBack,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(stringResource(R.string.back))
+                }
+
+                Button(
+                    onClick = { onStartPractice(config) },
+                    enabled = viewModel.isConfigValid(),
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(stringResource(R.string.start_practice))
+                }
+            }
         },
     ) { padding ->
         Column(
             modifier =
                 Modifier
                     .padding(padding)
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp)
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(24.dp),
@@ -81,26 +114,6 @@ fun PracticeConfigScreen(
                 onProgressionModeChange = { viewModel.setProgressionMode(it) },
                 onAutoIntervalChange = { viewModel.setAutoIntervalSeconds(it) },
             )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                OutlinedButton(
-                    onClick = onBack,
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Text(stringResource(R.string.back))
-                }
-
-                Button(
-                    onClick = { onStartPractice(config) },
-                    enabled = viewModel.isConfigValid(),
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Text(stringResource(R.string.start_practice))
-                }
-            }
         }
     }
 }
