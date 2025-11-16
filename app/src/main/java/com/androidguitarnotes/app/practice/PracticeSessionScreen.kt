@@ -251,7 +251,7 @@ private fun ActiveSessionScreen(
             Box(
                 modifier =
                     Modifier
-                        .fillMaxWidth(0.6f)
+                        .fillMaxWidth(0.5f)
                         .then(
                             if (isCorrect) {
                                 Modifier
@@ -287,12 +287,12 @@ private fun ActiveSessionScreen(
                         Text(
                             text = state.currentNote.noteNameWithOctave,
                             style = MaterialTheme.typography.displayMedium,
-                            fontSize = 48.sp,
+                            fontSize = 36.sp,
                             color = NoteColors.getDarkColorForNote(state.currentNote.noteName),
                             maxLines = 1,
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
 
                         Text(
                             text =
