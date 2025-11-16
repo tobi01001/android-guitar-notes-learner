@@ -3,6 +3,7 @@ package com.androidguitarnotes.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,6 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -103,72 +106,101 @@ fun HomeScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.app_name)) },
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Black.copy(alpha = 0.7f),
+                        titleContentColor = Color.White,
+                    ),
             )
         },
+        containerColor = Color.Transparent,
     ) { padding ->
         Box(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(padding)
-                    .background(Color(0xFFF5F5F5)),
-            contentAlignment = Alignment.Center,
+                    .padding(padding),
         ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                // Welcome message
-                Text(
-                    text = stringResource(R.string.home_welcome_message),
-                    style = MaterialTheme.typography.titleLarge,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(bottom = 16.dp),
-                )
+            // Full-screen guitar fretboard background
+            // Image credit: Photo by Iván Tamás (https://www.pexels.com/@oskelaq/)
+            // Source: https://www.pexels.com/photo/selective-focus-photo-of-fretboard-1808343/
+            Image(
+                painter = painterResource(id = R.drawable.background),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+            )
 
-                // 2x2 Grid of navigation buttons
+            // Semi-transparent overlay to ensure button visibility
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.4f)),
+            )
+
+            // Content layer
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
                 Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    // First row
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        HomeNavigationButton(
-                            label = stringResource(R.string.home_practice),
-                            icon = Icons.Filled.MusicNote,
-                            backgroundColor = NoteColors.getAccessibleButtonColorFor("Practice"),
-                            onClick = onStartPractice,
-                            modifier = Modifier.weight(1f),
-                        )
-                        HomeNavigationButton(
-                            label = stringResource(R.string.home_tuner),
-                            icon = Icons.Filled.Tune,
-                            backgroundColor = NoteColors.getAccessibleButtonColorFor("Tuner"),
-                            onClick = onOpenTuner,
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
+                    // Welcome message - white text on dark background
+                    Text(
+                        text = stringResource(R.string.home_welcome_message),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(bottom = 16.dp),
+                    )
 
-                    // Second row
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    // 2x2 Grid of navigation buttons
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
-                        HomeNavigationButton(
-                            label = stringResource(R.string.home_notes_played),
-                            icon = Icons.Filled.History,
-                            backgroundColor = NoteColors.getAccessibleButtonColorFor("Notes Played"),
-                            onClick = onOpenNotesPlayed,
-                            modifier = Modifier.weight(1f),
-                        )
-                        HomeNavigationButton(
-                            label = stringResource(R.string.home_settings),
-                            icon = Icons.Filled.Settings,
-                            backgroundColor = NoteColors.getAccessibleButtonColorFor("Settings"),
-                            onClick = onOpenSettings,
-                            modifier = Modifier.weight(1f),
-                        )
+                        // First row
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        ) {
+                            HomeNavigationButton(
+                                label = stringResource(R.string.home_practice),
+                                icon = Icons.Filled.MusicNote,
+                                backgroundColor = NoteColors.getAccessibleButtonColorFor("Practice"),
+                                onClick = onStartPractice,
+                                modifier = Modifier.weight(1f),
+                            )
+                            HomeNavigationButton(
+                                label = stringResource(R.string.home_tuner),
+                                icon = Icons.Filled.Tune,
+                                backgroundColor = NoteColors.getAccessibleButtonColorFor("Tuner"),
+                                onClick = onOpenTuner,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+
+                        // Second row
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        ) {
+                            HomeNavigationButton(
+                                label = stringResource(R.string.home_notes_played),
+                                icon = Icons.Filled.History,
+                                backgroundColor = NoteColors.getAccessibleButtonColorFor("Notes Played"),
+                                onClick = onOpenNotesPlayed,
+                                modifier = Modifier.weight(1f),
+                            )
+                            HomeNavigationButton(
+                                label = stringResource(R.string.home_settings),
+                                icon = Icons.Filled.Settings,
+                                backgroundColor = NoteColors.getAccessibleButtonColorFor("Settings"),
+                                onClick = onOpenSettings,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
                     }
                 }
             }
