@@ -122,7 +122,7 @@ fun HomeScreen(
                 // Welcome message
                 Text(
                     text = stringResource(R.string.home_welcome_message),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(bottom = 16.dp),
                 )
@@ -138,14 +138,14 @@ fun HomeScreen(
                         HomeNavigationButton(
                             label = stringResource(R.string.home_practice),
                             icon = Icons.Filled.MusicNote,
-                            backgroundColor = NoteColors.getAccessibleButtonColorForNote("A"),
+                            backgroundColor = NoteColors.getAccessibleButtonColorFor("Practice"),
                             onClick = onStartPractice,
                             modifier = Modifier.weight(1f),
                         )
                         HomeNavigationButton(
                             label = stringResource(R.string.home_tuner),
                             icon = Icons.Filled.Tune,
-                            backgroundColor = NoteColors.getAccessibleButtonColorForNote("D"),
+                            backgroundColor = NoteColors.getAccessibleButtonColorFor("Tuner"),
                             onClick = onOpenTuner,
                             modifier = Modifier.weight(1f),
                         )
@@ -158,14 +158,14 @@ fun HomeScreen(
                         HomeNavigationButton(
                             label = stringResource(R.string.home_notes_played),
                             icon = Icons.Filled.History,
-                            backgroundColor = NoteColors.getAccessibleButtonColorForNote("G"),
+                            backgroundColor = NoteColors.getAccessibleButtonColorFor("Notes Played"),
                             onClick = onOpenNotesPlayed,
                             modifier = Modifier.weight(1f),
                         )
                         HomeNavigationButton(
                             label = stringResource(R.string.home_settings),
                             icon = Icons.Filled.Settings,
-                            backgroundColor = NoteColors.getAccessibleButtonColorForNote("C"),
+                            backgroundColor = NoteColors.getAccessibleButtonColorFor("Settings"),
                             onClick = onOpenSettings,
                             modifier = Modifier.weight(1f),
                         )

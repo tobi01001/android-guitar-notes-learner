@@ -8,13 +8,13 @@ import androidx.compose.ui.graphics.Color
  */
 object NoteColors {
     // Natural note colors - using a color wheel approach
-    private val A_COLOR = Color(0xFFE53935) // Red
-    private val B_COLOR = Color(0xFFFF6F00) // Orange
-    private val C_COLOR = Color(0xFFFDD835) // Yellow
-    private val D_COLOR = Color(0xFF43A047) // Green
-    private val E_COLOR = Color(0xFF1E88E5) // Blue
-    private val F_COLOR = Color(0xFF5E35B1) // Purple
-    private val G_COLOR = Color(0xFFD81B60) // Pink/Magenta
+    private val A_COLOR = Color(0xFFE53935)
+    private val B_COLOR = Color(0xFF1E88E5)
+    private val C_COLOR = Color(0xFFF0F0F0)
+    private val D_COLOR = Color(0xFF5E35B1)
+    private val E_COLOR = Color(0xFFFDD835)
+    private val F_COLOR = Color(0xFFFF6F00)
+    private val G_COLOR = Color(0xFF43A047)
 
     /**
      * Returns the color for a given note name.
@@ -83,11 +83,12 @@ object NoteColors {
      * Returns an accessible button color with good contrast against white text.
      * For colors with poor contrast (like yellow), returns a more accessible variant.
      */
-    fun getAccessibleButtonColorForNote(noteName: String): Color =
-        when (noteName) {
-            // Yellow needs special handling for accessibility - darker golden yellow
-            "C" -> Color(0xFF8A6900) // Darker golden yellow with 4.5:1+ contrast
-            // For other colors, use the dark variant
-            else -> getDarkColorForNote(noteName)
+    fun getAccessibleButtonColorFor(buttonName: String): Color =
+        when (buttonName) {
+            "Settings" -> getDarkColorForNote("F")
+            "Practice" -> getDarkColorForNote("A")
+            "Tuner" -> getDarkColorForNote("D")
+            "Notes Played" -> getDarkColorForNote("G")
+            else -> getDarkColorForNote("C")
         }
 }

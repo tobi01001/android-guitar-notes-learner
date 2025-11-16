@@ -143,13 +143,13 @@
     <string name="play_a_note">Play a note to see it here</string>
     <string name="note_frequency">Frequency: %1$7.2f Hz</string>
     <string name="note_cents">Deviation: %1$+2.0f cents</string>
-    
+
     <!-- Fretboard -->
     <string name="fretboard_description">Guitar fretboard visualization showing note positions</string>
-    
+
     <!-- Home Screen -->
     <string name="app_name">Guitar Notes Learner</string>
-    <string name="home_welcome_message">Welcome — select an option to begin</string>
+    <string name="home_welcome_message">-= Welcome =-\n\nSelect an option below</string>
     <string name="home_practice">Practice</string>
     <string name="home_tuner">Tuner</string>
     <string name="home_notes_played">Notes Played</string>
