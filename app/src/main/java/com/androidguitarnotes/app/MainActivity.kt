@@ -16,6 +16,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -103,14 +105,14 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
 ) {
     // Button transparency constant to avoid magic numbers
-    val buttonTransparency = 0.9f
+    val buttonTransparency = 0.6f
 
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
         // Full-screen guitar fretboard background
-        // Image credit: Photo by Iván Tamás (https://www.pexels.com/@oskelaq/)
-        // Source: https://www.pexels.com/photo/selective-focus-photo-of-fretboard-1808343/
+        // Image credit: Photo by Peter Jarkuliš (https://www.pexels.com/@peter-jarkulis-87581/)
+        // Source: https://www.pexels.com/photo/black-acoustic-guitar-287202/
         Image(
             painter = painterResource(id = R.drawable.background),
             contentDescription = null,
@@ -123,7 +125,7 @@ fun HomeScreen(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.4f)),
+                    .background(Color.Black.copy(alpha = 0.6f)),
         )
 
         // Content layer
@@ -142,27 +144,14 @@ fun HomeScreen(
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 32.dp, bottom = 16.dp),
+                modifier = Modifier
+                    .padding(top = 32.dp, bottom = 16.dp)
+                    .shadow(4.dp)
+                    .blur(1.dp ),
             )
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Welcome message with semi-transparent background box
-            Box(
-                modifier =
-                    Modifier
-                        .background(
-                            color = Color.Black.copy(alpha = 0.8f),
-                            shape = RoundedCornerShape(12.dp),
-                        ).padding(horizontal = 24.dp, vertical = 16.dp),
-            ) {
-                Text(
-                    text = stringResource(R.string.home_welcome_message),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                )
-            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
