@@ -144,14 +144,14 @@ fun HomeScreen(
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .padding(top = 32.dp, bottom = 16.dp)
-                    .shadow(4.dp)
-                    .blur(1.dp ),
+                modifier =
+                    Modifier
+                        .padding(top = 32.dp, bottom = 16.dp)
+                        .shadow(4.dp)
+                        .blur(1.dp),
             )
 
             Spacer(modifier = Modifier.weight(1f))
-
 
             Spacer(modifier = Modifier.height(24.dp))
 
