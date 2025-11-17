@@ -3,7 +3,10 @@ package com.androidguitarnotes.app.settings
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Divider
@@ -20,12 +24,16 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -36,7 +44,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,6 +58,7 @@ import com.androidguitarnotes.app.audio.AudioManager
 import com.androidguitarnotes.app.audio.PitchDetectionAlgorithm
 import com.androidguitarnotes.app.permissions.PermissionManager
 import com.androidguitarnotes.app.permissions.PermissionRationaleScreen
+import com.androidguitarnotes.app.ui.NoteColors
 
 @Composable
 fun SettingsScreen(
@@ -170,145 +182,176 @@ fun SettingsScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.settings_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Text("←", fontSize = 24.sp)
-                    }
-                },
-            )
-        },
-    ) { padding ->
-        Column(
+    // Accent color for Settings screen
+    val accentColor = NoteColors.getAccessibleButtonColorFor("Settings")
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        // Full-screen guitar fretboard background
+        // Image credit: Photo by Peter Jarkuliš (https://www.pexels.com/@peter-jarkulis-87581/)
+        // Source: https://www.pexels.com/photo/black-acoustic-guitar-287202/
+        Image(
+            painter = painterResource(id = R.drawable.background),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+        )
+
+        // Semi-transparent overlay to ensure content visibility
+        Box(
             modifier =
                 Modifier
-                    .padding(padding)
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState()),
-        ) {
-            // General Settings Section
-            SettingsSectionHeader(title = stringResource(R.string.general_settings))
+                    .background(Color.Black.copy(alpha = 0.6f)),
+        )
 
-            SettingsItem(
-                title = stringResource(R.string.default_tuning),
-                subtitle = stringResource(R.string.tuning_standard),
-                description = stringResource(R.string.tuning_description),
-            )
+        // Content layer
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.settings_title), color = Color.White) },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Text("←", fontSize = 24.sp, color = Color.White)
+                        }
+                    },
+                    colors =
+                        TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color.Transparent,
+                        ),
+                )
+            },
+        ) { padding ->
+            Column(
+                modifier =
+                    Modifier
+                        .padding(padding)
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState()),
+            ) {
+                // General Settings Section
+                SettingsSectionHeader(title = stringResource(R.string.general_settings))
 
-            Divider()
-
-            // Audio Settings Section
-            SettingsSectionHeader(title = stringResource(R.string.audio_settings))
-
-            SettingsSwitchItem(
-                title = stringResource(R.string.audio_feedback),
-                description = stringResource(R.string.audio_feedback_description),
-                checked = audioFeedbackEnabled,
-                onCheckedChange = { enabled ->
-                    if (enabled && !permissionManager.isRecordAudioPermissionGranted()) {
-                        // Request permission before enabling
-                        showPermissionRationale = true
-                    } else {
-                        // Permission already granted or disabling
-                        viewModel.toggleAudioFeedback(enabled)
-                    }
-                },
-            )
-
-            Divider()
-
-            // Microphone Sensitivity Section
-            if (audioFeedbackEnabled) {
-                val sensitivityLabel =
-                    when {
-                        microphoneSensitivity <= 0.7f -> stringResource(R.string.sensitivity_low)
-                        microphoneSensitivity >= 1.3f -> stringResource(R.string.sensitivity_high)
-                        else -> stringResource(R.string.sensitivity_normal)
-                    }
-
-                SettingsSliderItem(
-                    title = stringResource(R.string.microphone_sensitivity),
-                    description = stringResource(R.string.sensitivity_description),
-                    value = microphoneSensitivity,
-                    onValueChange = { viewModel.setMicrophoneSensitivity(it) },
-                    valueRange = 0.5f..2.0f,
-                    steps = 14,
-                    valueLabel = sensitivityLabel,
+                SettingsItem(
+                    title = stringResource(R.string.default_tuning),
+                    subtitle = stringResource(R.string.tuning_standard),
+                    description = stringResource(R.string.tuning_description),
                 )
 
-                Divider()
+                Divider(color = Color.White.copy(alpha = 0.12f))
+
+                // Audio Settings Section
+                SettingsSectionHeader(title = stringResource(R.string.audio_settings))
 
                 SettingsSwitchItem(
-                    title = stringResource(R.string.auto_adjust_sensitivity),
-                    description = stringResource(R.string.auto_adjust_description),
-                    checked = autoAdjustSensitivity,
-                    onCheckedChange = { viewModel.toggleAutoAdjustSensitivity(it) },
+                    title = stringResource(R.string.audio_feedback),
+                    description = stringResource(R.string.audio_feedback_description),
+                    checked = audioFeedbackEnabled,
+                    onCheckedChange = { enabled ->
+                        if (enabled && !permissionManager.isRecordAudioPermissionGranted()) {
+                            // Request permission before enabling
+                            showPermissionRationale = true
+                        } else {
+                            // Permission already granted or disabling
+                            viewModel.toggleAudioFeedback(enabled)
+                        }
+                    },
                 )
 
-                Divider()
+                Divider(color = Color.White.copy(alpha = 0.12f))
 
-                // Audio Level Bar
-                AudioLevelBar(
-                    title = stringResource(R.string.audio_input_level),
-                    level = currentAudioLevel,
-                    isGated = isGated,
+                // Microphone Sensitivity Section
+                if (audioFeedbackEnabled) {
+                    val sensitivityLabel =
+                        when {
+                            microphoneSensitivity <= 0.7f -> stringResource(R.string.sensitivity_low)
+                            microphoneSensitivity >= 1.3f -> stringResource(R.string.sensitivity_high)
+                            else -> stringResource(R.string.sensitivity_normal)
+                        }
+
+                    SettingsSliderItem(
+                        title = stringResource(R.string.microphone_sensitivity),
+                        description = stringResource(R.string.sensitivity_description),
+                        value = microphoneSensitivity,
+                        onValueChange = { viewModel.setMicrophoneSensitivity(it) },
+                        valueRange = 0.5f..2.0f,
+                        steps = 14,
+                        valueLabel = sensitivityLabel,
+                    )
+
+                    Divider(color = Color.White.copy(alpha = 0.12f))
+
+                    SettingsSwitchItem(
+                        title = stringResource(R.string.auto_adjust_sensitivity),
+                        description = stringResource(R.string.auto_adjust_description),
+                        checked = autoAdjustSensitivity,
+                        onCheckedChange = { viewModel.toggleAutoAdjustSensitivity(it) },
+                    )
+
+                    Divider(color = Color.White.copy(alpha = 0.12f))
+
+                    // Audio Level Bar
+                    AudioLevelBar(
+                        title = stringResource(R.string.audio_input_level),
+                        level = currentAudioLevel,
+                        isGated = isGated,
+                    )
+
+                    Divider(color = Color.White.copy(alpha = 0.12f))
+
+                    // Noise Gate Threshold
+                    val gateLabel =
+                        when {
+                            noiseGateThreshold <= 0.001f -> stringResource(R.string.noise_gate_disabled)
+                            noiseGateThreshold <= 0.005f -> stringResource(R.string.noise_gate_very_low)
+                            noiseGateThreshold <= 0.015f -> stringResource(R.string.noise_gate_low)
+                            noiseGateThreshold <= 0.035f -> stringResource(R.string.noise_gate_medium)
+                            else -> stringResource(R.string.noise_gate_high)
+                        }
+
+                    SettingsSliderItem(
+                        title = stringResource(R.string.noise_gate_threshold),
+                        description = stringResource(R.string.noise_gate_description, noiseGateThreshold),
+                        value = noiseGateThreshold,
+                        onValueChange = { viewModel.setNoiseGateThreshold(it) },
+                        valueRange = 0.0f..0.1f,
+                        steps = 0,
+                        valueLabel = gateLabel,
+                    )
+
+                    Divider(color = Color.White.copy(alpha = 0.12f))
+
+                    // Audio Input Source Selection
+                    SettingsClickableItem(
+                        title = stringResource(R.string.audio_input_source),
+                        subtitle = getAudioSourceName(audioSource),
+                        description = stringResource(R.string.audio_input_source_description),
+                        onClick = { showAudioSourceDialog = true },
+                    )
+
+                    Divider(color = Color.White.copy(alpha = 0.12f))
+
+                    // Pitch Detection Algorithm Selection
+                    SettingsClickableItem(
+                        title = stringResource(R.string.pitch_detection_algorithm),
+                        subtitle = getAlgorithmDisplayName(pitchDetectionAlgorithm),
+                        description = stringResource(R.string.pitch_detection_description),
+                        onClick = { showAlgorithmDialog = true },
+                    )
+
+                    Divider(color = Color.White.copy(alpha = 0.12f))
+                }
+
+                // About Section
+                SettingsSectionHeader(title = stringResource(R.string.about_section))
+
+                SettingsItem(
+                    title = stringResource(R.string.app_version),
+                    subtitle = stringResource(R.string.version_value),
                 )
-
-                Divider()
-
-                // Noise Gate Threshold
-                val gateLabel =
-                    when {
-                        noiseGateThreshold <= 0.001f -> stringResource(R.string.noise_gate_disabled)
-                        noiseGateThreshold <= 0.005f -> stringResource(R.string.noise_gate_very_low)
-                        noiseGateThreshold <= 0.015f -> stringResource(R.string.noise_gate_low)
-                        noiseGateThreshold <= 0.035f -> stringResource(R.string.noise_gate_medium)
-                        else -> stringResource(R.string.noise_gate_high)
-                    }
-
-                SettingsSliderItem(
-                    title = stringResource(R.string.noise_gate_threshold),
-                    description = stringResource(R.string.noise_gate_description, noiseGateThreshold),
-                    value = noiseGateThreshold,
-                    onValueChange = { viewModel.setNoiseGateThreshold(it) },
-                    valueRange = 0.0f..0.1f,
-                    steps = 0,
-                    valueLabel = gateLabel,
-                )
-
-                Divider()
-
-                // Audio Input Source Selection
-                SettingsClickableItem(
-                    title = stringResource(R.string.audio_input_source),
-                    subtitle = getAudioSourceName(audioSource),
-                    description = stringResource(R.string.audio_input_source_description),
-                    onClick = { showAudioSourceDialog = true },
-                )
-
-                Divider()
-
-                // Pitch Detection Algorithm Selection
-                SettingsClickableItem(
-                    title = stringResource(R.string.pitch_detection_algorithm),
-                    subtitle = getAlgorithmDisplayName(pitchDetectionAlgorithm),
-                    description = stringResource(R.string.pitch_detection_description),
-                    onClick = { showAlgorithmDialog = true },
-                )
-
-                Divider()
             }
-
-            // About Section
-            SettingsSectionHeader(title = stringResource(R.string.about_section))
-
-            SettingsItem(
-                title = stringResource(R.string.app_version),
-                subtitle = stringResource(R.string.version_value),
-            )
         }
     }
 
@@ -342,7 +385,7 @@ private fun SettingsSectionHeader(title: String) {
     Text(
         text = title,
         style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.primary,
+        color = Color.White,
         modifier =
             Modifier
                 .fillMaxWidth()
@@ -365,19 +408,20 @@ private fun SettingsItem(
         Text(
             text = title,
             style = MaterialTheme.typography.bodyLarge,
+            color = Color.White,
         )
         if (subtitle != null) {
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.85f),
             )
         }
         if (description != null) {
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.7f),
                 modifier = Modifier.padding(top = 4.dp),
             )
         }
@@ -391,6 +435,8 @@ private fun SettingsSwitchItem(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
+    val accentColor = NoteColors.getAccessibleButtonColorFor("Settings")
+
     Row(
         modifier =
             Modifier
@@ -402,12 +448,13 @@ private fun SettingsSwitchItem(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
+                color = Color.White,
             )
             if (description != null) {
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.7f),
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }
@@ -416,6 +463,13 @@ private fun SettingsSwitchItem(
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
+            colors =
+                SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = accentColor,
+                    uncheckedThumbColor = Color.White.copy(alpha = 0.7f),
+                    uncheckedTrackColor = Color.White.copy(alpha = 0.3f),
+                ),
         )
     }
 }
@@ -430,6 +484,8 @@ private fun SettingsSliderItem(
     steps: Int = 0,
     valueLabel: String,
 ) {
+    val accentColor = NoteColors.getAccessibleButtonColorFor("Settings")
+
     Column(
         modifier =
             Modifier
@@ -443,19 +499,20 @@ private fun SettingsSliderItem(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
+                color = Color.White,
                 modifier = Modifier.weight(1f),
             )
             Text(
                 text = valueLabel,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary,
+                color = Color.White,
             )
         }
         if (description != null) {
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.7f),
                 modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
             )
         }
@@ -464,6 +521,12 @@ private fun SettingsSliderItem(
             onValueChange = onValueChange,
             valueRange = valueRange,
             steps = steps,
+            colors =
+                SliderDefaults.colors(
+                    thumbColor = Color.White,
+                    activeTrackColor = accentColor,
+                    inactiveTrackColor = Color.White.copy(alpha = 0.3f),
+                ),
         )
     }
 }
@@ -474,6 +537,8 @@ private fun AudioLevelBar(
     level: Float,
     isGated: Boolean = false,
 ) {
+    val accentColor = NoteColors.getAccessibleButtonColorFor("Settings")
+
     Column(
         modifier =
             Modifier
@@ -487,13 +552,14 @@ private fun AudioLevelBar(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
+                color = Color.White,
             )
             if (isGated) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = stringResource(R.string.noise_gate_idle),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.7f),
                 )
             }
         }
@@ -503,6 +569,8 @@ private fun AudioLevelBar(
                 Modifier
                     .fillMaxWidth()
                     .height(8.dp),
+            color = accentColor,
+            trackColor = Color.White.copy(alpha = 0.3f),
         )
     }
 }
@@ -524,19 +592,20 @@ private fun SettingsClickableItem(
         Text(
             text = title,
             style = MaterialTheme.typography.bodyLarge,
+            color = Color.White,
         )
         if (subtitle != null) {
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.85f),
             )
         }
         if (description != null) {
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.7f),
                 modifier = Modifier.padding(top = 4.dp),
             )
         }
@@ -549,9 +618,17 @@ private fun AudioSourceDialog(
     onSourceSelected: (AudioSource) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val accentColor = NoteColors.getAccessibleButtonColorFor("Settings")
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.audio_input_source)) },
+        containerColor = Color(0xFF1A1A1A).copy(alpha = 0.95f),
+        title = {
+            Text(
+                text = stringResource(R.string.audio_input_source),
+                color = Color.White,
+            )
+        },
         text = {
             Column {
                 AudioSource.entries.forEach { source ->
@@ -560,15 +637,17 @@ private fun AudioSourceDialog(
                         source = source,
                         currentSource = currentSource,
                         onSelect = onSourceSelected,
+                        accentColor = accentColor,
                     )
                 }
             }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(android.R.string.ok))
+                Text(stringResource(android.R.string.ok), color = accentColor)
             }
         },
+        shape = RoundedCornerShape(16.dp),
     )
 }
 
@@ -578,6 +657,7 @@ private fun AudioSourceOption(
     source: AudioSource,
     currentSource: AudioSource,
     onSelect: (AudioSource) -> Unit,
+    accentColor: Color,
 ) {
     Row(
         modifier =
@@ -590,9 +670,14 @@ private fun AudioSourceOption(
         RadioButton(
             selected = source == currentSource,
             onClick = { onSelect(source) },
+            colors =
+                RadioButtonDefaults.colors(
+                    selectedColor = accentColor,
+                    unselectedColor = Color.White.copy(alpha = 0.6f),
+                ),
         )
         Spacer(modifier = Modifier.width(8.dp))
-        Text(text = name)
+        Text(text = name, color = Color.White)
     }
 }
 
@@ -617,6 +702,8 @@ private fun AlgorithmDialog(
     onAlgorithmSelected: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val accentColor = NoteColors.getAccessibleButtonColorFor("Settings")
+
     val algorithms =
         listOf(
             "AUTOCORRELATION" to stringResource(R.string.algorithm_autocorrelation),
@@ -629,7 +716,13 @@ private fun AlgorithmDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.pitch_detection_algorithm)) },
+        containerColor = Color(0xFF1A1A1A).copy(alpha = 0.95f),
+        title = {
+            Text(
+                text = stringResource(R.string.pitch_detection_algorithm),
+                color = Color.White,
+            )
+        },
         text = {
             Column {
                 algorithms.forEach { (algorithmKey, displayName) ->
@@ -638,15 +731,17 @@ private fun AlgorithmDialog(
                         algorithmKey = algorithmKey,
                         currentAlgorithm = currentAlgorithm,
                         onSelect = onAlgorithmSelected,
+                        accentColor = accentColor,
                     )
                 }
             }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(android.R.string.ok))
+                Text(stringResource(android.R.string.ok), color = accentColor)
             }
         },
+        shape = RoundedCornerShape(16.dp),
     )
 }
 
@@ -656,6 +751,7 @@ private fun AlgorithmOption(
     algorithmKey: String,
     currentAlgorithm: String,
     onSelect: (String) -> Unit,
+    accentColor: Color,
 ) {
     Row(
         modifier =
@@ -668,8 +764,13 @@ private fun AlgorithmOption(
         RadioButton(
             selected = algorithmKey == currentAlgorithm,
             onClick = { onSelect(algorithmKey) },
+            colors =
+                RadioButtonDefaults.colors(
+                    selectedColor = accentColor,
+                    unselectedColor = Color.White.copy(alpha = 0.6f),
+                ),
         )
         Spacer(modifier = Modifier.width(8.dp))
-        Text(text = name)
+        Text(text = name, color = Color.White)
     }
 }
