@@ -1,0 +1,242 @@
+---
+title: [FEATURE] Apply Dark Guitar Background to Notes Played Screen
+labels: enhancement, ui/ux, design, cody-agent, priority-2
+assignees: ''
+---
+
+## Parent Issue
+This is a sub-issue of the main design consistency feature.
+**Parent**: Apply Design Consistency Across All Screens
+
+## Screen Overview
+**File**: `app/src/main/java/com/androidguitarnotes/app/notesplayed/NotesPlayedScreen.kt`
+
+The Notes Played Screen displays real-time note detection with:
+- Large current note display
+- Note confidence indicator
+- Fretboard visualization showing note position
+- Animated note transitions
+- Start/Stop listening controls
+- Real-time audio processing
+
+## Current State
+- Uses standard Material3 `Scaffold` with `TopAppBar`
+- System background color
+- Large note name display
+- Confidence meter or indicator
+- Fretboard visualization component
+- Animated transitions between notes
+- Start/Stop button
+
+## Desired State
+- Dark guitar fretboard background with overlay
+- High-contrast note displays for quick recognition
+- Enhanced fretboard visualization on dark background
+- Semi-transparent but clearly visible indicators
+- Color-coded note confidence levels
+- Maintains all detection functionality
+- Smooth animations on dark background
+
+## Implementation Tasks
+
+- [ ] Wrap screen content in Box with layered structure
+- [ ] Add guitar background image layer
+- [ ] Add semi-transparent overlay (0.6f alpha)
+- [ ] Update Scaffold to use transparent container color
+- [ ] Update TopAppBar styling with white text
+- [ ] Update current note display (large, white, high contrast)
+- [ ] Style confidence indicator/meter
+- [ ] Update FretboardView to work on dark background
+- [ ] Enhance fretboard note position highlighting
+- [ ] Update note transition animations
+- [ ] Style Start/Stop listening button
+- [ ] Update status text styling
+- [ ] Ensure smooth real-time updates with new styling
+- [ ] Test with various note detections
+- [ ] Verify fretboard visualization clarity
+- [ ] Test permission flow integration
+- [ ] Verify accessibility standards
+
+## Design Guidelines Reference
+Follow the specifications in `/docs/development/APP_DESIGN_GUIDELINES.md`, particularly:
+- Section 2: Background Treatment
+- Section 3: Color System (note colors via NoteColors)
+- Section 4: Typography (large display text)
+- Section 8: Animations and Effects (note transitions)
+- Section 10: Screen-Specific Guidelines (Active Session Screens)
+
+## Key Components to Update
+
+### Current Note Display
+- Extra large text size (64-80sp)
+- Bold weight
+- White with shadow or outline
+- Optional: Color-coded by note using NoteColors
+- Animated scaling or fade transitions
+- Central, prominent position
+
+### Confidence Indicator
+- Visual meter (progress bar or gauge)
+- Color-coded by confidence level:
+  - High (>80%): Green
+  - Medium (50-80%): Yellow/Orange
+  - Low (<50%): Red or dimmed
+- Smooth animation between levels
+- Semi-transparent background
+
+### Fretboard Visualization
+- Dark wood or graphite appearance
+- White or light colored strings
+- Bright, distinct note position markers
+- Use NoteColors for detected note highlighting
+- Clear fret markers (dots at 3, 5, 7, 9, 12)
+- Semi-transparent background card/panel
+
+### Start/Stop Button
+- Large, prominent button
+- Accent color with 0.6f alpha
+- White text
+- Clear state labels ("Start Listening" / "Stop Listening")
+- 16dp rounded corners
+- Elevated appearance
+
+## Fretboard Visualization Enhancement
+
+The fretboard should clearly show:
+1. **Current note position** - Highlighted circle/dot
+2. **String context** - All 6 strings visible
+3. **Fret numbers** - Subtle labels for reference
+4. **Note colors** - Use NoteColors for consistency
+
+```kotlin
+// Example fretboard styling
+FretboardView(
+    currentNote = detectedNote,
+    string = detectedString,
+    fret = detectedFret,
+    backgroundColor = Color(0xFF2A2A2A).copy(alpha = 0.6f),
+    stringColor = Color.White.copy(alpha = 0.8f),
+    fretMarkerColor = Color.White.copy(alpha = 0.5f),
+    noteHighlightColor = NoteColors.forNote(detectedNote),
+    modifier = Modifier
+        .fillMaxWidth()
+        .height(200.dp)
+        .padding(16.dp)
+)
+```
+
+## Animation Considerations
+
+- Note name should fade/scale in when detected (300ms)
+- Note name should fade/scale out when note changes (200ms)
+- Confidence meter should animate smoothly (100-200ms transitions)
+- Fretboard note position should slide/fade to new position
+- Color transitions should be smooth
+- Ensure animations don't impact detection performance
+
+## Layout Structure
+
+Suggested vertical layout:
+
+1. **Top**: TopAppBar with back button
+2. **Upper Center**: Current note name (dominant element)
+3. **Mid**: Confidence indicator
+4. **Lower Center**: Fretboard visualization
+5. **Bottom**: Start/Stop button
+
+Use generous spacing for quick visual scanning.
+
+## Acceptance Criteria
+
+- [ ] Background image visible across entire screen
+- [ ] Semi-transparent overlay applied (0.6f alpha)
+- [ ] Current note is highly visible and readable
+- [ ] Note changes are detected and displayed correctly
+- [ ] Note transition animations are smooth
+- [ ] Confidence indicator updates in real-time
+- [ ] Confidence color coding works correctly
+- [ ] Fretboard visualization displays correctly
+- [ ] Fretboard shows correct note position
+- [ ] Note highlighting on fretboard is clear
+- [ ] Start Listening button works
+- [ ] Stop Listening button works
+- [ ] Real-time updates work correctly
+- [ ] Audio permission flow works
+- [ ] Back navigation works
+- [ ] Screen stays on while listening (KeepScreenOn)
+- [ ] High visibility in various lighting conditions
+- [ ] Text contrast meets WCAG AA standards
+- [ ] Touch targets are minimum 48x48dp
+- [ ] No performance degradation during real-time processing
+- [ ] Tested on multiple screen sizes
+- [ ] Visual consistency with Home screen
+
+## Testing Checklist
+
+### Functional Testing
+- [ ] Tap Start Listening
+- [ ] Play various guitar notes and verify detection
+- [ ] Verify note name updates for each note
+- [ ] Verify confidence indicator responds to signal quality
+- [ ] Verify fretboard shows correct positions
+- [ ] Test all strings (E, A, D, G, B, e)
+- [ ] Test various frets (open through 12th+)
+- [ ] Verify note transitions are smooth
+- [ ] Tap Stop Listening
+- [ ] Navigate back to home
+- [ ] Test permission request flow
+- [ ] Verify screen stays on while listening
+
+### Visual Testing
+- [ ] Background displays correctly
+- [ ] Overlay is consistent
+- [ ] Note display is highly visible
+- [ ] Confidence indicator is clear
+- [ ] Fretboard visualization is intuitive
+- [ ] Note highlighting is distinct
+- [ ] Animations are smooth and pleasant
+- [ ] All text is readable
+- [ ] Button states are clear
+- [ ] No visual flickering during updates
+- [ ] Layout works on small screens
+- [ ] Layout works on large screens (tablet)
+
+### Performance Testing
+- [ ] Real-time updates are smooth
+- [ ] Animations don't impact detection
+- [ ] No lag during rapid note changes
+- [ ] Memory usage is stable
+- [ ] Battery usage is reasonable
+- [ ] Works on lower-end devices
+
+### Accessibility Testing
+- [ ] Contrast check on all elements
+- [ ] Touch target size verification
+- [ ] Test with TalkBack (note announcements)
+- [ ] Test with large text
+- [ ] Verify fretboard is understandable
+- [ ] Color-blind friendly indicators
+
+## Notes
+
+This is a **Priority 2** screen because:
+- Real-time audio processing and visualization
+- Complex fretboard component requires careful styling
+- Multiple animated elements need coordination
+- Critical for learning and practice feedback
+
+Special attention needed for:
+- Fretboard visibility on dark background
+- Clear note position indication
+- Smooth animations without performance impact
+- High contrast for quick note identification
+
+Consider:
+- Users glance at this screen while playing
+- Note changes should be immediately obvious
+- Fretboard should teach correct finger positions
+- Confidence feedback helps with playing technique
+
+## Implementation Assignment
+- [ ] Assign to Cody agent (recommended)
+- [ ] I'll implement this manually
