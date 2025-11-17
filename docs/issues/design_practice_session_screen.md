@@ -1,0 +1,295 @@
+---
+title: [FEATURE] Apply Dark Guitar Background to Practice Session Screen
+labels: enhancement, ui/ux, design, cody-agent, priority-2
+assignees: ''
+---
+
+## Parent Issue
+This is a sub-issue of the main design consistency feature.
+**Parent**: Apply Design Consistency Across All Screens
+
+## Screen Overview
+**File**: `app/src/main/java/com/androidguitarnotes/app/practice/PracticeSessionScreen.kt`
+
+The Practice Session Screen manages active practice with:
+- Target note display (the note to play)
+- Current detected note feedback
+- Progress tracking (correct/incorrect notes)
+- Session statistics (accuracy, time, streak)
+- Fretboard visualization with target position
+- Success/error visual feedback
+- Session complete dialog
+- Real-time audio processing
+
+## Current State
+- Uses standard Material3 `Scaffold` with `TopAppBar`
+- System background color
+- Large target note display
+- Detection feedback area
+- Progress indicators
+- Statistics display
+- Fretboard visualization
+- Animated success/error feedback
+- Session summary dialog
+
+## Desired State
+- Dark guitar fretboard background with overlay
+- High-contrast target note display
+- Clear success/error feedback on dark background
+- Enhanced fretboard visualization
+- Semi-transparent progress cards
+- Prominent session statistics
+- Styled session complete dialog
+- Maintains all practice functionality
+
+## Implementation Tasks
+
+- [ ] Wrap screen content in Box with layered structure
+- [ ] Add guitar background image layer
+- [ ] Add semi-transparent overlay (0.6f alpha)
+- [ ] Update Scaffold to use transparent container color
+- [ ] Update TopAppBar styling with white text
+- [ ] Style target note display (large, clear, white)
+- [ ] Style current note feedback area
+- [ ] Update success feedback (green flash/border/animation)
+- [ ] Update error feedback (red flash/border/animation)
+- [ ] Style progress indicators (correct/total counts)
+- [ ] Style accuracy percentage display
+- [ ] Style time elapsed display
+- [ ] Style streak counter
+- [ ] Update FretboardView for dark background
+- [ ] Highlight target position on fretboard
+- [ ] Style session complete dialog
+- [ ] Update all animations for dark background
+- [ ] Test all practice states (waiting, correct, incorrect)
+- [ ] Verify real-time detection feedback
+- [ ] Test session completion flow
+- [ ] Verify accessibility standards
+
+## Design Guidelines Reference
+Follow the specifications in `/docs/development/APP_DESIGN_GUIDELINES.md`, particularly:
+- Section 2: Background Treatment
+- Section 3: Color System
+- Section 4: Typography
+- Section 5: Component Styling (cards for stats)
+- Section 8: Animations and Effects (success/error feedback)
+- Section 10: Screen-Specific Guidelines (Active Session Screens, Modal Dialogs)
+
+## Key Components to Update
+
+### Target Note Display
+- Extra large text size (72-96sp)
+- Bold weight
+- White with shadow
+- "Play:" label above in smaller text
+- Central, dominant position
+- Optional: Pulsing animation when waiting
+
+### Detection Feedback
+- Success: Green flash, checkmark icon, or border pulse
+- Error: Red flash, X icon, or shake animation
+- Duration: 500-800ms
+- Should not obscure target note
+- Clear visual distinction
+
+### Progress Display
+```kotlin
+// Stats card example
+Card(
+    modifier = Modifier.padding(16.dp),
+    colors = CardDefaults.cardColors(
+        containerColor = Color(0xFF1A1A1A).copy(alpha = 0.7f)
+    ),
+    shape = RoundedCornerShape(16.dp)
+) {
+    Row(modifier = Modifier.padding(16.dp)) {
+        StatItem("Correct", correctCount, Color.Green)
+        StatItem("Total", totalAttempts, Color.White)
+        StatItem("Accuracy", "${accuracy}%", accentColor)
+        StatItem("Streak", currentStreak, Color.Yellow)
+    }
+}
+```
+
+### Fretboard Visualization
+- Shows all 6 strings
+- Target position highlighted with pulsing circle
+- Use NoteColors for target note
+- Current detected note shown in different color
+- Semi-transparent background
+- Clear string and fret labels
+
+### Session Complete Dialog
+- Dark surface matching app theme
+- Large title "Practice Complete!"
+- Summary statistics prominently displayed
+- Best streak highlighted
+- Total time formatted nicely
+- "Continue" and "Back to Home" buttons
+- Rounded corners (16dp)
+- Optional: Celebration animation/confetti
+
+## Feedback Animation Patterns
+
+### Success Feedback
+```kotlin
+// Green flash overlay
+AnimatedVisibility(
+    visible = showSuccess,
+    enter = fadeIn(tween(200)),
+    exit = fadeOut(tween(500))
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Green.copy(alpha = 0.2f))
+    )
+}
+
+// Or border pulse
+Box(
+    modifier = Modifier
+        .border(
+            width = if (showSuccess) 8.dp else 0.dp,
+            color = Color.Green,
+            shape = RoundedCornerShape(16.dp)
+        )
+)
+```
+
+### Error Feedback
+- Similar pattern with red color
+- Optional shake animation for note display
+- Brief visual cue without being harsh
+
+## Layout Structure
+
+Suggested layout:
+
+1. **Top**: TopAppBar with session title
+2. **Upper**: Progress statistics (compact row)
+3. **Center**: Target note display (dominant)
+4. **Mid-Center**: Detection feedback overlay
+5. **Lower**: Fretboard visualization
+6. **Bottom**: Additional stats or controls
+
+Use clear visual hierarchy to focus on target note.
+
+## Session States to Style
+
+### Active State
+- Waiting for note: Target note pulsing subtly
+- Listening: Microphone indicator or status
+- Correct detection: Green success feedback
+- Incorrect detection: Red error feedback
+
+### Paused State (if applicable)
+- Dimmed content
+- "Paused" overlay
+- Resume button
+
+### Complete State
+- Session summary dialog
+- Final statistics
+- Navigation options
+
+## Acceptance Criteria
+
+- [ ] Background image visible across entire screen
+- [ ] Semi-transparent overlay applied (0.6f alpha)
+- [ ] Target note is highly visible and clear
+- [ ] Target note updates correctly when answered
+- [ ] Success feedback displays on correct note
+- [ ] Error feedback displays on incorrect note
+- [ ] Progress counts update correctly (correct/total)
+- [ ] Accuracy percentage calculates correctly
+- [ ] Time elapsed updates in real-time
+- [ ] Streak counter updates correctly
+- [ ] Fretboard shows target position correctly
+- [ ] Fretboard highlights detected note correctly
+- [ ] Session complete dialog displays at end
+- [ ] Dialog shows correct statistics
+- [ ] Continue button works (if applicable)
+- [ ] Back to home navigation works
+- [ ] Audio detection works correctly
+- [ ] Audio permission flow works
+- [ ] Screen stays on during practice (KeepScreenOn)
+- [ ] Text contrast meets WCAG AA standards
+- [ ] Touch targets are minimum 48x48dp
+- [ ] No performance degradation during session
+- [ ] Tested on multiple screen sizes
+- [ ] Visual consistency with Home screen
+
+## Testing Checklist
+
+### Functional Testing
+- [ ] Start practice session from config screen
+- [ ] Verify target note displays correctly
+- [ ] Play correct note and verify success feedback
+- [ ] Verify correct count increments
+- [ ] Verify accuracy updates
+- [ ] Verify streak updates on consecutive correct notes
+- [ ] Play incorrect note and verify error feedback
+- [ ] Verify streak resets on incorrect note
+- [ ] Verify time elapsed updates
+- [ ] Complete session and verify dialog appears
+- [ ] Verify dialog statistics are correct
+- [ ] Test navigation from complete dialog
+- [ ] Test with different practice configurations
+- [ ] Verify permission flow
+
+### Visual Testing
+- [ ] Background displays correctly
+- [ ] Overlay is consistent
+- [ ] Target note is dominant and clear
+- [ ] Success feedback is obvious and positive
+- [ ] Error feedback is clear but not harsh
+- [ ] Progress stats are easily readable
+- [ ] Fretboard is clear and helpful
+- [ ] Animations are smooth and purposeful
+- [ ] Dialog is well-styled and informative
+- [ ] No visual flickering
+- [ ] Layout works on small screens
+- [ ] Layout works on large screens
+
+### Performance Testing
+- [ ] Real-time detection is responsive
+- [ ] Animations don't cause lag
+- [ ] Smooth throughout entire session
+- [ ] Memory stable during long sessions
+- [ ] Battery usage reasonable
+- [ ] Works on lower-end devices
+
+### Accessibility Testing
+- [ ] Contrast check on all elements
+- [ ] Touch targets verified
+- [ ] Test with TalkBack
+- [ ] Success/error feedback is clear
+- [ ] Statistics are announced
+- [ ] Test with large text
+
+## Notes
+
+This is a **Priority 2** screen because:
+- Most complex screen with multiple states
+- Real-time audio and visual feedback coordination
+- Multiple animated elements
+- Core learning experience - must be excellent
+
+Special attention needed for:
+- Clear target note visibility (users focus here)
+- Immediate, obvious success/error feedback
+- Non-distracting but informative statistics
+- Fretboard usefulness for learning positions
+- Session completion celebration
+
+Consider:
+- This is where users spend most of their time
+- Positive reinforcement is important (success animations)
+- Errors should be clear but not discouraging
+- Statistics motivate continued practice
+- Fretboard helps visual learners
+
+## Implementation Assignment
+- [ ] Assign to Cody agent (recommended)
+- [ ] I'll implement this manually

@@ -26,49 +26,61 @@ A comprehensive design guidelines document that establishes the visual identity 
 - Accessibility: WCAG AA compliance guidelines
 - Implementation Checklist: For every new screen/feature
 
-### 2. Feature Request Issues (YAML)
-GitHub issue templates created in `.github/ISSUE_TEMPLATE/`:
+### 2. Pre-Written Issue Descriptions
+Issue descriptions created in `docs/issues/`:
+
+> **⚠️ ACTION REQUIRED**: These are markdown files with complete issue descriptions that need to be created as actual GitHub issues. See `docs/issues/README.md` for instructions.
 
 #### Main Feature Issue
-**File**: `design_consistency_feature.yml`
+**File**: `design_consistency_feature.md`
 - Master tracking issue for the entire design consistency effort
 - References all sub-issues
 - Provides high-level implementation strategy
 - Documents alternatives considered
-- Assigns to Cody agent
+- Recommends assignment to Cody agent
 
 #### Sub-Issues by Priority
 
 **Priority 1 (Simple Layouts)**:
-- `design_practice_config_screen.yml` - Practice Configuration Screen
-- `design_settings_screen.yml` - Settings Screen
+- `design_practice_config_screen.md` - Practice Configuration Screen
+- `design_settings_screen.md` - Settings Screen
 
 These screens have form-based layouts and are good candidates for initial implementation to establish patterns.
 
 **Priority 2 (Active Sessions)**:
-- `design_tuner_screen.yml` - Tuner Screen
-- `design_notes_played_screen.yml` - Notes Played Screen
-- `design_practice_session_screen.yml` - Practice Session Screen
+- `design_tuner_screen.md` - Tuner Screen
+- `design_notes_played_screen.md` - Notes Played Screen
+- `design_practice_session_screen.md` - Practice Session Screen
 
 These screens require real-time audio processing and careful attention to usability during active use.
 
 **Priority 3 (Supporting)**:
-- `design_permission_screen.yml` - Permission Rationale Screen
+- `design_permission_screen.md` - Permission Rationale Screen
 
 Simple dialog component that appears less frequently but needs consistent styling.
 
-## How to Use These Issues
+## How to Create and Use These Issues
 
-### For Creating Issues in GitHub
+### Creating GitHub Issues
 
-1. **Navigate to the repository on GitHub**
-2. **Click "Issues" → "New Issue"**
-3. **Select the appropriate template**:
-   - Start with "Apply Design Consistency Across All Screens" for the main tracking issue
-   - Then create individual sub-issues using the screen-specific templates
-4. **Fill in any additional details**
-5. **Assign to the Cody agent** (or self if implementing manually)
-6. **Add to project/milestone** if using project management
+The issue descriptions are in `docs/issues/` and must be created manually:
+
+**Option 1: Automated Script (Recommended)**
+```bash
+cd docs/issues
+./create-issues.sh
+```
+
+**Option 2: Manual Creation**
+1. Navigate to the repository on GitHub
+2. Click "Issues" → "New Issue"
+3. Select "Feature Request" template
+4. Copy content from the corresponding markdown file in `docs/issues/`
+5. Paste into the issue body
+6. Update title and labels from the frontmatter
+7. Assign to @copilot, Cody agent, or team member
+
+See `docs/issues/README.md` for detailed instructions.
 
 ### For Implementation
 
@@ -81,10 +93,10 @@ Each sub-issue contains:
 
 ### Recommended Implementation Order
 
-1. **Phase 1**: Create GitHub issues from templates
-   - Create main tracking issue
-   - Create all sub-issues
-   - Link sub-issues to main issue
+1. **Phase 1**: Create GitHub issues from markdown descriptions
+   - Run `docs/issues/create-issues.sh` (or create manually)
+   - Note the issue numbers created
+   - Link sub-issues to main tracking issue
 
 2. **Phase 2**: Establish patterns (Priority 1)
    - Implement Practice Config Screen
@@ -208,8 +220,8 @@ If design principles evolve:
 ## Resources
 
 - **Design Guidelines**: `docs/development/APP_DESIGN_GUIDELINES.md`
-- **Main Issue Template**: `.github/ISSUE_TEMPLATE/design_consistency_feature.yml`
-- **Sub-Issue Templates**: `.github/ISSUE_TEMPLATE/design_*.yml`
+- **Issue Descriptions**: `docs/issues/` (with creation script)
+- **Issue Creation Script**: `docs/issues/create-issues.sh`
 - **Home Screen Reference**: `app/src/main/java/com/androidguitarnotes/app/MainActivity.kt`
 - **Background Image**: `app/src/main/res/drawable/background.jpg`
 - **Background Gradient**: `app/src/main/res/drawable/guitar_background.xml`
@@ -218,19 +230,23 @@ If design principles evolve:
 ## Questions?
 
 If you have questions about:
+- **Creating issues**: See `docs/issues/README.md`
 - **Design decisions**: Refer to APP_DESIGN_GUIDELINES.md
-- **Implementation**: Check the relevant sub-issue template
-- **Priorities**: See the priority labels and notes in each sub-issue
+- **Implementation**: Check the relevant issue description in `docs/issues/`
+- **Priorities**: See the priority labels and notes in each issue description
 - **Patterns**: Review HomeScreen in MainActivity.kt
 
 ## Next Steps
 
 1. ✅ Design guidelines document created
-2. ✅ Feature request issues created (templates)
-3. 🔲 Create actual GitHub issues from templates
-4. 🔲 Begin Priority 1 implementation
-5. 🔲 Continue with Priority 2 and 3
-6. 🔲 Final review and polish
+2. ✅ Feature request issue descriptions created
+3. ⚠️ **ACTION REQUIRED**: Create actual GitHub issues
+   - Run `cd docs/issues && ./create-issues.sh`
+   - Or create manually via GitHub web interface
+4. 🔲 Assign issues to @copilot or team members
+5. 🔲 Begin Priority 1 implementation
+6. 🔲 Continue with Priority 2 and 3
+7. 🔲 Final review and polish
 
 ---
 
