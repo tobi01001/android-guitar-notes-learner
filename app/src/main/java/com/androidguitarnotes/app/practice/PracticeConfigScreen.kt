@@ -1,5 +1,7 @@
 package com.androidguitarnotes.app.practice
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -8,6 +10,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -29,91 +34,128 @@ fun PracticeConfigScreen(
         ),
 ) {
     val config by viewModel.config.collectAsStateWithLifecycle()
+    val buttonTransparency = 0.6f
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.practice_config_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Text("←", fontSize = 24.sp)
-                    }
-                },
-            )
-        },
-        bottomBar = {
-            // Bottom buttons permanently visible
-            Row(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                OutlinedButton(
-                    onClick = onBack,
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Text(stringResource(R.string.back))
-                }
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Background layer - guitar fretboard image
+        Image(
+            painter = painterResource(id = R.drawable.background),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+        )
 
-                Button(
-                    onClick = { onStartPractice(config) },
-                    enabled = viewModel.isConfigValid(),
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Text(stringResource(R.string.start_practice))
-                }
-            }
-        },
-    ) { padding ->
-        Column(
+        // Semi-transparent overlay
+        Box(
             modifier =
                 Modifier
-                    .padding(padding)
-                    .padding(horizontal = 16.dp)
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-        ) {
-            StringSelectionSection(
-                selectedStrings = config.selectedStrings,
-                onToggleString = { viewModel.toggleString(it) },
-            )
+                    .background(Color.Black.copy(alpha = 0.6f)),
+        )
 
-            FretRangeSection(
-                fretFrom = config.fretFrom,
-                fretTo = config.fretTo,
-                onFretRangeChange = { from, to -> viewModel.setFretRange(from, to) },
-            )
+        // Content layer with transparent Scaffold
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.practice_config_title), color = Color.White) },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Text("←", fontSize = 24.sp, color = Color.White)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = Color.White,
+                        navigationIconContentColor = Color.White,
+                    ),
+                )
+            },
+            bottomBar = {
+                // Bottom buttons permanently visible
+                Row(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    OutlinedButton(
+                        onClick = onBack,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = Color.Transparent,
+                            contentColor = Color.White,
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.6f)),
+                    ) {
+                        Text(stringResource(R.string.back))
+                    }
 
-            NoteModeSection(
-                selectedMode = config.noteMode,
-                onModeSelected = { viewModel.setNoteMode(it) },
-            )
+                    Button(
+                        onClick = { onStartPractice(config) },
+                        enabled = viewModel.isConfigValid(),
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = com.androidguitarnotes.app.ui.NoteColors
+                                .getAccessibleButtonColorFor("Practice")
+                                .copy(alpha = buttonTransparency),
+                            contentColor = Color.White,
+                        ),
+                    ) {
+                        Text(stringResource(R.string.start_practice))
+                    }
+                }
+            },
+        ) { padding ->
+            Column(
+                modifier =
+                    Modifier
+                        .padding(padding)
+                        .padding(horizontal = 16.dp)
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+            ) {
+                StringSelectionSection(
+                    selectedStrings = config.selectedStrings,
+                    onToggleString = { viewModel.toggleString(it) },
+                )
 
-            if (config.noteMode == NoteMode.SCALE) {
-                ScaleSelectionSection(
-                    selectedScale = config.selectedScale,
-                    onScaleSelected = { viewModel.setSelectedScale(it) },
+                FretRangeSection(
+                    fretFrom = config.fretFrom,
+                    fretTo = config.fretTo,
+                    onFretRangeChange = { from, to -> viewModel.setFretRange(from, to) },
+                )
+
+                NoteModeSection(
+                    selectedMode = config.noteMode,
+                    onModeSelected = { viewModel.setNoteMode(it) },
+                )
+
+                if (config.noteMode == NoteMode.SCALE) {
+                    ScaleSelectionSection(
+                        selectedScale = config.selectedScale,
+                        onScaleSelected = { viewModel.setSelectedScale(it) },
+                    )
+                }
+
+                DurationSection(
+                    durationType = config.durationType,
+                    durationMinutes = config.durationMinutes,
+                    noteCount = config.noteCount,
+                    onDurationTypeChange = { viewModel.setDurationType(it) },
+                    onDurationMinutesChange = { viewModel.setDurationMinutes(it) },
+                    onNoteCountChange = { viewModel.setNoteCount(it) },
+                )
+
+                ProgressionModeSection(
+                    progressionMode = config.progressionMode,
+                    autoIntervalSeconds = config.autoIntervalSeconds,
+                    onProgressionModeChange = { viewModel.setProgressionMode(it) },
+                    onAutoIntervalChange = { viewModel.setAutoIntervalSeconds(it) },
                 )
             }
-
-            DurationSection(
-                durationType = config.durationType,
-                durationMinutes = config.durationMinutes,
-                noteCount = config.noteCount,
-                onDurationTypeChange = { viewModel.setDurationType(it) },
-                onDurationMinutesChange = { viewModel.setDurationMinutes(it) },
-                onNoteCountChange = { viewModel.setNoteCount(it) },
-            )
-
-            ProgressionModeSection(
-                progressionMode = config.progressionMode,
-                autoIntervalSeconds = config.autoIntervalSeconds,
-                onProgressionModeChange = { viewModel.setProgressionMode(it) },
-                onAutoIntervalChange = { viewModel.setAutoIntervalSeconds(it) },
-            )
         }
     }
 }
@@ -138,6 +180,7 @@ private fun StringSelectionSection(
         Text(
             text = stringResource(R.string.select_strings),
             style = MaterialTheme.typography.titleMedium,
+            color = Color.White,
         )
 
         // Header
@@ -151,7 +194,7 @@ private fun StringSelectionSection(
                     modifier = Modifier.weight(1f),
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.7f),
                 )
             }
         }
@@ -173,13 +216,17 @@ private fun StringSelectionSection(
                             FilterChipDefaults.filterChipColors(
                                 selectedContainerColor =
                                     com.androidguitarnotes.app.ui.NoteColors
-                                        .getLightColorForNote(noteName),
+                                        .getLightColorForNote(noteName)
+                                        .copy(alpha = 0.6f),
                                 selectedLabelColor =
                                     com.androidguitarnotes.app.ui.NoteColors
                                         .getDarkColorForNote(noteName),
                             )
                         } else {
-                            FilterChipDefaults.filterChipColors()
+                            FilterChipDefaults.filterChipColors(
+                                containerColor = Color.White.copy(alpha = 0.15f),
+                                labelColor = Color.White,
+                            )
                         },
                 )
             }
@@ -189,7 +236,7 @@ private fun StringSelectionSection(
             Text(
                 text = stringResource(R.string.at_least_one_string),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
+                color = Color(0xFFFF6B6B),
             )
         }
     }
@@ -208,6 +255,7 @@ private fun FretRangeSection(
         Text(
             text = stringResource(R.string.fret_range),
             style = MaterialTheme.typography.titleMedium,
+            color = Color.White,
         )
 
         Row(
@@ -229,9 +277,20 @@ private fun FretRangeSection(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 modifier = Modifier.weight(1f),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedContainerColor = Color.White.copy(alpha = 0.15f),
+                    unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
+                    focusedLabelColor = Color.White.copy(alpha = 0.7f),
+                    unfocusedLabelColor = Color.White.copy(alpha = 0.5f),
+                    focusedIndicatorColor = Color.White.copy(alpha = 0.6f),
+                    unfocusedIndicatorColor = Color.White.copy(alpha = 0.4f),
+                    cursorColor = Color.White,
+                ),
             )
 
-            Text("—")
+            Text("—", color = Color.White)
 
             OutlinedTextField(
                 value = toText,
@@ -247,6 +306,17 @@ private fun FretRangeSection(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 modifier = Modifier.weight(1f),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedContainerColor = Color.White.copy(alpha = 0.15f),
+                    unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
+                    focusedLabelColor = Color.White.copy(alpha = 0.7f),
+                    unfocusedLabelColor = Color.White.copy(alpha = 0.5f),
+                    focusedIndicatorColor = Color.White.copy(alpha = 0.6f),
+                    unfocusedIndicatorColor = Color.White.copy(alpha = 0.4f),
+                    cursorColor = Color.White,
+                ),
             )
         }
 
@@ -254,7 +324,7 @@ private fun FretRangeSection(
             Text(
                 text = stringResource(R.string.invalid_fret_range),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
+                color = Color(0xFFFF6B6B),
             )
         }
     }
@@ -269,6 +339,7 @@ private fun NoteModeSection(
         Text(
             text = stringResource(R.string.note_mode),
             style = MaterialTheme.typography.titleMedium,
+            color = Color.White,
         )
 
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -283,6 +354,10 @@ private fun NoteModeSection(
                     RadioButton(
                         selected = selectedMode == mode,
                         onClick = { onModeSelected(mode) },
+                        colors = RadioButtonDefaults.colors(
+                            selectedColor = Color.White,
+                            unselectedColor = Color.White.copy(alpha = 0.6f),
+                        ),
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
@@ -293,6 +368,7 @@ private fun NoteModeSection(
                                 NoteMode.SEMITONES -> stringResource(R.string.note_mode_semitones)
                             },
                         modifier = Modifier.weight(1f),
+                        color = Color.White,
                     )
                 }
             }
@@ -316,6 +392,7 @@ private fun DurationSection(
         Text(
             text = stringResource(R.string.practice_duration),
             style = MaterialTheme.typography.titleMedium,
+            color = Color.White,
         )
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -326,11 +403,16 @@ private fun DurationSection(
                 RadioButton(
                     selected = durationType == DurationType.TIME,
                     onClick = { onDurationTypeChange(DurationType.TIME) },
+                    colors = RadioButtonDefaults.colors(
+                        selectedColor = Color.White,
+                        unselectedColor = Color.White.copy(alpha = 0.6f),
+                    ),
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = stringResource(R.string.duration_mode_time),
                     modifier = Modifier.weight(1f),
+                    color = Color.White,
                 )
             }
 
@@ -350,6 +432,17 @@ private fun DurationSection(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedContainerColor = Color.White.copy(alpha = 0.15f),
+                        unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
+                        focusedLabelColor = Color.White.copy(alpha = 0.7f),
+                        unfocusedLabelColor = Color.White.copy(alpha = 0.5f),
+                        focusedIndicatorColor = Color.White.copy(alpha = 0.6f),
+                        unfocusedIndicatorColor = Color.White.copy(alpha = 0.4f),
+                        cursorColor = Color.White,
+                    ),
                 )
             }
 
@@ -360,11 +453,16 @@ private fun DurationSection(
                 RadioButton(
                     selected = durationType == DurationType.COUNT,
                     onClick = { onDurationTypeChange(DurationType.COUNT) },
+                    colors = RadioButtonDefaults.colors(
+                        selectedColor = Color.White,
+                        unselectedColor = Color.White.copy(alpha = 0.6f),
+                    ),
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = stringResource(R.string.duration_mode_count),
                     modifier = Modifier.weight(1f),
+                    color = Color.White,
                 )
             }
 
@@ -383,6 +481,17 @@ private fun DurationSection(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedContainerColor = Color.White.copy(alpha = 0.15f),
+                        unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
+                        focusedLabelColor = Color.White.copy(alpha = 0.7f),
+                        unfocusedLabelColor = Color.White.copy(alpha = 0.5f),
+                        focusedIndicatorColor = Color.White.copy(alpha = 0.6f),
+                        unfocusedIndicatorColor = Color.White.copy(alpha = 0.4f),
+                        cursorColor = Color.White,
+                    ),
                 )
             }
         }
@@ -400,6 +509,7 @@ private fun ScaleSelectionSection(
         Text(
             text = stringResource(R.string.select_scale),
             style = MaterialTheme.typography.titleMedium,
+            color = Color.White,
         )
 
         ExposedDropdownMenuBox(
@@ -417,15 +527,28 @@ private fun ScaleSelectionSection(
                     Modifier
                         .fillMaxWidth()
                         .menuAnchor(),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedContainerColor = Color.White.copy(alpha = 0.15f),
+                    unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
+                    focusedLabelColor = Color.White.copy(alpha = 0.7f),
+                    unfocusedLabelColor = Color.White.copy(alpha = 0.5f),
+                    focusedIndicatorColor = Color.White.copy(alpha = 0.6f),
+                    unfocusedIndicatorColor = Color.White.copy(alpha = 0.4f),
+                    focusedTrailingIconColor = Color.White,
+                    unfocusedTrailingIconColor = Color.White.copy(alpha = 0.7f),
+                ),
             )
 
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
+                modifier = Modifier.background(Color(0xFF1A1A1A).copy(alpha = 0.95f)),
             ) {
                 Scale.entries.forEach { scale ->
                     DropdownMenuItem(
-                        text = { Text(getScaleName(scale)) },
+                        text = { Text(getScaleName(scale), color = Color.White) },
                         onClick = {
                             onScaleSelected(scale)
                             expanded = false
@@ -461,6 +584,7 @@ private fun ProgressionModeSection(
         Text(
             text = stringResource(R.string.progression_mode),
             style = MaterialTheme.typography.titleMedium,
+            color = Color.White,
         )
 
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -475,6 +599,10 @@ private fun ProgressionModeSection(
                     RadioButton(
                         selected = progressionMode == mode,
                         onClick = { onProgressionModeChange(mode) },
+                        colors = RadioButtonDefaults.colors(
+                            selectedColor = Color.White,
+                            unselectedColor = Color.White.copy(alpha = 0.6f),
+                        ),
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -485,6 +613,7 @@ private fun ProgressionModeSection(
                                     ProgressionMode.AUDIO_VERIFICATION -> stringResource(R.string.progression_mode_audio)
                                     ProgressionMode.AUTO_INTERVAL -> stringResource(R.string.progression_mode_interval)
                                 },
+                            color = Color.White,
                         )
                         Text(
                             text =
@@ -494,7 +623,7 @@ private fun ProgressionModeSection(
                                     ProgressionMode.AUTO_INTERVAL -> stringResource(R.string.progression_interval_desc)
                                 },
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = Color.White.copy(alpha = 0.7f),
                         )
                     }
                 }
@@ -513,11 +642,17 @@ private fun ProgressionModeSection(
                         Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp),
+                    colors = SliderDefaults.colors(
+                        thumbColor = Color.White,
+                        activeTrackColor = Color.White.copy(alpha = 0.7f),
+                        inactiveTrackColor = Color.White.copy(alpha = 0.3f),
+                    ),
                 )
                 Text(
                     text = stringResource(R.string.auto_interval_label) + ": " + intervalText,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(start = 8.dp),
+                    color = Color.White,
                 )
             }
         }
