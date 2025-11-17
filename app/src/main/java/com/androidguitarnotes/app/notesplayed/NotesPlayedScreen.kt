@@ -236,7 +236,7 @@ private fun NoteCard(
     Card(
         modifier =
             modifier
-                .fillMaxWidth()
+                .fillMaxWidth(0.9f)
                 .height(120.dp) // Fixed height to prevent card movement
                 .padding(horizontal = 16.dp),
         colors =

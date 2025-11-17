@@ -118,7 +118,8 @@
     <string name="audio_input_source">Audio Input Source</string>
     <string name="audio_input_source_description">Select which microphone to use for audio detection</string>
     <string name="noise_gate_threshold">Noise Gate Threshold</string>
-    <string name="noise_gate_description">Suppress background noise and silence below this level</string>
+    <string name="noise_gate_description">Suppress background noise and silence below %1$.2f level</string>
+    <string name="noise_gate_disabled">Disabled</string>
     <string name="noise_gate_very_low">Very Low</string>
     <string name="noise_gate_low">Low</string>
     <string name="noise_gate_medium">Medium</string>

@@ -262,6 +262,7 @@ fun SettingsScreen(
                 // Noise Gate Threshold
                 val gateLabel =
                     when {
+                        noiseGateThreshold <= 0.001f -> stringResource(R.string.noise_gate_disabled)
                         noiseGateThreshold <= 0.005f -> stringResource(R.string.noise_gate_very_low)
                         noiseGateThreshold <= 0.015f -> stringResource(R.string.noise_gate_low)
                         noiseGateThreshold <= 0.035f -> stringResource(R.string.noise_gate_medium)
@@ -270,10 +271,10 @@ fun SettingsScreen(
 
                 SettingsSliderItem(
                     title = stringResource(R.string.noise_gate_threshold),
-                    description = stringResource(R.string.noise_gate_description),
+                    description = stringResource(R.string.noise_gate_description, noiseGateThreshold),
                     value = noiseGateThreshold,
                     onValueChange = { viewModel.setNoiseGateThreshold(it) },
-                    valueRange = 0.001f..0.1f,
+                    valueRange = 0.0f..0.1f,
                     steps = 0,
                     valueLabel = gateLabel,
                 )

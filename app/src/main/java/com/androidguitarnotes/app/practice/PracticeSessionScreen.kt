@@ -251,7 +251,7 @@ private fun ActiveSessionScreen(
             Box(
                 modifier =
                     Modifier
-                        .fillMaxWidth(0.5f)
+                        .fillMaxWidth(0.8f)
                         .then(
                             if (isCorrect) {
                                 Modifier
