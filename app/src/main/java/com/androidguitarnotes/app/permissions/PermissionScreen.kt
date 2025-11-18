@@ -79,7 +79,8 @@ fun PermissionRationaleScreen(
                 colors = ButtonDefaults.textButtonColors(
                     contentColor = Color.White.copy(alpha = 0.7f)
                 )
-            ) {
+            ) 
+            {
                 Text(stringResource(R.string.not_now))
             }
         },
