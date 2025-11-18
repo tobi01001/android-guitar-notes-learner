@@ -5,6 +5,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,8 +14,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -85,61 +89,111 @@ fun NotesPlayedScreen(
     // Keep screen on while listening
     KeepScreenOn(enabled = state.isListening)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.notes_played_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Text("←", fontSize = 24.sp)
-                    }
-                },
-            )
-        },
-    ) { padding ->
-        Column(
+    Box(
+        modifier = modifier.fillMaxSize(),
+    ) {
+        // Full-screen guitar fretboard background
+        // Image credit: Photo by Peter Jarkuliš (https://www.pexels.com/@peter-jarkulis-87581/)
+        // Source: https://www.pexels.com/photo/black-acoustic-guitar-287202/
+        Image(
+            painter = painterResource(id = R.drawable.background),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+        )
+
+        // Semi-transparent overlay to ensure content visibility
+        Box(
             modifier =
-                modifier
+                Modifier
                     .fillMaxSize()
-                    .padding(padding)
-                    .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-        ) {
-            // Description
-            Text(
-                text = stringResource(R.string.notes_played_description),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-            )
+                    .background(NoteColors.getBackgroundOverlayColor()),
+        )
 
-            // Note display area
-            NoteDisplayArea(
-                detectedNote = state.detectedNote,
-                lastDetectedNote = state.lastDetectedNote,
-                isListening = state.isListening,
-                modifier = Modifier.weight(1f),
-            )
-
-            // Control button
-            Button(
-                onClick = {
-                    if (state.isListening) {
-                        viewModel.stopListening()
-                    } else {
-                        viewModel.startListening()
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(
-                    if (state.isListening) {
-                        stringResource(R.string.stop_listening)
-                    } else {
-                        stringResource(R.string.start_listening)
+        // Content layer
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            stringResource(R.string.notes_played_title),
+                            color = Color.White,
+                        )
                     },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Text("←", fontSize = 24.sp, color = Color.White)
+                        }
+                    },
+                    colors =
+                        TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color.Transparent,
+                        ),
                 )
+            },
+        ) { padding ->
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+            ) {
+                // Description
+                Text(
+                    text = stringResource(R.string.notes_played_description),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White.copy(alpha = 0.85f),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                // Note display area
+                NoteDisplayArea(
+                    detectedNote = state.detectedNote,
+                    lastDetectedNote = state.lastDetectedNote,
+                    isListening = state.isListening,
+                    modifier = Modifier.weight(1f),
+                )
+
+                // Control button
+                Button(
+                    onClick = {
+                        if (state.isListening) {
+                            viewModel.stopListening()
+                        } else {
+                            viewModel.startListening()
+                        }
+                    },
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                            contentColor = Color.White,
+                        ),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation =
+                        ButtonDefaults.buttonElevation(
+                            defaultElevation = 4.dp,
+                            pressedElevation = 8.dp,
+                        ),
+                ) {
+                    Text(
+                        text =
+                            if (state.isListening) {
+                                stringResource(R.string.stop_listening)
+                            } else {
+                                stringResource(R.string.start_listening)
+                            },
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                    )
+                }
             }
         }
     }
@@ -363,7 +417,7 @@ private fun EmptyStateMessage(
     Text(
         text = message,
         style = MaterialTheme.typography.headlineSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        color = Color.White.copy(alpha = 0.7f),
         textAlign = TextAlign.Center,
         modifier = modifier.padding(32.dp),
     )

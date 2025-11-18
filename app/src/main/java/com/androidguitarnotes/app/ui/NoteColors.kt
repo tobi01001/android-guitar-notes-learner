@@ -99,5 +99,4 @@ object NoteColors {
      * This provides a consistent semi-transparent overlay for readability.
      */
     fun getBackgroundOverlayColor(): Color = BackgroundOverlayColor
-
 }
