@@ -195,11 +195,11 @@ private fun StringSelectionSection(
         ) {
             for (stringNum in 6 downTo 1) {
                 Text(
-                    text = stringNotes[stringNum] ?: "",
+                    text = stringNum.toString()?: "",
                     modifier = Modifier.weight(1f),
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = Color.White.copy(alpha = 0.9f),
                 )
             }
         }
@@ -214,7 +214,7 @@ private fun StringSelectionSection(
                 FilterChip(
                     selected = selectedStrings.contains(stringNum),
                     onClick = { onToggleString(stringNum) },
-                    label = { Text(stringNum.toString()) },
+                    label = { Text(noteName) },
                     modifier = Modifier.weight(1f),
                     colors =
                         if (selectedStrings.contains(stringNum)) {
@@ -224,8 +224,7 @@ private fun StringSelectionSection(
                                         .getLightColorForNote(noteName)
                                         .copy(alpha = 0.6f),
                                 selectedLabelColor =
-                                    com.androidguitarnotes.app.ui.NoteColors
-                                        .getDarkColorForNote(noteName),
+                                    Color.White,
                             )
                         } else {
                             FilterChipDefaults.filterChipColors(
