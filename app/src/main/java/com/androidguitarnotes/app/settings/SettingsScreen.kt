@@ -203,7 +203,7 @@ fun SettingsScreen(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.6f)),
+                    .background(Color.Black.copy(alpha = 0.8f)),
         )
 
         // Content layer
