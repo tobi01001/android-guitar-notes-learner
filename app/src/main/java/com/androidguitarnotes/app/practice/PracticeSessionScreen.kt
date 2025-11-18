@@ -9,6 +9,8 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,7 +20,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -84,56 +88,83 @@ fun PracticeSessionScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.practice_session_title)) },
-            )
-        },
-    ) { padding ->
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Full-screen guitar fretboard background
+        Image(
+            painter = painterResource(id = R.drawable.background),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+        )
+
+        // Semi-transparent overlay to ensure content visibility
         Box(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(padding),
-        ) {
-            when (val currentState = state) {
-                is PracticeSessionState.Ready -> {
-                    ReadyScreen(
-                        onStart = {
-                            viewModel.startSession()
-                            // Request audio permission for AUDIO_VERIFICATION mode (required)
-                            // or for other modes to enable note detection display (optional)
-                            // Request audio permission for AUDIO_VERIFICATION mode (required)
-                            // or for other modes to enable note detection display (optional)
-                            viewModel.checkAndRequestAudioPermission()
-                        },
-                        onBack = onBack,
-                    )
-                }
-                is PracticeSessionState.Active -> {
-                    val autoIntervalCountdown by viewModel.autoIntervalCountdown.collectAsStateWithLifecycle()
-                    ActiveSessionScreen(
-                        state = currentState,
-                        config = config,
-                        autoIntervalCountdown = autoIntervalCountdown,
-                        onNext = { viewModel.nextNote() },
-                        onPause = { viewModel.pauseSession() },
-                        onEnd = { viewModel.endSession() },
-                    )
-                }
-                is PracticeSessionState.Paused -> {
-                    PausedSessionScreen(
-                        state = currentState,
-                        onResume = { viewModel.resumeSession() },
-                        onEnd = { viewModel.endSession() },
-                    )
-                }
-                is PracticeSessionState.Completed -> {
-                    CompletedSessionScreen(
-                        state = currentState,
-                        onFinish = onBack,
-                    )
+                    .background(NoteColors.getBackgroundOverlayColor()),
+        )
+
+        // Content layer
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            stringResource(R.string.practice_session_title),
+                            color = Color.White,
+                        )
+                    },
+                    colors =
+                        TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color.Transparent,
+                        ),
+                )
+            },
+            containerColor = Color.Transparent,
+        ) { padding ->
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+            ) {
+                when (val currentState = state) {
+                    is PracticeSessionState.Ready -> {
+                        ReadyScreen(
+                            onStart = {
+                                viewModel.startSession()
+                                // Request audio permission for AUDIO_VERIFICATION mode (required)
+                                // or for other modes to enable note detection display (optional)
+                                viewModel.checkAndRequestAudioPermission()
+                            },
+                            onBack = onBack,
+                        )
+                    }
+                    is PracticeSessionState.Active -> {
+                        val autoIntervalCountdown by viewModel.autoIntervalCountdown.collectAsStateWithLifecycle()
+                        ActiveSessionScreen(
+                            state = currentState,
+                            config = config,
+                            autoIntervalCountdown = autoIntervalCountdown,
+                            onNext = { viewModel.nextNote() },
+                            onPause = { viewModel.pauseSession() },
+                            onEnd = { viewModel.endSession() },
+                        )
+                    }
+                    is PracticeSessionState.Paused -> {
+                        PausedSessionScreen(
+                            state = currentState,
+                            onResume = { viewModel.resumeSession() },
+                            onEnd = { viewModel.endSession() },
+                        )
+                    }
+                    is PracticeSessionState.Completed -> {
+                        CompletedSessionScreen(
+                            state = currentState,
+                            onFinish = onBack,
+                        )
+                    }
                 }
             }
         }
@@ -157,6 +188,7 @@ private fun ReadyScreen(
             text = stringResource(R.string.ready_to_practice),
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center,
+            color = Color.White,
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -165,7 +197,7 @@ private fun ReadyScreen(
             text = stringResource(R.string.practice_instructions),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = Color.White.copy(alpha = 0.85f),
         )
 
         Spacer(modifier = Modifier.height(48.dp))
@@ -204,17 +236,26 @@ private fun ActiveSessionScreen(
                 .padding(24.dp),
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        // Progress section
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
+        // Progress section with semi-transparent card
+        Card(
             modifier = Modifier.fillMaxWidth(),
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = Color(0xFF1A1A1A).copy(alpha = 0.7f),
+                ),
+            shape = RoundedCornerShape(16.dp),
         ) {
-            ProgressIndicator(
-                notesCompleted = state.notesCompleted,
-                totalNotes = state.totalNotes,
-                elapsedTimeSeconds = state.elapsedTimeSeconds,
-                totalTimeSeconds = state.totalTimeSeconds,
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+            ) {
+                ProgressIndicator(
+                    notesCompleted = state.notesCompleted,
+                    totalNotes = state.totalNotes,
+                    elapsedTimeSeconds = state.elapsedTimeSeconds,
+                    totalTimeSeconds = state.totalTimeSeconds,
+                )
+            }
         }
 
         // Note display section
@@ -225,7 +266,7 @@ private fun ActiveSessionScreen(
             Text(
                 text = stringResource(R.string.play_this_note),
                 style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White,
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -351,7 +392,7 @@ private fun ActiveSessionScreen(
                 Text(
                     text = stringResource(R.string.auto_advancing_in, autoIntervalCountdown),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.85f),
                 )
             }
         }
@@ -411,16 +452,31 @@ private fun PausedSessionScreen(
             text = stringResource(R.string.session_paused),
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center,
+            color = Color.White,
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        ProgressIndicator(
-            notesCompleted = state.notesCompleted,
-            totalNotes = state.totalNotes,
-            elapsedTimeSeconds = state.elapsedTimeSeconds,
-            totalTimeSeconds = state.totalTimeSeconds,
-        )
+        Card(
+            modifier = Modifier.fillMaxWidth(0.9f),
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = Color(0xFF1A1A1A).copy(alpha = 0.7f),
+                ),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+            ) {
+                ProgressIndicator(
+                    notesCompleted = state.notesCompleted,
+                    totalNotes = state.totalNotes,
+                    elapsedTimeSeconds = state.elapsedTimeSeconds,
+                    totalTimeSeconds = state.totalTimeSeconds,
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(48.dp))
 
@@ -459,12 +515,18 @@ private fun CompletedSessionScreen(
             text = stringResource(R.string.session_complete),
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center,
+            color = Color.White,
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
         Card(
             modifier = Modifier.fillMaxWidth(0.8f),
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = Color(0xFF1A1A1A).copy(alpha = 0.85f),
+                ),
+            shape = RoundedCornerShape(16.dp),
         ) {
             Column(
                 modifier =
@@ -477,13 +539,13 @@ private fun CompletedSessionScreen(
                 Text(
                     text = stringResource(R.string.notes_played),
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.85f),
                 )
 
                 Text(
                     text = state.notesCompleted.toString(),
                     style = MaterialTheme.typography.displayMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = Color.White,
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -491,13 +553,13 @@ private fun CompletedSessionScreen(
                 Text(
                     text = stringResource(R.string.total_time),
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.85f),
                 )
 
                 Text(
                     text = formatTime(state.totalTimeSeconds),
                     style = MaterialTheme.typography.displayMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = Color.White,
                 )
             }
         }
@@ -538,11 +600,13 @@ private fun ProgressIndicator(
             Text(
                 text = stringResource(R.string.notes_progress, notesCompleted, totalNotes),
                 style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
             )
         } else {
             Text(
                 text = stringResource(R.string.notes_completed_count, notesCompleted),
                 style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
             )
         }
 
@@ -567,11 +631,13 @@ private fun ProgressIndicator(
                         formatTime(totalTimeSeconds),
                     ),
                 style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
             )
         } else {
             Text(
                 text = stringResource(R.string.elapsed_time, formatTime(elapsedTimeSeconds)),
                 style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
             )
         }
     }
@@ -593,20 +659,21 @@ private fun NoteFeedbackDisplay(feedback: PracticeSessionState.NoteFeedback) {
                 Text(
                     text = stringResource(R.string.listening),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.7f),
                 )
             }
             is PracticeSessionState.NoteFeedback.Correct -> {
                 Card(
                     colors =
                         CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            containerColor = Color(0xFF1B5E20).copy(alpha = 0.85f),
                         ),
+                    shape = RoundedCornerShape(12.dp),
                 ) {
                     Text(
                         text = stringResource(R.string.correct_note),
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        color = Color.White,
                         modifier = Modifier.padding(16.dp),
                     )
                 }
@@ -615,8 +682,9 @@ private fun NoteFeedbackDisplay(feedback: PracticeSessionState.NoteFeedback) {
                 Card(
                     colors =
                         CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            containerColor = Color(0xFFB71C1C).copy(alpha = 0.85f),
                         ),
+                    shape = RoundedCornerShape(12.dp),
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
@@ -625,12 +693,12 @@ private fun NoteFeedbackDisplay(feedback: PracticeSessionState.NoteFeedback) {
                         Text(
                             text = stringResource(R.string.detected_note, feedback.noteName),
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            color = Color.White,
                         )
                         Text(
                             text = stringResource(R.string.try_again),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            color = Color.White.copy(alpha = 0.85f),
                         )
                     }
                 }

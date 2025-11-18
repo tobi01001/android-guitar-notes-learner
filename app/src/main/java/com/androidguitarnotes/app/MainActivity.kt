@@ -35,6 +35,7 @@ import com.androidguitarnotes.app.practice.PracticeSessionScreen
 import com.androidguitarnotes.app.settings.SettingsScreen
 import com.androidguitarnotes.app.tuner.TunerScreen
 import com.androidguitarnotes.app.ui.NoteColors
+import com.androidguitarnotes.app.ui.NoteColors.getBackgroundOverlayColor
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -125,7 +126,7 @@ fun HomeScreen(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.6f)),
+                    .background(getBackgroundOverlayColor()),
         )
 
         // Content layer
