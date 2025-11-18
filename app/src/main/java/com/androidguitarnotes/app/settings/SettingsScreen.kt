@@ -59,6 +59,7 @@ import com.androidguitarnotes.app.audio.PitchDetectionAlgorithm
 import com.androidguitarnotes.app.permissions.PermissionManager
 import com.androidguitarnotes.app.permissions.PermissionRationaleScreen
 import com.androidguitarnotes.app.ui.NoteColors
+import com.androidguitarnotes.app.ui.NoteColors.getBackgroundOverlayColor
 
 @Composable
 fun SettingsScreen(
@@ -203,7 +204,7 @@ fun SettingsScreen(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.8f)),
+                    .background(getBackgroundOverlayColor()),
         )
 
         // Content layer
