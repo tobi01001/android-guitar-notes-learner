@@ -136,8 +136,6 @@ fun PracticeSessionScreen(
                                 viewModel.startSession()
                                 // Request audio permission for AUDIO_VERIFICATION mode (required)
                                 // or for other modes to enable note detection display (optional)
-                                // Request audio permission for AUDIO_VERIFICATION mode (required)
-                                // or for other modes to enable note detection display (optional)
                                 viewModel.checkAndRequestAudioPermission()
                             },
                             onBack = onBack,
