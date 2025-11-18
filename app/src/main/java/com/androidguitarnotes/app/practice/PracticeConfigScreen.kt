@@ -64,11 +64,12 @@ fun PracticeConfigScreen(
                             Text("←", fontSize = 24.sp, color = Color.White)
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                        titleContentColor = Color.White,
-                        navigationIconContentColor = Color.White,
-                    ),
+                    colors =
+                        TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color.Transparent,
+                            titleContentColor = Color.White,
+                            navigationIconContentColor = Color.White,
+                        ),
                 )
             },
             bottomBar = {
@@ -83,10 +84,11 @@ fun PracticeConfigScreen(
                     OutlinedButton(
                         onClick = onBack,
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = Color.Transparent,
-                            contentColor = Color.White,
-                        ),
+                        colors =
+                            ButtonDefaults.outlinedButtonColors(
+                                containerColor = Color.Transparent,
+                                contentColor = Color.White,
+                            ),
                         border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.6f)),
                     ) {
                         Text(stringResource(R.string.back))
@@ -96,12 +98,14 @@ fun PracticeConfigScreen(
                         onClick = { onStartPractice(config) },
                         enabled = viewModel.isConfigValid(),
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = com.androidguitarnotes.app.ui.NoteColors
-                                .getAccessibleButtonColorFor("Practice")
-                                .copy(alpha = buttonTransparency),
-                            contentColor = Color.White,
-                        ),
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor =
+                                    com.androidguitarnotes.app.ui.NoteColors
+                                        .getAccessibleButtonColorFor("Practice")
+                                        .copy(alpha = buttonTransparency),
+                                contentColor = Color.White,
+                            ),
                     ) {
                         Text(stringResource(R.string.start_practice))
                     }
@@ -277,17 +281,18 @@ private fun FretRangeSection(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 modifier = Modifier.weight(1f),
-                colors = TextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedContainerColor = Color.White.copy(alpha = 0.15f),
-                    unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
-                    focusedLabelColor = Color.White.copy(alpha = 0.7f),
-                    unfocusedLabelColor = Color.White.copy(alpha = 0.5f),
-                    focusedIndicatorColor = Color.White.copy(alpha = 0.6f),
-                    unfocusedIndicatorColor = Color.White.copy(alpha = 0.4f),
-                    cursorColor = Color.White,
-                ),
+                colors =
+                    TextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedContainerColor = Color.White.copy(alpha = 0.15f),
+                        unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
+                        focusedLabelColor = Color.White.copy(alpha = 0.7f),
+                        unfocusedLabelColor = Color.White.copy(alpha = 0.5f),
+                        focusedIndicatorColor = Color.White.copy(alpha = 0.6f),
+                        unfocusedIndicatorColor = Color.White.copy(alpha = 0.4f),
+                        cursorColor = Color.White,
+                    ),
             )
 
             Text("—", color = Color.White)
@@ -306,17 +311,18 @@ private fun FretRangeSection(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 modifier = Modifier.weight(1f),
-                colors = TextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedContainerColor = Color.White.copy(alpha = 0.15f),
-                    unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
-                    focusedLabelColor = Color.White.copy(alpha = 0.7f),
-                    unfocusedLabelColor = Color.White.copy(alpha = 0.5f),
-                    focusedIndicatorColor = Color.White.copy(alpha = 0.6f),
-                    unfocusedIndicatorColor = Color.White.copy(alpha = 0.4f),
-                    cursorColor = Color.White,
-                ),
+                colors =
+                    TextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedContainerColor = Color.White.copy(alpha = 0.15f),
+                        unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
+                        focusedLabelColor = Color.White.copy(alpha = 0.7f),
+                        unfocusedLabelColor = Color.White.copy(alpha = 0.5f),
+                        focusedIndicatorColor = Color.White.copy(alpha = 0.6f),
+                        unfocusedIndicatorColor = Color.White.copy(alpha = 0.4f),
+                        cursorColor = Color.White,
+                    ),
             )
         }
 
@@ -354,10 +360,11 @@ private fun NoteModeSection(
                     RadioButton(
                         selected = selectedMode == mode,
                         onClick = { onModeSelected(mode) },
-                        colors = RadioButtonDefaults.colors(
-                            selectedColor = Color.White,
-                            unselectedColor = Color.White.copy(alpha = 0.6f),
-                        ),
+                        colors =
+                            RadioButtonDefaults.colors(
+                                selectedColor = Color.White,
+                                unselectedColor = Color.White.copy(alpha = 0.6f),
+                            ),
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
@@ -403,10 +410,11 @@ private fun DurationSection(
                 RadioButton(
                     selected = durationType == DurationType.TIME,
                     onClick = { onDurationTypeChange(DurationType.TIME) },
-                    colors = RadioButtonDefaults.colors(
-                        selectedColor = Color.White,
-                        unselectedColor = Color.White.copy(alpha = 0.6f),
-                    ),
+                    colors =
+                        RadioButtonDefaults.colors(
+                            selectedColor = Color.White,
+                            unselectedColor = Color.White.copy(alpha = 0.6f),
+                        ),
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
@@ -432,17 +440,18 @@ private fun DurationSection(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedContainerColor = Color.White.copy(alpha = 0.15f),
-                        unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
-                        focusedLabelColor = Color.White.copy(alpha = 0.7f),
-                        unfocusedLabelColor = Color.White.copy(alpha = 0.5f),
-                        focusedIndicatorColor = Color.White.copy(alpha = 0.6f),
-                        unfocusedIndicatorColor = Color.White.copy(alpha = 0.4f),
-                        cursorColor = Color.White,
-                    ),
+                    colors =
+                        TextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedContainerColor = Color.White.copy(alpha = 0.15f),
+                            unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
+                            focusedLabelColor = Color.White.copy(alpha = 0.7f),
+                            unfocusedLabelColor = Color.White.copy(alpha = 0.5f),
+                            focusedIndicatorColor = Color.White.copy(alpha = 0.6f),
+                            unfocusedIndicatorColor = Color.White.copy(alpha = 0.4f),
+                            cursorColor = Color.White,
+                        ),
                 )
             }
 
@@ -453,10 +462,11 @@ private fun DurationSection(
                 RadioButton(
                     selected = durationType == DurationType.COUNT,
                     onClick = { onDurationTypeChange(DurationType.COUNT) },
-                    colors = RadioButtonDefaults.colors(
-                        selectedColor = Color.White,
-                        unselectedColor = Color.White.copy(alpha = 0.6f),
-                    ),
+                    colors =
+                        RadioButtonDefaults.colors(
+                            selectedColor = Color.White,
+                            unselectedColor = Color.White.copy(alpha = 0.6f),
+                        ),
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
@@ -481,17 +491,18 @@ private fun DurationSection(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedContainerColor = Color.White.copy(alpha = 0.15f),
-                        unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
-                        focusedLabelColor = Color.White.copy(alpha = 0.7f),
-                        unfocusedLabelColor = Color.White.copy(alpha = 0.5f),
-                        focusedIndicatorColor = Color.White.copy(alpha = 0.6f),
-                        unfocusedIndicatorColor = Color.White.copy(alpha = 0.4f),
-                        cursorColor = Color.White,
-                    ),
+                    colors =
+                        TextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedContainerColor = Color.White.copy(alpha = 0.15f),
+                            unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
+                            focusedLabelColor = Color.White.copy(alpha = 0.7f),
+                            unfocusedLabelColor = Color.White.copy(alpha = 0.5f),
+                            focusedIndicatorColor = Color.White.copy(alpha = 0.6f),
+                            unfocusedIndicatorColor = Color.White.copy(alpha = 0.4f),
+                            cursorColor = Color.White,
+                        ),
                 )
             }
         }
@@ -527,18 +538,19 @@ private fun ScaleSelectionSection(
                     Modifier
                         .fillMaxWidth()
                         .menuAnchor(),
-                colors = TextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedContainerColor = Color.White.copy(alpha = 0.15f),
-                    unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
-                    focusedLabelColor = Color.White.copy(alpha = 0.7f),
-                    unfocusedLabelColor = Color.White.copy(alpha = 0.5f),
-                    focusedIndicatorColor = Color.White.copy(alpha = 0.6f),
-                    unfocusedIndicatorColor = Color.White.copy(alpha = 0.4f),
-                    focusedTrailingIconColor = Color.White,
-                    unfocusedTrailingIconColor = Color.White.copy(alpha = 0.7f),
-                ),
+                colors =
+                    TextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedContainerColor = Color.White.copy(alpha = 0.15f),
+                        unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
+                        focusedLabelColor = Color.White.copy(alpha = 0.7f),
+                        unfocusedLabelColor = Color.White.copy(alpha = 0.5f),
+                        focusedIndicatorColor = Color.White.copy(alpha = 0.6f),
+                        unfocusedIndicatorColor = Color.White.copy(alpha = 0.4f),
+                        focusedTrailingIconColor = Color.White,
+                        unfocusedTrailingIconColor = Color.White.copy(alpha = 0.7f),
+                    ),
             )
 
             ExposedDropdownMenu(
@@ -599,10 +611,11 @@ private fun ProgressionModeSection(
                     RadioButton(
                         selected = progressionMode == mode,
                         onClick = { onProgressionModeChange(mode) },
-                        colors = RadioButtonDefaults.colors(
-                            selectedColor = Color.White,
-                            unselectedColor = Color.White.copy(alpha = 0.6f),
-                        ),
+                        colors =
+                            RadioButtonDefaults.colors(
+                                selectedColor = Color.White,
+                                unselectedColor = Color.White.copy(alpha = 0.6f),
+                            ),
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -642,11 +655,12 @@ private fun ProgressionModeSection(
                         Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp),
-                    colors = SliderDefaults.colors(
-                        thumbColor = Color.White,
-                        activeTrackColor = Color.White.copy(alpha = 0.7f),
-                        inactiveTrackColor = Color.White.copy(alpha = 0.3f),
-                    ),
+                    colors =
+                        SliderDefaults.colors(
+                            thumbColor = Color.White,
+                            activeTrackColor = Color.White.copy(alpha = 0.7f),
+                            inactiveTrackColor = Color.White.copy(alpha = 0.3f),
+                        ),
                 )
                 Text(
                     text = stringResource(R.string.auto_interval_label) + ": " + intervalText,

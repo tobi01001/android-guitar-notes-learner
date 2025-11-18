@@ -91,4 +91,10 @@ object NoteColors {
             "Notes Played" -> getDarkColorForNote("G")
             else -> getDarkColorForNote("C")
         }
+
+    /**
+     * Returns the standard semi-transparent overlay color for backgrounds.
+     * Used to ensure text readability over guitar background images.
+     */
+    fun getBackgroundOverlayColor(): Color = Color.Black.copy(alpha = 0.6f)
 }
