@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.androidguitarnotes.app.R
+import com.androidguitarnotes.app.ui.NoteColors.getBackgroundOverlayColor
 
 @Composable
 fun PracticeConfigScreen(
@@ -50,7 +51,7 @@ fun PracticeConfigScreen(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.8f)),
+                    .background(getBackgroundOverlayColor()),
         )
 
         // Content layer with transparent Scaffold

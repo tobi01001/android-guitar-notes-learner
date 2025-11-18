@@ -16,6 +16,8 @@ object NoteColors {
     private val F_COLOR = Color(0xFFFF3D00)
     private val G_COLOR = Color(0xFF00E676)
 
+    private val BackgroundOverlayColor = Color.Black.copy(alpha = 0.8f)
+
     /**
      * Returns the color for a given note name.
      * Semitones (sharp notes) return a blend of the adjacent natural note colors.
@@ -91,4 +93,7 @@ object NoteColors {
             "Notes Played" -> getDarkColorForNote("G")
             else -> getDarkColorForNote("C")
         }
+
+    fun getBackgroundOverlayColor(): Color = BackgroundOverlayColor
+
 }
