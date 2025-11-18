@@ -171,11 +171,16 @@ fun NotesPlayedScreen(
                         Modifier
                             .fillMaxWidth()
                             .height(56.dp),
-                    colors =
-                        ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
-                            contentColor = Color.White,
-                        ),
+
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor =
+                                    NoteColors
+                                        .getAccessibleButtonColorFor("Notes Played")
+                                        .copy(alpha = 0.6f),
+                                contentColor = Color.White,
+                            ),
+
                     shape = RoundedCornerShape(16.dp),
                     elevation =
                         ButtonDefaults.buttonElevation(

@@ -205,6 +205,14 @@ private fun ReadyScreen(
         Button(
             onClick = onStart,
             modifier = Modifier.fillMaxWidth(0.6f),
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor =
+                        NoteColors
+                            .getAccessibleButtonColorFor("Practice")
+                            .copy(alpha = 0.6f),
+                    contentColor = Color.White,
+                ),
         ) {
             Text(stringResource(R.string.start_practice))
         }
@@ -214,6 +222,12 @@ private fun ReadyScreen(
         OutlinedButton(
             onClick = onBack,
             modifier = Modifier.fillMaxWidth(0.6f),
+            colors =
+                ButtonDefaults.outlinedButtonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = Color.White,
+                ),
+            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.6f)),
         ) {
             Text(stringResource(R.string.back))
         }
@@ -233,7 +247,7 @@ private fun ActiveSessionScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(8.dp),
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
         // Progress section with semi-transparent card
@@ -243,11 +257,11 @@ private fun ActiveSessionScreen(
                 CardDefaults.cardColors(
                     containerColor = Color(0xFF1A1A1A).copy(alpha = 0.7f),
                 ),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(8.dp),
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(8.dp),
             ) {
                 ProgressIndicator(
                     notesCompleted = state.notesCompleted,
@@ -269,7 +283,7 @@ private fun ActiveSessionScreen(
                 color = Color.White,
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             // Compact note display card with animated green glow when correct
             val isCorrect = state.noteFeedback is PracticeSessionState.NoteFeedback.Correct
@@ -315,21 +329,21 @@ private fun ActiveSessionScreen(
                     modifier = Modifier.fillMaxWidth(),
                     colors =
                         CardDefaults.cardColors(
-                            containerColor = NoteColors.getLightColorForNote(state.currentNote.noteName),
+                            containerColor = NoteColors.getDarkColorForNote(state.currentNote.noteName),
                         ),
                 ) {
                     Column(
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
+                                .padding(8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
                             text = state.currentNote.noteNameWithOctave,
                             style = MaterialTheme.typography.displayMedium,
                             fontSize = 36.sp,
-                            color = NoteColors.getDarkColorForNote(state.currentNote.noteName),
+                            color = Color.White,
                             maxLines = 1,
                         )
 
@@ -343,13 +357,13 @@ private fun ActiveSessionScreen(
                                     state.currentNote.fret,
                                 ),
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            color = Color.White,
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Fretboard visualization showing target note position (only on target string)
             // with animated green glow when correct
