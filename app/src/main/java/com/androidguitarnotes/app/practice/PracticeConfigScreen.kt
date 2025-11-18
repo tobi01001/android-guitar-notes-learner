@@ -195,7 +195,7 @@ private fun StringSelectionSection(
         ) {
             for (stringNum in 6 downTo 1) {
                 Text(
-                    text = stringNum.toString()?: "",
+                    text = stringNum.toString(),
                     modifier = Modifier.weight(1f),
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     style = MaterialTheme.typography.labelSmall,
