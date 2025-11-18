@@ -91,4 +91,10 @@ object NoteColors {
             "Notes Played" -> getDarkColorForNote("G")
             else -> getDarkColorForNote("C")
         }
+
+    /**
+     * Returns the standard background overlay color used across the app.
+     * This provides a consistent semi-transparent overlay (0.6f alpha) for readability.
+     */
+    fun getBackgroundOverlayColor(): Color = Color.Black.copy(alpha = 0.6f)
 }
