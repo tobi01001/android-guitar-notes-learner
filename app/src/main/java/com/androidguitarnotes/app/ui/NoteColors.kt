@@ -95,8 +95,8 @@ object NoteColors {
         }
 
     /**
-     * Returns the standard semi-transparent overlay color for backgrounds.
-     * Used to ensure text readability over guitar background images.
+     * Returns the standard background overlay color used across the app.
+     * This provides a consistent semi-transparent overlay for readability.
      */
     fun getBackgroundOverlayColor(): Color = BackgroundOverlayColor
 

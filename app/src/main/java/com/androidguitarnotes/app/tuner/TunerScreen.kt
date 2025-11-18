@@ -5,6 +5,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -16,7 +17,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -93,57 +96,105 @@ fun TunerScreen(
     // Keep screen on while listening
     KeepScreenOn(enabled = state.isListening)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.tuner_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Text("←", fontSize = 24.sp)
-                    }
-                },
-            )
-        },
-    ) { padding ->
-        Column(
+    Box(
+        modifier = modifier.fillMaxSize(),
+    ) {
+        // Full-screen guitar fretboard background
+        // Image credit: Photo by Peter Jarkuliš (https://www.pexels.com/@peter-jarkulis-87581/)
+        // Source: https://www.pexels.com/photo/black-acoustic-guitar-287202/
+        Image(
+            painter = painterResource(id = R.drawable.background),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+        )
+
+        // Semi-transparent overlay to ensure content visibility
+        Box(
             modifier =
-                modifier
+                Modifier
                     .fillMaxSize()
-                    .padding(padding)
-                    .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-        ) {
-            // String selector
-            StringSelector(
-                strings = GuitarString.STANDARD_TUNING,
-                selectedString = state.selectedString,
-                onStringSelected = viewModel::selectString,
-            )
+                    .background(NoteColors.getBackgroundOverlayColor()),
+        )
 
-            // Tuning indicator
-            TuningIndicator(
-                state = state,
-                modifier = Modifier.weight(1f),
-            )
-
-            // Control button
-            Button(
-                onClick = {
-                    if (state.isListening) {
-                        viewModel.stopListening()
-                    } else {
-                        viewModel.startListening()
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(
-                    if (state.isListening) {
-                        stringResource(R.string.stop_tuning)
-                    } else {
-                        stringResource(R.string.start_tuning)
+        // Content layer
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            stringResource(R.string.tuner_title),
+                            color = Color.White,
+                        )
                     },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Text("←", fontSize = 24.sp, color = Color.White)
+                        }
+                    },
+                    colors =
+                        TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color.Black.copy(alpha = 0.3f),
+                            titleContentColor = Color.White,
+                            navigationIconContentColor = Color.White,
+                        ),
                 )
+            },
+        ) { padding ->
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+            ) {
+                // String selector
+                StringSelector(
+                    strings = GuitarString.STANDARD_TUNING,
+                    selectedString = state.selectedString,
+                    onStringSelected = viewModel::selectString,
+                )
+
+                // Tuning indicator
+                TuningIndicator(
+                    state = state,
+                    modifier = Modifier.weight(1f),
+                )
+
+                // Control button
+                Button(
+                    onClick = {
+                        if (state.isListening) {
+                            viewModel.stopListening()
+                        } else {
+                            viewModel.startListening()
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = NoteColors.getAccessibleButtonColorFor("Tuner").copy(alpha = 0.6f),
+                            contentColor = Color.White,
+                        ),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation =
+                        ButtonDefaults.buttonElevation(
+                            defaultElevation = 4.dp,
+                            pressedElevation = 8.dp,
+                        ),
+                ) {
+                    Text(
+                        if (state.isListening) {
+                            stringResource(R.string.stop_tuning)
+                        } else {
+                            stringResource(R.string.start_tuning)
+                        },
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
             }
         }
     }
@@ -163,6 +214,8 @@ private fun StringSelector(
         Text(
             stringResource(R.string.select_string_to_tune),
             style = MaterialTheme.typography.titleMedium,
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
         )
         Spacer(modifier = Modifier.height(8.dp))
         Row(
@@ -192,16 +245,16 @@ private fun StringButton(
 ) {
     val backgroundColor =
         if (isSelected) {
-            NoteColors.getLightColorForNote(guitarString.noteName)
+            NoteColors.getColorForNote(guitarString.noteName).copy(alpha = 0.9f)
         } else {
-            MaterialTheme.colorScheme.surface
+            Color.White.copy(alpha = 0.2f)
         }
 
     val contentColor =
         if (isSelected) {
-            NoteColors.getDarkColorForNote(guitarString.noteName)
+            Color.White
         } else {
-            MaterialTheme.colorScheme.onSurface
+            Color.White.copy(alpha = 0.7f)
         }
 
     Button(
@@ -216,6 +269,11 @@ private fun StringButton(
             ),
         shape = CircleShape,
         contentPadding = PaddingValues(0.dp),
+        elevation =
+            ButtonDefaults.buttonElevation(
+                defaultElevation = if (isSelected) 4.dp else 2.dp,
+                pressedElevation = 8.dp,
+            ),
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -252,8 +310,10 @@ private fun TuningIndicator(
             modifier = Modifier.fillMaxWidth(),
             colors =
                 CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    containerColor = Color.Black.copy(alpha = 0.5f),
                 ),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -267,11 +327,14 @@ private fun TuningIndicator(
                     ),
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    fontSize = 48.sp,
                 )
                 Text(
                     stringResource(R.string.target_frequency, state.selectedString.frequency),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.85f),
+                    fontSize = 18.sp,
                 )
             }
         }
@@ -295,7 +358,8 @@ private fun TuningIndicator(
                         stringResource(R.string.select_string_to_tune)
                     },
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 18.sp,
                 )
             }
             is TuningStatus.Detecting -> {
@@ -307,7 +371,8 @@ private fun TuningIndicator(
                 Text(
                     stringResource(R.string.sound_detecting),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 18.sp,
                 )
             }
         }
@@ -331,14 +396,26 @@ private fun TuningGauge(
     val isTooFlat = cents != null && cents < -TunerConstants.IN_TUNE_THRESHOLD_CENTS
     val isTooSharp = cents != null && cents > TunerConstants.IN_TUNE_THRESHOLD_CENTS
 
-    // Animate the indicator color
+    // Enhanced color coding for tuning status
+    val inTuneColor = Color(0xFF4CAF50) // Green
+    val slightlyFlatColor = Color(0xFFFF9800) // Orange
+    val slightlySharpColor = Color(0xFF2196F3) // Blue
+    val veryFlatColor = Color(0xFFF44336) // Red
+    val verySharpColor = Color(0xFF3F51B5) // Indigo
+
+    // Animate the indicator color with enhanced status indicators
     val indicatorColor by animateColorAsState(
         targetValue =
             when {
                 !isDetecting -> Color.Gray // Grey when not detecting
-                isInTune -> Color(0xFF4CAF50) // Green
-                else -> Color(0xFFFF9800) // Orange
+                isInTune -> inTuneColor // Green - in tune
+                cents != null && cents < -15 -> veryFlatColor // Red - very flat
+                cents != null && cents < 0 -> slightlyFlatColor // Orange - slightly flat
+                cents != null && cents < 15 -> slightlySharpColor // Blue - slightly sharp
+                cents != null -> verySharpColor // Indigo - very sharp
+                else -> Color.Gray
             },
+        animationSpec = tween(durationMillis = 300),
         label = "indicatorColor",
     )
 
@@ -374,6 +451,7 @@ private fun TuningGauge(
                 style = MaterialTheme.typography.headlineMedium,
                 color = indicatorColor.copy(alpha = statusAlpha),
                 fontWeight = FontWeight.Bold,
+                fontSize = 32.sp,
             )
         }
 
@@ -403,7 +481,8 @@ private fun TuningGauge(
                         detectedFrequency ?: 0.0,
                     ),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = numericAlpha),
+                    color = Color.White.copy(alpha = numericAlpha * 0.85f),
+                    fontSize = 18.sp,
                 )
                 Text(
                     stringResource(
@@ -413,6 +492,7 @@ private fun TuningGauge(
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = indicatorColor.copy(alpha = numericAlpha),
+                    fontSize = 28.sp,
                 )
             }
         }
@@ -447,8 +527,9 @@ private fun CentsDeviationBar(
             modifier
                 .fillMaxWidth()
                 .height(80.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant),
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.Black.copy(alpha = 0.5f))
+                .border(1.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
     ) {
         val containerWidth = maxWidth
         val indicatorSize = 40.dp
@@ -458,10 +539,10 @@ private fun CentsDeviationBar(
         Box(
             modifier =
                 Modifier
-                    .width(2.dp)
+                    .width(3.dp)
                     .fillMaxHeight()
                     .align(Alignment.Center)
-                    .background(MaterialTheme.colorScheme.outline),
+                    .background(Color.White.copy(alpha = 0.4f)),
         )
 
         // Indicator
@@ -473,7 +554,7 @@ private fun CentsDeviationBar(
                     .offset(x = offsetX)
                     .clip(CircleShape)
                     .background(color)
-                    .border(3.dp, MaterialTheme.colorScheme.surface, CircleShape),
+                    .border(3.dp, Color.White, CircleShape),
         )
     }
 }
