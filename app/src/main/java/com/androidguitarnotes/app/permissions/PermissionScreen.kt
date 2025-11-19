@@ -32,7 +32,7 @@ fun PermissionRationaleScreen(
                 imageVector = Icons.Filled.Mic,
                 contentDescription = null,
                 tint = Color.White,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(48.dp),
             )
         },
         title = {
@@ -63,12 +63,15 @@ fun PermissionRationaleScreen(
         confirmButton = {
             Button(
                 onClick = onRequestPermission,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = NoteColors.getAccessibleButtonColorFor("Permission")
-                        .copy(alpha = 0.6f),
-                    contentColor = Color.White
-                ),
-                shape = RoundedCornerShape(12.dp)
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor =
+                            NoteColors
+                                .getAccessibleButtonColorFor("Permission")
+                                .copy(alpha = 0.6f),
+                        contentColor = Color.White,
+                    ),
+                shape = RoundedCornerShape(12.dp),
             ) {
                 Text(stringResource(R.string.grant_permission))
             }
@@ -76,11 +79,11 @@ fun PermissionRationaleScreen(
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = Color.White.copy(alpha = 0.7f)
-                )
-            ) 
-            {
+                colors =
+                    ButtonDefaults.textButtonColors(
+                        contentColor = Color.White.copy(alpha = 0.7f),
+                    ),
+            ) {
                 Text(stringResource(R.string.not_now))
             }
         },
