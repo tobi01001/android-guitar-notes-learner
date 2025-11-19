@@ -124,6 +124,13 @@ fun PracticeSessionScreen(
                             color = Color.White,
                         )
                     },
+                    navigationIcon = {
+                        if (state is PracticeSessionState.Ready) {
+                            IconButton(onClick = onBack) {
+                                Text("←", fontSize = 24.sp, color = Color.White)
+                            }
+                        }
+                    },
                     colors =
                         TopAppBarDefaults.topAppBarColors(
                             containerColor = Color.Transparent,
@@ -255,7 +262,10 @@ private fun ReadyScreen(
                 // Note mode
                 val noteModeText =
                     when (config.noteMode) {
-                        NoteMode.SCALE -> stringResource(R.string.note_mode_scale)
+                        NoteMode.SCALE -> {
+                            val scaleName = getScaleName(config.selectedScale)
+                            stringResource(R.string.note_mode_scale) + " ($scaleName)"
+                        }
                         NoteMode.WHOLE_NOTES -> stringResource(R.string.note_mode_whole)
                         NoteMode.SEMITONES -> stringResource(R.string.note_mode_semitones)
                     }
@@ -282,7 +292,9 @@ private fun ReadyScreen(
                     when (config.progressionMode) {
                         ProgressionMode.MANUAL -> stringResource(R.string.progression_mode_manual)
                         ProgressionMode.AUDIO_VERIFICATION -> stringResource(R.string.progression_mode_audio)
-                        ProgressionMode.AUTO_INTERVAL -> stringResource(R.string.progression_mode_interval)
+                        ProgressionMode.AUTO_INTERVAL -> {
+                            stringResource(R.string.progression_mode_interval) + " (${config.autoIntervalSeconds}s)"
+                        }
                     }
                 Text(
                     text = stringResource(R.string.settings_summary_progression, progressionText),
@@ -877,6 +889,15 @@ private fun NoteFeedbackDisplay(feedback: PracticeSessionState.NoteFeedback) {
         }
     }
 }
+
+@Composable
+private fun getScaleName(scale: Scale): String =
+    when (scale) {
+        Scale.C_MAJOR -> stringResource(R.string.scale_c_major)
+        Scale.G_MAJOR -> stringResource(R.string.scale_g_major)
+        Scale.A_MINOR -> stringResource(R.string.scale_a_minor)
+        Scale.E_MINOR -> stringResource(R.string.scale_e_minor)
+    }
 
 private fun formatTime(seconds: Long): String {
     val minutes = seconds / 60

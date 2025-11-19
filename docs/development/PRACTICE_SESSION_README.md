@@ -54,24 +54,38 @@ The practice session feature allows users to practice identifying and playing gu
 **PracticeSessionScreen.kt**
 - Jetpack Compose UI with Material Design 3
 - Four screen states:
-  1. **Ready Screen**: Instructions and start button
+  1. **Ready Screen**: 
+     - Displays current practice settings summary (strings, fret range, note mode, duration, progression)
+     - Shows scale name when Scale mode is selected
+     - Shows interval duration when Auto Interval mode is selected
+     - Start Practice button
+     - Config button (navigates to config screen)
+     - Back button in top app bar (returns to home)
   2. **Active Screen**: Current note display, progress, and controls
   3. **Paused Screen**: Pause information and resume option
-  4. **Completed Screen**: Session statistics and finish button
+  4. **Completed Screen**: 
+     - Session statistics (notes played, total time)
+     - Repeat button (restarts session with same settings)
+     - Config button (navigates to config screen)
+     - Back button (returns to home)
 
 ### Screen Flow
 
 ```
 ┌─────────────┐
-│   Config    │
+│    Home     │
 │   Screen    │
 └──────┬──────┘
-       │ Start Practice
+       │ Practice
        ▼
-┌─────────────┐
-│    Ready    │
-│   Screen    │
-└──────┬──────┘
+┌─────────────────────────────┐
+│    Ready Screen             │
+│  • Shows settings summary   │
+│  • [Start Practice] button  │
+│  • [Config] button (nav to  │
+│    config screen)           │
+│  • [Back] button (to home)  │
+└──────┬──────────────────────┘
        │ Start
        ▼
 ┌─────────────┐      Pause      ┌─────────────┐
@@ -81,13 +95,20 @@ The practice session feature allows users to practice identifying and playing gu
        │ Complete/End                  │ End
        ├───────────────────────────────┘
        ▼
-┌─────────────┐
-│  Completed  │
-│   Screen    │
-└──────┬──────┘
-       │ Finish
+┌─────────────────────────────┐
+│  Completed Screen           │
+│  • Shows statistics         │
+│  • [Repeat] button (restart │
+│    with same settings)      │
+│  • [Config] button (nav to  │
+│    config before restart)   │
+│  • [Back] button (to home)  │
+└──────┬──────────────────────┘
+       │ Back
        ▼
-    (Back to Config)
+    (Back to Home)
+
+Note: Config screen accessible via "Config" button from Ready/Completed screens
 ```
 
 ## Features

@@ -72,8 +72,12 @@ fun GuitarNotesApp() {
             }
             composable("practiceSession") {
                 PracticeSessionScreen(
-                    onBack = { navController.popBackStack() },
-                    onNavigateToConfig = { navController.navigate("practice") },
+                    onBack = { 
+                        navController.popBackStack("home", inclusive = false)
+                    },
+                    onNavigateToConfig = { 
+                        navController.navigate("practice")
+                    },
                 )
             }
             composable("tuner") {
