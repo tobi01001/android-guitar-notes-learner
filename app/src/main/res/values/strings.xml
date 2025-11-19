@@ -40,6 +40,15 @@
     <string name="practice_session_title">Practice Session</string>
     <string name="ready_to_practice">Ready to Practice!</string>
     <string name="practice_instructions">Play each note as it appears. Take your time and focus on accuracy.</string>
+    <string name="practice_settings">Practice Settings</string>
+    <string name="settings_summary_strings">Strings: %1$s</string>
+    <string name="settings_summary_frets">Fret Range: %1$d–%2$d</string>
+    <string name="settings_summary_mode">Note Mode: %1$s</string>
+    <string name="settings_summary_time">Duration: %1$d minutes</string>
+    <string name="settings_summary_count">Duration: %1$d notes</string>
+    <string name="settings_summary_progression">Progression: %1$s</string>
+    <string name="config">Config</string>
+    <string name="repeat">Repeat</string>
     <string name="play_this_note">Play this note:</string>
     <string name="string_and_fret">String %1$d, Fret %2$2d</string>
     <string name="next_note">Next Note</string>
