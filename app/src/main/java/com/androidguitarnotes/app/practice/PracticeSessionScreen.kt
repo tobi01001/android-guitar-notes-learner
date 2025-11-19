@@ -125,10 +125,8 @@ fun PracticeSessionScreen(
                         )
                     },
                     navigationIcon = {
-                        if (state is PracticeSessionState.Ready) {
-                            IconButton(onClick = onBack) {
-                                Text("←", fontSize = 24.sp, color = Color.White)
-                            }
+                        IconButton(onClick = onBack) {
+                            Text("←", fontSize = 24.sp, color = Color.White)
                         }
                     },
                     colors =

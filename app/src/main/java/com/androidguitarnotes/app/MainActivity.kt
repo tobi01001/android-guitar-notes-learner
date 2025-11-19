@@ -76,7 +76,15 @@ fun GuitarNotesApp() {
                         navController.popBackStack("home", inclusive = false)
                     },
                     onNavigateToConfig = { 
-                        navController.navigate("practice")
+                        navController.navigate("practice") {
+                            // This ensures that when we go back from practice config,
+                            // we return to practiceSession (ready screen)
+                            popUpTo("practiceSession") {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     },
                 )
             }
