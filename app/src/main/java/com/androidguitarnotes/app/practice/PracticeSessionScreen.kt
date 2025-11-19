@@ -125,7 +125,17 @@ fun PracticeSessionScreen(
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = onBack) {
+                        IconButton(
+                            onClick = {
+                                // Context-aware back navigation
+                                when (state) {
+                                    is PracticeSessionState.Ready -> onBack() // Go to home
+                                    is PracticeSessionState.Active -> viewModel.resetToReady() // Go to Ready
+                                    is PracticeSessionState.Paused -> viewModel.resumeSession() // Go back to Active
+                                    is PracticeSessionState.Completed -> viewModel.resetToReady() // Go to Ready
+                                }
+                            },
+                        ) {
                             Text("←", fontSize = 24.sp, color = Color.White)
                         }
                     },
