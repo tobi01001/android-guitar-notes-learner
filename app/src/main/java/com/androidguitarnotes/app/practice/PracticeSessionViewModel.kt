@@ -315,6 +315,25 @@ class PracticeSessionViewModel(
     }
 
     /**
+     * Resets the session back to Ready state.
+     * Used when navigating back from Active/Paused/Completed states.
+     */
+    fun resetToReady() {
+        // Stop any running timers
+        timerJob?.cancel()
+        autoIntervalJob?.cancel()
+        stopAudioListening()
+        
+        // Reset state to Ready
+        _state.value = PracticeSessionState.Ready
+        
+        // Reset timing variables
+        startTimeMillis = 0
+        pausedTimeMillis = 0
+        totalPausedDuration = 0
+    }
+
+    /**
      * Starts the timer for time-based sessions or elapsed time tracking.
      */
     private fun startTimer() {

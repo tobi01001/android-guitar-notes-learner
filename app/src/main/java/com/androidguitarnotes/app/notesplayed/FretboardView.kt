@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -26,12 +27,12 @@ import com.androidguitarnotes.app.notesplayed.FretboardGridSystem.PixelLayout
 import com.androidguitarnotes.app.ui.NoteColors
 
 // Realistic fretboard colors
-private val FRETBOARD_WOOD_COLOR = Color(0xFF8B5A3C) // Rosewood brown
+private val FRETBOARD_WOOD_COLOR = Color(0xA33A1901) //  brown
 private val FRET_BAR_COLOR = Color(0xFFC0C0C0) // Silver/metal
 private val NUT_COLOR = Color(0xFFF5F5DC) // Beige/bone color for nut
 private val STRING_COLOR = Color(0xFF808080) // Steel grey
 private val FRET_MARKER_COLOR = Color(0xFFE8E8E8) // Pearl/mother-of-pearl
-private val NECK_EDGE_COLOR = Color(0xFF5A3A2C) // Darker wood for binding
+private val NECK_EDGE_COLOR = Color(0xFF110500) // Darker wood for binding
 
 /**
  * Enhanced fretboard visualization using grid-based coordinate system.
@@ -183,7 +184,7 @@ fun FretboardView(
  */
 private fun DrawScope.drawNeckEdges(layout: PixelLayout) {
     val edgeWidth = 3.dp.toPx()
-    val offset = 10.dp.toPx()
+    val offset = 24.dp.toPx()
     // Left edge (column 0)
     drawLine(
         color = NECK_EDGE_COLOR,
@@ -246,7 +247,18 @@ private fun DrawScope.drawStrings(layout: PixelLayout) {
         val x = layout.pixelX(column)
         val y1 = layout.pixelY(0)
         val y2 = layout.pixelY(FretboardGridSystem.ROWS) + 16.dp.toPx()
+        val shadowOffset = 4.dp.toPx()
+        val shadowAlpha = 0.45f
         val strokeWidth = stringWidths[index].toPx()
+
+        // draw a "fake" shadow below the strings to make them look elevated
+        drawLine(
+            color = Color.Black.copy(alpha = shadowAlpha),
+            start = Offset(x + shadowOffset, y1 + shadowOffset),
+            end = Offset(x + shadowOffset, y2 + shadowOffset),
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round,
+        )
 
         drawLine(
             color = STRING_COLOR,
@@ -281,25 +293,22 @@ private fun DrawScope.drawFretMarkers(layout: PixelLayout) {
         )
     }
 
-    // Double dots at fret 12
-    if (doubleDotFret <= 12) {
-        val fretRow = FretboardGridSystem.fretToRow(doubleDotFret)
-        val y1 = layout.pixelY(fretRow)
-        val y2 = layout.pixelY(fretRow + 2)
-        val markerY = (y1 + y2) / 2f
+    val fretRow = FretboardGridSystem.fretToRow(doubleDotFret)
+    val y1 = layout.pixelY(fretRow)
+    val y2 = layout.pixelY(fretRow + 2)
+    val markerY = (y1 + y2) / 2f
 
-        val offset = 8.dp.toPx()
-        drawCircle(
-            color = FRET_MARKER_COLOR,
-            radius = 5.dp.toPx(),
-            center = Offset(markerX - offset, markerY),
-        )
-        drawCircle(
-            color = FRET_MARKER_COLOR,
-            radius = 5.dp.toPx(),
-            center = Offset(markerX + offset, markerY),
-        )
-    }
+    val offset = 8.dp.toPx()
+    drawCircle(
+        color = FRET_MARKER_COLOR,
+        radius = 5.dp.toPx(),
+        center = Offset(markerX - offset, markerY),
+    )
+    drawCircle(
+        color = FRET_MARKER_COLOR,
+        radius = 5.dp.toPx(),
+        center = Offset(markerX + offset, markerY),
+    )
 }
 
 /**
@@ -321,7 +330,7 @@ private fun DrawScope.drawFretNumbers(
     for (fret in 0..maxFret) {
         val row = FretboardGridSystem.fretToRow(fret)
         val y = layout.pixelY(row)
-        val x = layout.pixelX(0)
+        val x = layout.pixelX(0) - 10.dp.toPx()
 
         val textLayoutResult =
             textMeasurer.measure(

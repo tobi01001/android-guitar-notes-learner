@@ -171,16 +171,14 @@ fun NotesPlayedScreen(
                         Modifier
                             .fillMaxWidth()
                             .height(56.dp),
-
-                        colors =
-                            ButtonDefaults.buttonColors(
-                                containerColor =
-                                    NoteColors
-                                        .getAccessibleButtonColorFor("Notes Played")
-                                        .copy(alpha = 0.6f),
-                                contentColor = Color.White,
-                            ),
-
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor =
+                                NoteColors
+                                    .getAccessibleButtonColorFor("Notes Played")
+                                    .copy(alpha = 0.6f),
+                            contentColor = Color.White,
+                        ),
                     shape = RoundedCornerShape(16.dp),
                     elevation =
                         ButtonDefaults.buttonElevation(
@@ -314,7 +312,7 @@ private fun NoteCard(
                             baseColor
                         }
                     } else {
-                        MaterialTheme.colorScheme.primaryContainer
+                        Color.Black.copy(alpha = 0.6f)
                     },
             ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -336,7 +334,8 @@ private fun NoteCard(
                             scaleX = noteScale,
                             scaleY = noteScale,
                             alpha = noteAlpha,
-                        ).clip(RoundedCornerShape(12.dp))
+                        )
+                        .clip(RoundedCornerShape(12.dp))
                         .background(
                             if (detectedNote != null) {
                                 // Reduce saturation when persisted by mixing with gray
@@ -351,7 +350,7 @@ private fun NoteCard(
                                     baseColor
                                 }
                             } else {
-                                MaterialTheme.colorScheme.surfaceVariant
+                                Color.DarkGray.copy(alpha = 0.3f)
                             },
                         ),
                 contentAlignment = Alignment.Center,
@@ -362,7 +361,7 @@ private fun NoteCard(
                         style = MaterialTheme.typography.displayLarge,
                         fontSize = 48.sp, // Slightly smaller to fit sharps better
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        color = Color.White,
                         maxLines = 1,
                     )
                 } else {
@@ -371,7 +370,7 @@ private fun NoteCard(
                         style = MaterialTheme.typography.displayLarge,
                         fontSize = 48.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = Color.LightGray,
                     )
                 }
             }
@@ -384,26 +383,26 @@ private fun NoteCard(
                 Text(
                     text = stringResource(R.string.current_note),
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    color = Color.LightGray,
                 )
 
                 if (detectedNote != null) {
                     Text(
                         text = stringResource(R.string.note_frequency, detectedNote.frequency),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        color = Color.LightGray,
                     )
 
                     Text(
                         text = stringResource(R.string.note_cents, detectedNote.cents),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        color = Color.LightGray,
                     )
                 } else {
                     Text(
                         text = stringResource(R.string.play_a_note),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        color = Color.LightGray,
                     )
                 }
             }

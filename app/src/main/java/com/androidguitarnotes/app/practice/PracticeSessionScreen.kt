@@ -41,8 +41,8 @@ import java.util.Locale
  */
 @Composable
 fun PracticeSessionScreen(
-    config: PracticeConfig,
     onBack: () -> Unit,
+    onNavigateToConfig: () -> Unit,
     settingsViewModel: com.androidguitarnotes.app.settings.SettingsViewModel =
         viewModel(
             factory =
@@ -50,11 +50,20 @@ fun PracticeSessionScreen(
                     LocalContext.current.applicationContext,
                 ),
         ),
-    viewModel: PracticeSessionViewModel =
+    configViewModel: PracticeConfigViewModel =
         viewModel(
-            factory = PracticeSessionViewModelFactory(config, LocalContext.current.applicationContext, settingsViewModel),
+            factory = PracticeConfigViewModelFactory(LocalContext.current.applicationContext),
         ),
 ) {
+    val config by configViewModel.config.collectAsStateWithLifecycle()
+
+    // Create session view model with current config
+    val viewModel: PracticeSessionViewModel =
+        viewModel(
+            factory = PracticeSessionViewModelFactory(config, LocalContext.current.applicationContext, settingsViewModel),
+            key = config.toString(), // Recreate when config changes
+        )
+
     val state by viewModel.state.collectAsStateWithLifecycle()
     val audioPermissionRequired by viewModel.audioPermissionRequired.collectAsStateWithLifecycle()
     val showPermissionRationale by viewModel.showPermissionRationale.collectAsStateWithLifecycle()
@@ -115,6 +124,21 @@ fun PracticeSessionScreen(
                             color = Color.White,
                         )
                     },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = {
+                                // Context-aware back navigation
+                                when (state) {
+                                    is PracticeSessionState.Ready -> onBack() // Go to home
+                                    is PracticeSessionState.Active -> viewModel.resetToReady() // Go to Ready
+                                    is PracticeSessionState.Paused -> viewModel.resumeSession() // Go back to Active
+                                    is PracticeSessionState.Completed -> viewModel.resetToReady() // Go to Ready
+                                }
+                            },
+                        ) {
+                            Text("←", fontSize = 24.sp, color = Color.White)
+                        }
+                    },
                     colors =
                         TopAppBarDefaults.topAppBarColors(
                             containerColor = Color.Transparent,
@@ -132,6 +156,7 @@ fun PracticeSessionScreen(
                 when (val currentState = state) {
                     is PracticeSessionState.Ready -> {
                         ReadyScreen(
+                            config = config,
                             onStart = {
                                 viewModel.startSession()
                                 // Request audio permission for AUDIO_VERIFICATION mode (required)
@@ -139,6 +164,7 @@ fun PracticeSessionScreen(
                                 viewModel.checkAndRequestAudioPermission()
                             },
                             onBack = onBack,
+                            onConfig = onNavigateToConfig,
                         )
                     }
                     is PracticeSessionState.Active -> {
@@ -162,6 +188,8 @@ fun PracticeSessionScreen(
                     is PracticeSessionState.Completed -> {
                         CompletedSessionScreen(
                             state = currentState,
+                            onRepeat = { viewModel.startSession() },
+                            onConfig = onNavigateToConfig,
                             onFinish = onBack,
                         )
                     }
@@ -173,8 +201,10 @@ fun PracticeSessionScreen(
 
 @Composable
 private fun ReadyScreen(
+    config: PracticeConfig,
     onStart: () -> Unit,
     onBack: () -> Unit,
+    onConfig: () -> Unit,
 ) {
     Column(
         modifier =
@@ -200,11 +230,94 @@ private fun ReadyScreen(
             color = Color.White.copy(alpha = 0.85f),
         )
 
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
+        // Settings Summary Card
+        Card(
+            modifier = Modifier.fillMaxWidth(0.9f),
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = Color(0xFF1A1A1A).copy(alpha = 0.7f),
+                ),
+            shape = RoundedCornerShape(12.dp),
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.practice_settings),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Strings
+                Text(
+                    text = stringResource(R.string.settings_summary_strings, config.selectedStrings.sorted().joinToString(", ")),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.9f),
+                )
+
+                // Fret range
+                Text(
+                    text = stringResource(R.string.settings_summary_frets, config.fretFrom, config.fretTo),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.9f),
+                )
+
+                // Note mode
+                val noteModeText =
+                    when (config.noteMode) {
+                        NoteMode.SCALE -> {
+                            val scaleName = getScaleName(config.selectedScale)
+                            stringResource(R.string.note_mode_scale) + " ($scaleName)"
+                        }
+                        NoteMode.WHOLE_NOTES -> stringResource(R.string.note_mode_whole)
+                        NoteMode.SEMITONES -> stringResource(R.string.note_mode_semitones)
+                    }
+                Text(
+                    text = stringResource(R.string.settings_summary_mode, noteModeText),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.9f),
+                )
+
+                // Duration
+                val durationText =
+                    when (config.durationType) {
+                        DurationType.TIME -> stringResource(R.string.settings_summary_time, config.durationMinutes)
+                        DurationType.COUNT -> stringResource(R.string.settings_summary_count, config.noteCount)
+                    }
+                Text(
+                    text = durationText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.9f),
+                )
+
+                // Progression mode
+                val progressionText =
+                    when (config.progressionMode) {
+                        ProgressionMode.MANUAL -> stringResource(R.string.progression_mode_manual)
+                        ProgressionMode.AUDIO_VERIFICATION -> stringResource(R.string.progression_mode_audio)
+                        ProgressionMode.AUTO_INTERVAL -> {
+                            stringResource(R.string.progression_mode_interval) + " (${config.autoIntervalSeconds}s)"
+                        }
+                    }
+                Text(
+                    text = stringResource(R.string.settings_summary_progression, progressionText),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.9f),
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Start Practice button in its own row
         Button(
             onClick = onStart,
-            modifier = Modifier.fillMaxWidth(0.6f),
+            modifier = Modifier.fillMaxWidth(0.7f),
             colors =
                 ButtonDefaults.buttonColors(
                     containerColor =
@@ -217,19 +330,38 @@ private fun ReadyScreen(
             Text(stringResource(R.string.start_practice))
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        OutlinedButton(
-            onClick = onBack,
-            modifier = Modifier.fillMaxWidth(0.6f),
-            colors =
-                ButtonDefaults.outlinedButtonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = Color.White,
-                ),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.6f)),
+        // Back and Config buttons in a row
+        Row(
+            modifier = Modifier.fillMaxWidth(0.7f),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(stringResource(R.string.back))
+            OutlinedButton(
+                onClick = onBack,
+                modifier = Modifier.weight(1f),
+                colors =
+                    ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = Color.White,
+                    ),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.6f)),
+            ) {
+                Text(stringResource(R.string.back))
+            }
+
+            OutlinedButton(
+                onClick = onConfig,
+                modifier = Modifier.weight(1f),
+                colors =
+                    ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = Color.White,
+                    ),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.6f)),
+            ) {
+                Text(stringResource(R.string.config))
+            }
         }
     }
 }
@@ -515,6 +647,8 @@ private fun PausedSessionScreen(
 @Composable
 private fun CompletedSessionScreen(
     state: PracticeSessionState.Completed,
+    onRepeat: () -> Unit,
+    onConfig: () -> Unit,
     onFinish: () -> Unit,
 ) {
     Column(
@@ -578,13 +712,56 @@ private fun CompletedSessionScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
+        // Repeat button
         Button(
-            onClick = onFinish,
-            modifier = Modifier.fillMaxWidth(0.6f),
+            onClick = onRepeat,
+            modifier = Modifier.fillMaxWidth(0.7f),
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor =
+                        NoteColors
+                            .getAccessibleButtonColorFor("Practice")
+                            .copy(alpha = 0.6f),
+                    contentColor = Color.White,
+                ),
         ) {
-            Text(stringResource(R.string.finish))
+            Text(stringResource(R.string.repeat))
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Config and Back buttons in a row
+        Row(
+            modifier = Modifier.fillMaxWidth(0.7f),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            OutlinedButton(
+                onClick = onConfig,
+                modifier = Modifier.weight(1f),
+                colors =
+                    ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = Color.White,
+                    ),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.6f)),
+            ) {
+                Text(stringResource(R.string.config))
+            }
+
+            OutlinedButton(
+                onClick = onFinish,
+                modifier = Modifier.weight(1f),
+                colors =
+                    ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = Color.White,
+                    ),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.6f)),
+            ) {
+                Text(stringResource(R.string.back))
+            }
         }
     }
 }
@@ -720,6 +897,15 @@ private fun NoteFeedbackDisplay(feedback: PracticeSessionState.NoteFeedback) {
         }
     }
 }
+
+@Composable
+private fun getScaleName(scale: Scale): String =
+    when (scale) {
+        Scale.C_MAJOR -> stringResource(R.string.scale_c_major)
+        Scale.G_MAJOR -> stringResource(R.string.scale_g_major)
+        Scale.A_MINOR -> stringResource(R.string.scale_a_minor)
+        Scale.E_MINOR -> stringResource(R.string.scale_e_minor)
+    }
 
 private fun formatTime(seconds: Long): String {
     val minutes = seconds / 60

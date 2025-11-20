@@ -55,7 +55,7 @@ fun GuitarNotesApp() {
         NavHost(navController, startDestination = "home") {
             composable("home") {
                 HomeScreen(
-                    onStartPractice = { navController.navigate("practice") },
+                    onStartPractice = { navController.navigate("practiceSession") },
                     onOpenTuner = { navController.navigate("tuner") },
                     onOpenNotesPlayed = { navController.navigate("notesPlayed") },
                     onOpenSettings = { navController.navigate("settings") },
@@ -71,13 +71,22 @@ fun GuitarNotesApp() {
                 )
             }
             composable("practiceSession") {
-                val config = practiceConfig
-                if (config != null) {
-                    PracticeSessionScreen(
-                        config = config,
-                        onBack = { navController.popBackStack() },
-                    )
-                }
+                PracticeSessionScreen(
+                    onBack = { 
+                        navController.popBackStack("home", inclusive = false)
+                    },
+                    onNavigateToConfig = { 
+                        navController.navigate("practice") {
+                            // This ensures that when we go back from practice config,
+                            // we return to practiceSession (ready screen)
+                            popUpTo("practiceSession") {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                )
             }
             composable("tuner") {
                 TunerScreen(
