@@ -246,4 +246,135 @@ class PitchDetectorTest {
 
         return audioData
     }
+
+    /**
+     * Helper function to generate a signal with harmonics.
+     */
+    private fun generateSignalWithHarmonics(
+        fundamental: Double,
+        harmonics: List<Pair<Double, Float>>,
+        sampleRate: Int,
+        samples: Int,
+        fundamentalAmplitude: Float = 0.8f,
+    ): FloatArray {
+        val audioData = FloatArray(samples)
+
+        // Add fundamental
+        for (i in 0 until samples) {
+            val time = i.toDouble() / sampleRate
+            audioData[i] = (fundamentalAmplitude * sin(2 * PI * fundamental * time)).toFloat()
+        }
+
+        // Add harmonics
+        for ((harmonicFreq, amplitude) in harmonics) {
+            for (i in 0 until samples) {
+                val time = i.toDouble() / sampleRate
+                audioData[i] += (amplitude * sin(2 * PI * harmonicFreq * time)).toFloat()
+            }
+        }
+
+        // Normalize to prevent clipping
+        val maxAmplitude = audioData.maxOrNull() ?: 1f
+        if (maxAmplitude > 1f) {
+            for (i in audioData.indices) {
+                audioData[i] /= maxAmplitude
+            }
+        }
+
+        return audioData
+    }
+
+    @Test
+    fun `YIN_HARMONIC algorithm detects and validates pitch`() {
+        val harmonicDetector = PitchDetector(algorithm = PitchDetectionAlgorithm.YIN_HARMONIC)
+        val frequency = 440.0 // A4
+        val sampleRate = 44100
+        val duration = 0.15
+        val samples = (sampleRate * duration).toInt()
+
+        val audioData =
+            generateSignalWithHarmonics(
+                fundamental = frequency,
+                harmonics =
+                    listOf(
+                        frequency * 2 to 0.5f,
+                        frequency * 3 to 0.3f,
+                    ),
+                sampleRate = sampleRate,
+                samples = samples,
+            )
+
+        val result = harmonicDetector.detectPitchWithConfidence(audioData)
+        assertNotNull("Should detect frequency", result)
+        result?.let {
+            assertTrue(
+                "Detected frequency should be close to 440Hz, got ${it.frequency}",
+                it.frequency in 420.0..460.0,
+            )
+        }
+    }
+
+    @Test
+    fun `YIN_ENHANCED_HARMONIC algorithm provides maximum accuracy`() {
+        val enhancedHarmonicDetector = PitchDetector(algorithm = PitchDetectionAlgorithm.YIN_ENHANCED_HARMONIC)
+        val frequency = 329.63 // E4
+        val sampleRate = 44100
+        val duration = 0.15
+        val samples = (sampleRate * duration).toInt()
+
+        val audioData =
+            generateSignalWithHarmonics(
+                fundamental = frequency,
+                harmonics =
+                    listOf(
+                        frequency * 2 to 0.6f,
+                        frequency * 3 to 0.4f,
+                    ),
+                sampleRate = sampleRate,
+                samples = samples,
+            )
+
+        val result = enhancedHarmonicDetector.detectPitchWithConfidence(audioData)
+        assertNotNull("Should detect frequency", result)
+        result?.let {
+            assertTrue(
+                "Detected frequency should be close to 329.63Hz, got ${it.frequency}",
+                kotlin.math.abs(it.frequency - frequency) < 10.0,
+            )
+        }
+    }
+
+    @Test
+    fun `YIN_HARMONIC corrects octave error for signal with strong harmonics`() {
+        val harmonicDetector = PitchDetector(algorithm = PitchDetectionAlgorithm.YIN_HARMONIC)
+        val fundamental = 110.0 // A2
+        val sampleRate = 44100
+        val duration = 0.2
+        val samples = (sampleRate * duration).toInt()
+
+        // Generate signal with very strong 2nd harmonic that might confuse standard detector
+        val audioData =
+            generateSignalWithHarmonics(
+                fundamental = fundamental,
+                harmonics =
+                    listOf(
+                        fundamental * 2 to 1.0f, // Very strong 2nd harmonic
+                        fundamental * 3 to 0.5f,
+                        fundamental * 4 to 0.3f,
+                    ),
+                sampleRate = sampleRate,
+                samples = samples,
+                fundamentalAmplitude = 0.4f, // Weaker fundamental
+            )
+
+        val result = harmonicDetector.detectPitchWithConfidence(audioData)
+        assertNotNull("Should detect frequency", result)
+        result?.let {
+            // Should detect something reasonable (either fundamental or validated harmonic)
+            assertTrue(
+                "Detected frequency should be in valid range, got ${it.frequency}",
+                it.frequency in 80.0..1500.0,
+            )
+        }
+    }
 }

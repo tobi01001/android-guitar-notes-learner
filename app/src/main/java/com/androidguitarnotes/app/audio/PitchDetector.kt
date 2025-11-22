@@ -45,6 +45,20 @@ enum class PitchDetectionAlgorithm {
      * Best accuracy and robustness for challenging cases.
      */
     HYBRID_YIN_FFT,
+
+    /**
+     * YIN with harmonic consistency validation (Enhancement ENH-002).
+     * Uses FFT-based harmonic analysis to detect and correct octave errors.
+     * Significant accuracy improvement for natural harmonics and high register.
+     */
+    YIN_HARMONIC,
+
+    /**
+     * YIN Enhanced with harmonic consistency validation (ENH-002).
+     * Combines adaptive threshold, multi-period analysis, and harmonic validation.
+     * Maximum accuracy and octave error reduction.
+     */
+    YIN_ENHANCED_HARMONIC,
 }
 
 /**
@@ -105,6 +119,7 @@ class PitchDetector(
             multiPeriodAnalysis = true,
         )
     private val hybridDetector = HybridYinFftDetector(sampleRate)
+    private val harmonicValidator = HarmonicValidator(sampleRate)
 
     companion object {
         private const val MIN_FREQUENCY = 60.0 // Low E2 (~82 Hz), with margin
@@ -161,6 +176,26 @@ class PitchDetector(
                 val yinResult = yinEnhancedDetector.detectPitch(audioData)
                 yinResult?.let {
                     PitchResult(it.frequency, 1.0f - it.confidence)
+                }
+            }
+            PitchDetectionAlgorithm.YIN_HARMONIC -> {
+                val yinResult = yinDetector.detectPitch(audioData)
+                yinResult?.let {
+                    // Apply harmonic validation to correct potential octave errors
+                    val validatedFrequency = harmonicValidator.validatePitch(audioData, it.frequency)
+                    validatedFrequency?.let { freq ->
+                        PitchResult(freq, 1.0f - it.confidence)
+                    }
+                }
+            }
+            PitchDetectionAlgorithm.YIN_ENHANCED_HARMONIC -> {
+                val yinResult = yinEnhancedDetector.detectPitch(audioData)
+                yinResult?.let {
+                    // Apply harmonic validation to correct potential octave errors
+                    val validatedFrequency = harmonicValidator.validatePitch(audioData, it.frequency)
+                    validatedFrequency?.let { freq ->
+                        PitchResult(freq, 1.0f - it.confidence)
+                    }
                 }
             }
             PitchDetectionAlgorithm.HYBRID_YIN_FFT -> {
