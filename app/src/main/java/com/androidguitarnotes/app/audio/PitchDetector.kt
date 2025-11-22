@@ -119,7 +119,7 @@ class PitchDetector(
             multiPeriodAnalysis = true,
         )
     private val hybridDetector = HybridYinFftDetector(sampleRate)
-    private val harmonicValidator = HarmonicValidator(sampleRate)
+    private val harmonicValidator = HarmonicValidator(sampleRate = sampleRate)
 
     companion object {
         private const val MIN_FREQUENCY = 60.0 // Low E2 (~82 Hz), with margin
