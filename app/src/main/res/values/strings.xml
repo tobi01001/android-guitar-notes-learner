@@ -142,6 +142,8 @@
     <string name="algorithm_yin_multi_period">YIN Multi-Period</string>
     <string name="algorithm_yin_enhanced">YIN Enhanced</string>
     <string name="algorithm_hybrid_yin_fft">Hybrid YIN+FFT</string>
+    <string name="algorithm_yin_harmonic">YIN+Harmonic</string>
+    <string name="algorithm_yin_enhanced_harmonic">YIN enhanced harmonic</string>
 
     <!-- Notes Played -->
     <string name="notes_played_title">Notes Played</string>
