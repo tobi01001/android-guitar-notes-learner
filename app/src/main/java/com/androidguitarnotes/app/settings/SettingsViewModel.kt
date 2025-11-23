@@ -53,6 +53,9 @@ class SettingsViewModel(
     private val _pitchDetectionAlgorithm = MutableStateFlow("YIN")
     val pitchDetectionAlgorithm: StateFlow<String> = _pitchDetectionAlgorithm.asStateFlow()
 
+    private val _multiFrameConfirmation = MutableStateFlow(false)
+    val multiFrameConfirmation: StateFlow<Boolean> = _multiFrameConfirmation.asStateFlow()
+
     init {
         // Load saved audio source
         viewModelScope.launch {
@@ -100,6 +103,13 @@ class SettingsViewModel(
         viewModelScope.launch {
             repository.pitchDetectionAlgorithm.collect { savedAlgorithm ->
                 _pitchDetectionAlgorithm.value = savedAlgorithm
+            }
+        }
+
+        // Load saved multi-frame confirmation setting
+        viewModelScope.launch {
+            repository.multiFrameConfirmation.collect { savedEnabled ->
+                _multiFrameConfirmation.value = savedEnabled
             }
         }
     }
@@ -176,6 +186,19 @@ class SettingsViewModel(
         _pitchDetectionAlgorithm.value = algorithm
         viewModelScope.launch {
             repository.savePitchDetectionAlgorithm(algorithm)
+        }
+    }
+
+    /**
+     * Toggles multi-frame confirmation setting (ENH-001).
+     *
+     * When enabled, requires consecutive audio frames to detect the same pitch
+     * before confirming detection. Reduces false positives but adds latency.
+     */
+    fun toggleMultiFrameConfirmation(enabled: Boolean) {
+        _multiFrameConfirmation.value = enabled
+        viewModelScope.launch {
+            repository.saveMultiFrameConfirmation(enabled)
         }
     }
 }

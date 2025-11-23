@@ -21,6 +21,7 @@ class AudioManager(
     private val audioRecorder = AudioRecorder()
     private var pitchDetector = PitchDetector(algorithm = algorithm)
     private val noteRecognizer = NoteRecognizer()
+    private var confirmationFilter: PitchConfirmationFilter? = null
 
     /**
      * Updates the pitch detection algorithm.
@@ -65,6 +66,7 @@ class AudioManager(
      * @param audioSource Audio source to use, or null to auto-select
      * @param noiseGateThreshold RMS threshold below which signal is gated (default 0.01f)
      * @param autoAdjustEnabled Whether to enable auto-adjust sensitivity feature
+     * @param multiFrameConfirmationEnabled Whether to require consecutive frame confirmation (ENH-001)
      * @return Flow of DetectedNote (always populated, never null)
      */
     fun startListeningWithDetectedNote(
@@ -72,41 +74,77 @@ class AudioManager(
         audioSource: Int? = null,
         noiseGateThreshold: Float = 0.01f,
         autoAdjustEnabled: Boolean = false,
+        multiFrameConfirmationEnabled: Boolean = false,
     ): Flow<DetectedNote> =
         audioRecorder
             .startRecording(sensitivityMultiplier, audioSource, autoAdjustEnabled, noiseGateThreshold)
             .map { audioDataWithLevel ->
-                // If signal is gated (below threshold), return default DetectedNote
-                if (audioDataWithLevel.isGated) {
-                    DetectedNote(
-                        isDetected = false,
-                        noteName = "?",
-                        frequency = null,
-                        cents = 0.0,
-                        confidence = 0f,
-                        audioLevel = audioDataWithLevel.level,
-                        octave = -1,
-                        noteNameWithOctave = "?",
-                        isGated = true,
-                    )
-                } else {
-                    val pitchResult = pitchDetector.detectPitchWithConfidence(audioDataWithLevel.audioData)
+                // Initialize or reset confirmation filter when recording starts
+                if (multiFrameConfirmationEnabled && confirmationFilter == null) {
+                    confirmationFilter = PitchConfirmationFilter(requiredConsecutiveFrames = 2)
+                } else if (!multiFrameConfirmationEnabled && confirmationFilter != null) {
+                    confirmationFilter = null
+                }
 
-                    if (pitchResult != null) {
-                        val recognizedNote = noteRecognizer.recognizeNote(pitchResult.frequency)
+                // Process the audio frame to get raw detection
+                val rawDetection =
+                    if (audioDataWithLevel.isGated) {
+                        // If signal is gated (below threshold), return default DetectedNote
                         DetectedNote(
-                            isDetected = true,
-                            noteName = recognizedNote.noteName,
-                            frequency = recognizedNote.frequency,
-                            cents = recognizedNote.cents,
-                            confidence = pitchResult.confidence,
+                            isDetected = false,
+                            noteName = "?",
+                            frequency = null,
+                            cents = 0.0,
+                            confidence = 0f,
                             audioLevel = audioDataWithLevel.level,
-                            octave = recognizedNote.octave,
-                            noteNameWithOctave = recognizedNote.noteNameWithOctave,
-                            isGated = false,
+                            octave = -1,
+                            noteNameWithOctave = "?",
+                            isGated = true,
                         )
                     } else {
-                        DetectedNote(
+                        val pitchResult = pitchDetector.detectPitchWithConfidence(audioDataWithLevel.audioData)
+
+                        if (pitchResult != null) {
+                            val recognizedNote = noteRecognizer.recognizeNote(pitchResult.frequency)
+                            DetectedNote(
+                                isDetected = true,
+                                noteName = recognizedNote.noteName,
+                                frequency = recognizedNote.frequency,
+                                cents = recognizedNote.cents,
+                                confidence = pitchResult.confidence,
+                                audioLevel = audioDataWithLevel.level,
+                                octave = recognizedNote.octave,
+                                noteNameWithOctave = recognizedNote.noteNameWithOctave,
+                                isGated = false,
+                            )
+                        } else {
+                            DetectedNote(
+                                isDetected = false,
+                                noteName = "?",
+                                frequency = null,
+                                cents = 0.0,
+                                confidence = 0f,
+                                audioLevel = audioDataWithLevel.level,
+                                octave = -1,
+                                noteNameWithOctave = "?",
+                                isGated = false,
+                            )
+                        }
+                    }
+
+                // Apply multi-frame confirmation if enabled
+                if (confirmationFilter != null) {
+                    val confirmed =
+                        confirmationFilter?.confirm(rawDetection) { detection ->
+                            if (detection.isDetected) {
+                                Pair(detection.noteName, detection.octave)
+                            } else {
+                                null
+                            }
+                        }
+                    // Return confirmed detection or undetected result with current audio level
+                    confirmed
+                        ?: DetectedNote(
                             isDetected = false,
                             noteName = "?",
                             frequency = null,
@@ -117,7 +155,9 @@ class AudioManager(
                             noteNameWithOctave = "?",
                             isGated = false,
                         )
-                    }
+                } else {
+                    // No confirmation - return raw detection
+                    rawDetection
                 }
             }
 
@@ -126,6 +166,7 @@ class AudioManager(
      */
     fun stopListening() {
         audioRecorder.stopRecording()
+        confirmationFilter?.reset()
     }
 
     /**

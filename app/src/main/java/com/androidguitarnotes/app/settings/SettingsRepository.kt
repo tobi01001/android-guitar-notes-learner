@@ -28,6 +28,7 @@ class SettingsRepository(
         val MICROPHONE_SENSITIVITY = floatPreferencesKey("microphone_sensitivity")
         val AUTO_ADJUST_SENSITIVITY = booleanPreferencesKey("auto_adjust_sensitivity")
         val PITCH_DETECTION_ALGORITHM = stringPreferencesKey("pitch_detection_algorithm")
+        val MULTI_FRAME_CONFIRMATION = booleanPreferencesKey("multi_frame_confirmation")
     }
 
     /**
@@ -148,5 +149,22 @@ class SettingsRepository(
     val pitchDetectionAlgorithm: Flow<String> =
         context.settingsDataStore.data.map { preferences ->
             preferences[PreferencesKeys.PITCH_DETECTION_ALGORITHM] ?: "YIN"
+        }
+
+    /**
+     * Saves the multi-frame confirmation setting (ENH-001).
+     */
+    suspend fun saveMultiFrameConfirmation(enabled: Boolean) {
+        context.settingsDataStore.edit { preferences ->
+            preferences[PreferencesKeys.MULTI_FRAME_CONFIRMATION] = enabled
+        }
+    }
+
+    /**
+     * Loads the multi-frame confirmation setting (default false - OFF for backward compatibility).
+     */
+    val multiFrameConfirmation: Flow<Boolean> =
+        context.settingsDataStore.data.map { preferences ->
+            preferences[PreferencesKeys.MULTI_FRAME_CONFIRMATION] ?: false
         }
 }
