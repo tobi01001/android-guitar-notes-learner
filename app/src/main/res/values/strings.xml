@@ -144,6 +144,8 @@
     <string name="algorithm_hybrid_yin_fft">Hybrid YIN+FFT</string>
     <string name="algorithm_yin_harmonic">YIN+Harmonic</string>
     <string name="algorithm_yin_enhanced_harmonic">YIN enhanced harmonic</string>
+    <string name="multi_frame_confirmation">Multi-Frame Confirmation</string>
+    <string name="multi_frame_confirmation_description">Require consecutive frames to confirm detection for extra stability (adds ~100–200ms latency)</string>
 
     <!-- Notes Played -->
     <string name="notes_played_title">Notes Played</string>

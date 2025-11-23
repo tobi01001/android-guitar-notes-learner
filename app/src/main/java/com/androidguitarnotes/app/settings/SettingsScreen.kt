@@ -79,6 +79,7 @@ fun SettingsScreen(
     val audioSource by viewModel.audioSource.collectAsStateWithLifecycle()
     val noiseGateThreshold by viewModel.noiseGateThreshold.collectAsStateWithLifecycle()
     val pitchDetectionAlgorithm by viewModel.pitchDetectionAlgorithm.collectAsStateWithLifecycle()
+    val multiFrameConfirmation by viewModel.multiFrameConfirmation.collectAsStateWithLifecycle()
 
     var showAudioSourceDialog by remember { mutableStateOf(false) }
     var showAlgorithmDialog by remember { mutableStateOf(false) }
@@ -150,6 +151,7 @@ fun SettingsScreen(
         noiseGateThreshold,
         autoAdjustSensitivity,
         pitchDetectionAlgorithm,
+        multiFrameConfirmation,
     ) {
         // Stop any previous listening session before starting a new one
         audioManager.stopListening()
@@ -163,6 +165,7 @@ fun SettingsScreen(
                         audioSource = audioSourceValue,
                         noiseGateThreshold = noiseGateThreshold,
                         autoAdjustEnabled = autoAdjustSensitivity,
+                        multiFrameConfirmationEnabled = multiFrameConfirmation,
                     ).collect { detectedNote ->
                         currentAudioLevel = detectedNote.audioLevel
                         isGated = detectedNote.isGated
@@ -340,6 +343,16 @@ fun SettingsScreen(
                         subtitle = getAlgorithmDisplayName(pitchDetectionAlgorithm),
                         description = stringResource(R.string.pitch_detection_description),
                         onClick = { showAlgorithmDialog = true },
+                    )
+
+                    Divider(color = Color.White.copy(alpha = 0.12f))
+
+                    // Multi-Frame Confirmation (ENH-001)
+                    SettingsSwitchItem(
+                        title = stringResource(R.string.multi_frame_confirmation),
+                        description = stringResource(R.string.multi_frame_confirmation_description),
+                        checked = multiFrameConfirmation,
+                        onCheckedChange = { viewModel.toggleMultiFrameConfirmation(it) },
                     )
 
                     Divider(color = Color.White.copy(alpha = 0.12f))
