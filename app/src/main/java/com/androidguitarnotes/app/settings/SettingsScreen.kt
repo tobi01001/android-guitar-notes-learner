@@ -694,6 +694,8 @@ private fun getAlgorithmDisplayName(algorithm: String): String =
         "YIN_MULTI_PERIOD" -> stringResource(R.string.algorithm_yin_multi_period)
         "YIN_ENHANCED" -> stringResource(R.string.algorithm_yin_enhanced)
         "HYBRID_YIN_FFT" -> stringResource(R.string.algorithm_hybrid_yin_fft)
+        "YIN_HARMONIC" -> stringResource(R.string.algorithm_yin_harmonic)
+        "YIN_ENHANCED_HARMONIC" -> stringResource(R.string.algorithm_yin_enhanced_harmonic)
         else -> stringResource(R.string.algorithm_yin) // Default to YIN
     }
 
@@ -713,6 +715,8 @@ private fun AlgorithmDialog(
             "YIN_MULTI_PERIOD" to stringResource(R.string.algorithm_yin_multi_period),
             "YIN_ENHANCED" to stringResource(R.string.algorithm_yin_enhanced),
             "HYBRID_YIN_FFT" to stringResource(R.string.algorithm_hybrid_yin_fft),
+            "YIN_HARMONIC" to stringResource(R.string.algorithm_yin_harmonic),
+            "YIN_ENHANCED_HARMONIC" to stringResource(R.string.algorithm_yin_enhanced_harmonic),
         )
 
     AlertDialog(
