@@ -107,12 +107,15 @@ class NotesPlayedViewModel(
                     val autoAdjust = settingsViewModel.autoAdjustSensitivity.value
                     val noiseGateThreshold = settingsViewModel.noiseGateThreshold.value
 
+                    val multiFrameConfirmation = settingsViewModel.multiFrameConfirmation.value
+
                     audioManager
                         .startListeningWithDetectedNote(
                             sensitivityMultiplier = sensitivity,
                             audioSource = audioSourceValue,
                             autoAdjustEnabled = autoAdjust,
                             noiseGateThreshold = noiseGateThreshold,
+                            multiFrameConfirmationEnabled = multiFrameConfirmation,
                         ).collect { detectedNote ->
                             if (detectedNote.isDetected) {
                                 val noteInfo =

@@ -151,6 +151,7 @@ class PracticeSessionViewModel(
                     val sensitivity = settingsViewModel.microphoneSensitivity.value
                     val autoAdjust = settingsViewModel.autoAdjustSensitivity.value
                     val noiseGateThreshold = settingsViewModel.noiseGateThreshold.value
+                    val multiFrameConfirmation = settingsViewModel.multiFrameConfirmation.value
 
                     audioManager
                         .startListeningWithDetectedNote(
@@ -158,6 +159,7 @@ class PracticeSessionViewModel(
                             audioSource = audioSourceValue,
                             autoAdjustEnabled = autoAdjust,
                             noiseGateThreshold = noiseGateThreshold,
+                            multiFrameConfirmationEnabled = multiFrameConfirmation,
                         ).collect { detectedNote ->
                             val currentState = _state.value
                             if (currentState is PracticeSessionState.Active) {

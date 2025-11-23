@@ -122,6 +122,7 @@ class TunerViewModel(
                             audioSource = audioSourceValue,
                             autoAdjustEnabled = autoAdjust,
                             noiseGateThreshold = noiseGateThreshold,
+                            multiFrameConfirmationEnabled = false, // Never use in tuner - would slow down tuning
                         ).collect { detectedNote ->
                             if (detectedNote.isDetected) {
                                 val selectedString = _state.value.selectedString
