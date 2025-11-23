@@ -106,6 +106,7 @@ class PitchConfirmationFilterTest {
     fun `same note name different octave is treated as different note`() {
         val filter = PitchConfirmationFilter(requiredConsecutiveFrames = 2)
 
+        // E4 standard frequency ~329.63 Hz, E3 is one octave lower ~164.81 Hz
         val noteE4 = TestDetection("E", 4, 329.63)
         val noteE3 = TestDetection("E", 3, 164.81)
 
@@ -123,8 +124,8 @@ class PitchConfirmationFilterTest {
     fun `same note with slight frequency variation is confirmed`() {
         val filter = PitchConfirmationFilter(requiredConsecutiveFrames = 2)
 
-        // Same note E4 with slightly different frequencies (within same semitone)
-        val noteE1 = TestDetection("E", 4, 329.63)
+        // Same note E4 (~329.63 Hz standard) with slightly different frequencies (within same semitone)
+        val noteE1 = TestDetection("E", 4, 329.63) // E4 standard frequency
         val noteE2 = TestDetection("E", 4, 330.50) // Slightly sharp but still E4
 
         // First frame

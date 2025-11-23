@@ -23,6 +23,14 @@ class AudioManager(
     private val noteRecognizer = NoteRecognizer()
     private var confirmationFilter: PitchConfirmationFilter? = null
 
+    companion object {
+        /**
+         * Default number of consecutive frames required for multi-frame confirmation.
+         * 2 frames provides good balance between stability and latency (~100-200ms).
+         */
+        private const val DEFAULT_CONFIRMATION_FRAMES = 2
+    }
+
     /**
      * Updates the pitch detection algorithm.
      */
@@ -81,7 +89,7 @@ class AudioManager(
             .map { audioDataWithLevel ->
                 // Initialize or reset confirmation filter when recording starts
                 if (multiFrameConfirmationEnabled && confirmationFilter == null) {
-                    confirmationFilter = PitchConfirmationFilter(requiredConsecutiveFrames = 2)
+                    confirmationFilter = PitchConfirmationFilter(requiredConsecutiveFrames = DEFAULT_CONFIRMATION_FRAMES)
                 } else if (!multiFrameConfirmationEnabled && confirmationFilter != null) {
                     confirmationFilter = null
                 }
@@ -133,9 +141,10 @@ class AudioManager(
                     }
 
                 // Apply multi-frame confirmation if enabled
-                if (confirmationFilter != null) {
+                val filter = confirmationFilter
+                if (filter != null) {
                     val confirmed =
-                        confirmationFilter?.confirm(rawDetection) { detection ->
+                        filter.confirm(rawDetection) { detection ->
                             if (detection.isDetected) {
                                 Pair(detection.noteName, detection.octave)
                             } else {
