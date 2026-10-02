@@ -34,6 +34,7 @@ import com.androidguitarnotes.app.practice.PracticeConfigScreen
 import com.androidguitarnotes.app.practice.PracticeSessionScreen
 import com.androidguitarnotes.app.settings.SettingsScreen
 import com.androidguitarnotes.app.tuner.TunerScreen
+import com.androidguitarnotes.app.update.AutoUpdateCheck
 import com.androidguitarnotes.app.ui.NoteColors
 import com.androidguitarnotes.app.ui.NoteColors.getBackgroundOverlayColor
 
@@ -49,6 +50,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun GuitarNotesApp() {
     MaterialTheme {
+        AutoUpdateCheck()
         val navController = rememberNavController()
         var practiceConfig by remember { mutableStateOf<PracticeConfig?>(null) }
 

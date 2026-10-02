@@ -59,6 +59,8 @@ import com.androidguitarnotes.app.audio.PitchDetectionAlgorithm
 import com.androidguitarnotes.app.permissions.PermissionManager
 import com.androidguitarnotes.app.permissions.PermissionRationaleScreen
 import com.androidguitarnotes.app.ui.NoteColors
+import com.androidguitarnotes.app.update.UpdateChecker
+import com.androidguitarnotes.app.update.UpdateSettings
 import com.androidguitarnotes.app.ui.NoteColors.getBackgroundOverlayColor
 
 @Composable
@@ -358,12 +360,17 @@ fun SettingsScreen(
                     Divider(color = Color.White.copy(alpha = 0.12f))
                 }
 
+                // Updates Section
+                SettingsSectionHeader(title = stringResource(R.string.updates_section))
+
+                UpdateSettings()
+
                 // About Section
                 SettingsSectionHeader(title = stringResource(R.string.about_section))
 
                 SettingsItem(
                     title = stringResource(R.string.app_version),
-                    subtitle = stringResource(R.string.version_value),
+                    subtitle = UpdateChecker.currentVersion(context),
                 )
             }
         }
