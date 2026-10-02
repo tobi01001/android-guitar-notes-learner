@@ -281,10 +281,8 @@ private fun DrawScope.drawFretMarkers(layout: PixelLayout) {
 
     for (fret in markerFrets) {
         val fretRow = FretboardGridSystem.fretToRow(fret)
-        // Position vertically in the center of the fret space (between this fret and next)
-        val y1 = layout.pixelY(fretRow)
-        val y2 = layout.pixelY(fretRow + 2)
-        val markerY = (y1 + y2) / 2f
+        // Position vertically in the center of the fret space between the previous fret and this fret.
+        val markerY = layout.pixelY(fretRow - 1)
 
         drawCircle(
             color = FRET_MARKER_COLOR,
@@ -294,9 +292,7 @@ private fun DrawScope.drawFretMarkers(layout: PixelLayout) {
     }
 
     val fretRow = FretboardGridSystem.fretToRow(doubleDotFret)
-    val y1 = layout.pixelY(fretRow)
-    val y2 = layout.pixelY(fretRow + 2)
-    val markerY = (y1 + y2) / 2f
+    val markerY = layout.pixelY(fretRow - 1)
 
     val offset = 8.dp.toPx()
     drawCircle(
