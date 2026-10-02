@@ -21,8 +21,33 @@ android {
             libs.versions.targetSdk
                 .get()
                 .toInt()
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = (project.findProperty("appVersionCode") as String?)?.toInt() ?: 1
+        versionName = (project.findProperty("appVersionName") as String?) ?: "0.1.0"
+    }
+
+    // Release signing is configured via environment variables (set by the release workflow).
+    // Without them the release build falls back to the debug keystore so the APK stays installable.
+    val releaseKeystore = System.getenv("RELEASE_KEYSTORE_FILE")
+    signingConfigs {
+        if (!releaseKeystore.isNullOrBlank()) {
+            create("release") {
+                storeFile = file(releaseKeystore)
+                storePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+                keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig =
+                if (!releaseKeystore.isNullOrBlank()) {
+                    signingConfigs.getByName("release")
+                } else {
+                    signingConfigs.getByName("debug")
+                }
+        }
     }
 
     buildFeatures {

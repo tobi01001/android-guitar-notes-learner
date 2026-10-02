@@ -1,0 +1,91 @@
+name: Release
+
+# Automatically bumps the patch version, builds a signed APK and publishes a GitHub release.
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version part to bump'
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute next version
+        id: version
+        env:
+          BUMP: ${{ github.event.inputs.bump || 'patch' }}
+        run: |
+          latest=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1)
+          latest=${latest:-v0.0.0}
+          IFS=. read -r major minor patch <<< "${latest#v}"
+          case "$BUMP" in
+            major) major=$((major+1)); minor=0; patch=0 ;;
+            minor) minor=$((minor+1)); patch=0 ;;
+            *) patch=$((patch+1)) ;;
+          esac
+          echo "version=$major.$minor.$patch" >> "$GITHUB_OUTPUT"
+          echo "code=$((major*1000000 + minor*1000 + patch))" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Decode keystore (optional)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+            echo "RELEASE_KEYSTORE_FILE=$RUNNER_TEMP/release.keystore" >> "$GITHUB_ENV"
+          else
+            echo "::warning::RELEASE_KEYSTORE_BASE64 not set; signing with the debug key. Updates over a differently signed APK will fail to install."
+          fi
+
+      - name: Build release APK
+        env:
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --stacktrace \
+            -PappVersionName=${{ steps.version.outputs.version }} \
+            -PappVersionCode=${{ steps.version.outputs.code }}
+          cp app/build/outputs/apk/release/*.apk "guitar-notes-learner-v${{ steps.version.outputs.version }}.apk"
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" \
+            "guitar-notes-learner-v${{ steps.version.outputs.version }}.apk" \
+            --target "${{ github.sha }}" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --generate-notes
